@@ -549,7 +549,7 @@ export default function HomePage() {
 
           {/* Start Button */}
           <div className="mt-8 text-center">
-            <Link href={isReady ? "/setup" : "#"}>
+            <Link href={isReady ? "/config" : "#"}>
               <Button 
                 size="lg" 
                 className={`px-8 py-3 text-lg ${
