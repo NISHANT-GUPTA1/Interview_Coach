@@ -34,11 +34,12 @@ export default function AIInterviewPage() {
   const router = useRouter();
   
   const [isRecording, setIsRecording] = useState(false);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(-1); // Start with -1 for welcome
   const [questions, setQuestions] = useState<Question[]>([]);
   const [answers, setAnswers] = useState<Answer[]>([]);
   const [currentAnswer, setCurrentAnswer] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [interviewStarted, setInterviewStarted] = useState(false);
   
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [interviewTimer, setInterviewTimer] = useState(0);
@@ -50,6 +51,7 @@ export default function AIInterviewPage() {
   const [speechSynthesis, setSpeechSynthesis] = useState<SpeechSynthesis | null>(null);
   const [videoEnabled, setVideoEnabled] = useState(true);
   const [audioEnabled, setAudioEnabled] = useState(true);
+  const [cameraError, setCameraError] = useState<string | null>(null);
   
   const [candidateProfile] = useState<CandidateProfile>({
     level: 'mid',
@@ -60,6 +62,7 @@ export default function AIInterviewPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const interviewTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const recognitionRestartTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   const selectedRole = searchParams.get('role') || 'Software Engineer';
   const selectedLanguage = searchParams.get('language') || 'en';
@@ -70,8 +73,11 @@ export default function AIInterviewPage() {
       await initializeMediaDevices();
       initializeSpeechRecognition();
       initializeSpeechSynthesis();
-      await generateDynamicQuestions();
-      startInterviewTimer();
+      
+      // Start with welcome message
+      setTimeout(() => {
+        speakWelcomeMessage();
+      }, 1000);
     };
     
     initializeInterview();
@@ -79,8 +85,24 @@ export default function AIInterviewPage() {
     return () => {
       if (interviewTimerRef.current) clearInterval(interviewTimerRef.current);
       if (recordingIntervalRef.current) clearInterval(recordingIntervalRef.current);
+      if (recognitionRestartTimeoutRef.current) clearTimeout(recognitionRestartTimeoutRef.current);
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
     };
   }, []);
+
+  const speakWelcomeMessage = () => {
+    const welcomeText = `Welcome to the AI interview! I'm your virtual interviewer today. We'll be conducting an interview for the ${selectedRole} position. This interview will consist of ${TOTAL_QUESTIONS} questions and will help evaluate your skills and experience. Please ensure you're in a quiet, well-lit environment without distractions. Are you ready to begin? Let's start with our first question.`;
+    
+    speakQuestionAI(welcomeText, async () => {
+      // After welcome message, generate and ask first question
+      await generateDynamicQuestions();
+      setInterviewStarted(true);
+      startInterviewTimer();
+      setCurrentQuestionIndex(0);
+    });
+  };
 
   const startInterviewTimer = () => {
     interviewTimerRef.current = setInterval(() => {
@@ -90,16 +112,32 @@ export default function AIInterviewPage() {
 
   const initializeMediaDevices = async () => {
     try {
+      setCameraError(null);
       const mediaStream = await navigator.mediaDevices.getUserMedia({ 
-        video: true, 
-        audio: true 
+        video: { 
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+          facingMode: 'user'
+        }, 
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        }
       });
+      
       setStream(mediaStream);
+      
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
+        // Ensure video plays
+        videoRef.current.onloadedmetadata = () => {
+          videoRef.current?.play().catch(console.error);
+        };
       }
     } catch (error) {
       console.error('Error accessing media devices:', error);
+      setCameraError(`Camera access denied: ${error}`);
     }
   };
 
@@ -109,26 +147,69 @@ export default function AIInterviewPage() {
       const recognitionInstance = new SpeechRecognition();
       
       recognitionInstance.continuous = true;
-      recognitionInstance.interimResults = false;
+      recognitionInstance.interimResults = true; // Enable interim results for faster processing
       recognitionInstance.lang = 'en-US';
+      recognitionInstance.maxAlternatives = 1;
+      
+      let finalTranscript = '';
+      let interimTranscript = '';
       
       recognitionInstance.onresult = (event: any) => {
-        let transcript = '';
-        for (let i = event.resultIndex; i < event.results.length; i++) {
+        interimTranscript = '';
+        finalTranscript = '';
+        
+        for (let i = 0; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript;
           if (event.results[i].isFinal) {
-            transcript += event.results[i][0].transcript;
+            finalTranscript += transcript + ' ';
+          } else {
+            interimTranscript += transcript;
           }
         }
-        if (transcript.trim()) {
-          setCurrentAnswer(prev => prev ? prev + ' ' + transcript.trim() : transcript.trim());
+        
+        // Update the answer with both final and interim results for responsiveness
+        const combinedTranscript = (finalTranscript + interimTranscript).trim();
+        if (combinedTranscript) {
+          setCurrentAnswer(prev => {
+            // Only append new final transcript
+            if (finalTranscript && !prev.includes(finalTranscript.trim())) {
+              return prev ? prev + ' ' + finalTranscript.trim() : finalTranscript.trim();
+            }
+            return prev;
+          });
         }
       };
       
       recognitionInstance.onerror = (event: any) => {
         console.error('Speech recognition error:', event.error);
+        if (event.error === 'no-speech' || event.error === 'audio-capture') {
+          // Auto-restart on common errors
+          if (isRecording) {
+            restartRecognition();
+          }
+        }
+      };
+      
+      recognitionInstance.onend = () => {
+        if (isRecording) {
+          // Auto-restart recognition if still recording
+          restartRecognition();
+        }
       };
       
       setRecognition(recognitionInstance);
+    }
+  };
+
+  const restartRecognition = () => {
+    if (recognition && isRecording) {
+      recognitionRestartTimeoutRef.current = setTimeout(() => {
+        try {
+          recognition.start();
+        } catch (error) {
+          console.error('Error restarting recognition:', error);
+        }
+      }, 100);
     }
   };
 
@@ -157,21 +238,61 @@ export default function AIInterviewPage() {
       const generatedQuestions = data.questions || generateFallbackQuestions();
       setQuestions(generatedQuestions);
       
-      setTimeout(() => {
-        if (generatedQuestions.length > 0) {
+      // Speak the first question after welcome
+      if (generatedQuestions.length > 0 && interviewStarted) {
+        setTimeout(() => {
           speakQuestionAI(generatedQuestions[0].text);
-        }
-      }, 2000);
+        }, 1000);
+      }
     } catch (error) {
       console.error('Error generating questions:', error);
       const fallbackQuestions = generateFallbackQuestions();
       setQuestions(fallbackQuestions);
-      setTimeout(() => {
-        speakQuestionAI(fallbackQuestions[0].text);
-      }, 2000);
+      if (interviewStarted && fallbackQuestions.length > 0) {
+        setTimeout(() => {
+          speakQuestionAI(fallbackQuestions[0].text);
+        }, 1000);
+      }
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const generateNextQuestion = async (previousAnswer: string, questionIndex: number) => {
+    try {
+      const response = await fetch('/api/generate-followup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          role: selectedRole,
+          question: questions[questionIndex - 1]?.text || '',
+          answer: previousAnswer,
+          language: selectedLanguage,
+          questionIndex,
+          candidateLevel: candidateProfile.level
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (data.followUp) {
+        const newQuestion: Question = {
+          id: questions.length + 1,
+          text: data.followUp,
+          category: 'Follow-up',
+          difficulty: candidateProfile.level
+        };
+        
+        // Add the new question to the list
+        setQuestions(prev => [...prev, newQuestion]);
+        return newQuestion;
+      }
+    } catch (error) {
+      console.error('Error generating follow-up question:', error);
+    }
+    
+    // Return pre-generated question if API fails
+    return questions[questionIndex];
   };
 
   const generateFallbackQuestions = (): Question[] => {
@@ -189,13 +310,13 @@ export default function AIInterviewPage() {
     ];
   };
 
-  const speakQuestionAI = (text: string) => {
+  const speakQuestionAI = (text: string, onComplete?: () => void) => {
     if (speechSynthesis) {
       speechSynthesis.cancel();
       setAiAvatarSpeaking(true);
       
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 0.85;
+      utterance.rate = 0.9; // Slightly faster for better experience
       utterance.pitch = 1.0;
       utterance.volume = 0.9;
       
@@ -211,10 +332,22 @@ export default function AIInterviewPage() {
         utterance.onend = () => {
           setAiAvatarSpeaking(false);
           setQuestionStartTime(new Date());
+          if (onComplete) {
+            onComplete();
+          }
+        };
+        
+        utterance.onerror = () => {
+          setAiAvatarSpeaking(false);
+          if (onComplete) {
+            onComplete();
+          }
         };
         
         speechSynthesis.speak(utterance);
       }, 100);
+    } else if (onComplete) {
+      onComplete();
     }
   };
 
@@ -228,6 +361,7 @@ export default function AIInterviewPage() {
         recognition.start();
       } catch (error) {
         console.error('Error starting speech recognition:', error);
+        // If already running, just continue
       }
     }
     
@@ -247,12 +381,16 @@ export default function AIInterviewPage() {
       }
     }
     
+    if (recognitionRestartTimeoutRef.current) {
+      clearTimeout(recognitionRestartTimeoutRef.current);
+    }
+    
     if (recordingIntervalRef.current) {
       clearInterval(recordingIntervalRef.current);
     }
   };
 
-  const submitAnswer = () => {
+  const submitAnswer = async () => {
     if (!currentAnswer.trim()) return;
     
     const timeSpent = Math.round((new Date().getTime() - questionStartTime.getTime()) / 1000);
@@ -265,13 +403,18 @@ export default function AIInterviewPage() {
     };
     
     setAnswers(prev => [...prev, newAnswer]);
-    moveToNextQuestion();
+    
+    if (isRecording) {
+      stopRecording();
+    }
+    
+    await moveToNextQuestion();
   };
 
-  const moveToNextQuestion = () => {
+  const moveToNextQuestion = async () => {
     const nextIndex = currentQuestionIndex + 1;
     
-    if (nextIndex >= questions.length) {
+    if (nextIndex >= TOTAL_QUESTIONS) {
       finishInterview();
       return;
     }
@@ -279,9 +422,20 @@ export default function AIInterviewPage() {
     setCurrentQuestionIndex(nextIndex);
     setCurrentAnswer("");
     
+    // Generate next question based on previous answer if possible
+    let nextQuestion = questions[nextIndex];
+    
+    if (answers.length > 0 && nextIndex < TOTAL_QUESTIONS) {
+      const lastAnswer = answers[answers.length - 1];
+      const generatedQuestion = await generateNextQuestion(lastAnswer.text, nextIndex);
+      if (generatedQuestion) {
+        nextQuestion = generatedQuestion;
+      }
+    }
+    
     setTimeout(() => {
-      if (questions[nextIndex]) {
-        speakQuestionAI(questions[nextIndex].text);
+      if (nextQuestion) {
+        speakQuestionAI(nextQuestion.text);
       }
     }, 1500);
   };
@@ -301,6 +455,26 @@ export default function AIInterviewPage() {
     router.push('/summary');
   };
 
+  const toggleVideo = () => {
+    if (stream) {
+      const videoTrack = stream.getVideoTracks()[0];
+      if (videoTrack) {
+        videoTrack.enabled = !videoEnabled;
+        setVideoEnabled(!videoEnabled);
+      }
+    }
+  };
+
+  const toggleAudio = () => {
+    if (stream) {
+      const audioTrack = stream.getAudioTracks()[0];
+      if (audioTrack) {
+        audioTrack.enabled = !audioEnabled;
+        setAudioEnabled(!audioEnabled);
+      }
+    }
+  };
+
   const formatTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
@@ -309,7 +483,39 @@ export default function AIInterviewPage() {
   };
 
   const currentQuestion = questions[currentQuestionIndex];
-  const progress = questions.length > 0 ? ((currentQuestionIndex) / questions.length) * 100 : 0;
+  const progress = questions.length > 0 && currentQuestionIndex >= 0 ? ((currentQuestionIndex + 1) / questions.length) * 100 : 0;
+
+  // Show welcome screen before interview starts
+  if (!interviewStarted) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+        <div className="max-w-4xl mx-auto pt-20">
+          <Card className="text-center p-8">
+            <CardContent>
+              <div className="flex flex-col items-center space-y-4">
+                <div className={`w-32 h-32 mx-auto rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center transition-all duration-300 ${aiAvatarSpeaking ? 'scale-105 shadow-lg shadow-blue-300' : ''}`}>
+                  <Bot className="h-16 w-16 text-white" />
+                </div>
+                {aiAvatarSpeaking && (
+                  <div className="absolute inset-0 rounded-full animate-ping bg-blue-400 opacity-30"></div>
+                )}
+                <h3 className="text-xl font-semibold">🤖 AI Interview Starting</h3>
+                <p className="text-gray-600">Setting up your personalized interview experience...</p>
+                <div className="text-sm text-gray-500">
+                  Role: {selectedRole} | Level: {candidateProfile.level} | Questions: {TOTAL_QUESTIONS}
+                </div>
+                {aiAvatarSpeaking && (
+                  <Badge variant="outline" className="text-blue-600 border-blue-600 animate-pulse">
+                    🎤 Speaking Welcome Message...
+                  </Badge>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -348,7 +554,7 @@ export default function AIInterviewPage() {
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-sm text-gray-600">
-                Question {currentQuestionIndex + 1} of {questions.length}
+                Question {Math.max(0, currentQuestionIndex) + 1} of {TOTAL_QUESTIONS}
               </span>
               <div className="w-32">
                 <Progress value={progress} className="h-2" />
@@ -414,10 +620,10 @@ export default function AIInterviewPage() {
                     <span>📹 Your Video</span>
                   </div>
                   <div className="flex space-x-2">
-                    <Button variant="outline" size="sm" onClick={() => setVideoEnabled(!videoEnabled)}>
+                    <Button variant="outline" size="sm" onClick={toggleVideo}>
                       {videoEnabled ? <Video className="h-4 w-4" /> : <VideoOff className="h-4 w-4" />}
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => setAudioEnabled(!audioEnabled)}>
+                    <Button variant="outline" size="sm" onClick={toggleAudio}>
                       {audioEnabled ? <Mic className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}
                     </Button>
                   </div>
@@ -425,17 +631,41 @@ export default function AIInterviewPage() {
               </CardHeader>
               <CardContent>
                 <div className="relative">
-                  <video
-                    ref={videoRef}
-                    autoPlay
-                    muted
-                    playsInline
-                    className="w-full h-48 bg-gray-900 rounded-lg object-cover"
-                  />
+                  {cameraError ? (
+                    <div className="w-full h-48 bg-gray-900 rounded-lg flex items-center justify-center text-white">
+                      <div className="text-center">
+                        <VideoOff className="h-8 w-8 mx-auto mb-2" />
+                        <p className="text-sm">Camera access required</p>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="mt-2 text-white border-white hover:bg-white hover:text-gray-900"
+                          onClick={initializeMediaDevices}
+                        >
+                          Retry Camera Access
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <video
+                      ref={videoRef}
+                      autoPlay
+                      muted
+                      playsInline
+                      className={`w-full h-48 bg-gray-900 rounded-lg object-cover transition-opacity scale-x-[-1] ${
+                        videoEnabled ? 'opacity-100' : 'opacity-30'
+                      }`}
+                    />
+                  )}
                   {isRecording && (
                     <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center space-x-1 animate-pulse">
-                      <div className="w-2 h-2 bg-white rounded-full"></div>
+                      <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
                       <span>🔴 REC {formatTime(recordingDuration)}</span>
+                    </div>
+                  )}
+                  {!videoEnabled && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <VideoOff className="h-8 w-8 text-gray-400" />
                     </div>
                   )}
                 </div>
@@ -444,13 +674,20 @@ export default function AIInterviewPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>💭 Your Response</CardTitle>
+                <CardTitle className="flex items-center justify-between">
+                  <span>💭 Your Response</span>
+                  {isRecording && (
+                    <Badge variant="outline" className="text-green-600 border-green-600 animate-pulse">
+                      🎤 Listening...
+                    </Badge>
+                  )}
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <Textarea
                   value={currentAnswer}
                   onChange={(e) => setCurrentAnswer(e.target.value)}
-                  placeholder="🎤 Your answer will appear here as you speak, or you can type directly..."
+                  placeholder="🎤 Start recording to speak your answer, or type directly here..."
                   className="min-h-[120px] resize-none text-base"
                 />
                 
@@ -459,6 +696,7 @@ export default function AIInterviewPage() {
                     onClick={isRecording ? stopRecording : startRecording}
                     variant={isRecording ? "destructive" : "default"}
                     className="flex items-center space-x-2"
+                    disabled={!audioEnabled}
                   >
                     {isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
                     <span>{isRecording ? '⏹️ Stop Recording' : '🎤 Start Recording'}</span>
@@ -475,8 +713,20 @@ export default function AIInterviewPage() {
                 
                 {currentAnswer.length > 0 && (
                   <div className="text-xs text-gray-500 flex justify-between bg-gray-50 p-2 rounded">
-                    <span>📝 Words: {currentAnswer.trim().split(/\\s+/).length}</span>
+                    <span>📝 Words: {currentAnswer.trim().split(/\s+/).filter(word => word.length > 0).length}</span>
                     <span>⏱️ Time: {formatTime(Math.round((new Date().getTime() - questionStartTime.getTime()) / 1000))}</span>
+                  </div>
+                )}
+                
+                {!audioEnabled && (
+                  <div className="text-xs text-amber-600 bg-amber-50 p-2 rounded border border-amber-200">
+                    ⚠️ Microphone is disabled. Enable it to use voice recording.
+                  </div>
+                )}
+                
+                {isRecording && (
+                  <div className="text-xs text-green-600 bg-green-50 p-2 rounded border border-green-200">
+                    💡 Speak clearly and at normal pace. The AI will transcribe your speech in real-time.
                   </div>
                 )}
               </CardContent>

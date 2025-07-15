@@ -24,7 +24,7 @@ export default function SetupPage() {
             
             <div className="flex justify-center">
               <a 
-                href="/ai-interview"
+                href="/working-interview"
                 className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Continue to Interview
