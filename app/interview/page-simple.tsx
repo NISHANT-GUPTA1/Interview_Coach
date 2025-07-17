@@ -22,7 +22,7 @@ export default function InterviewPage() {
   const initializeCamera = async () => {
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({ 
-        video: true, 
+   ~     video: true, 
         audio: true 
       })
       setStream(mediaStream)

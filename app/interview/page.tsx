@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
 import { Progress } from "@/components/ui/progress"
-import { Mic, MicOff, Video, VideoOff, Clock, User, Bot } from "lucide-react"
+import { Mic, MicOff, Video, VideoOff, Clock, User, Bot, Globe } from "lucide-react"
 
 // Types for interview state
 interface Question {
@@ -94,6 +94,154 @@ export default function InterviewPage() {
   const TOTAL_QUESTIONS = 10
   const INTERVIEW_DURATION = 60 * 60 // 1 hour in seconds
 
+  // Language mapping for better speech recognition
+  const languageMap = {
+    'en': 'en-US',
+    'es': 'es-ES',
+    'fr': 'fr-FR',
+    'de': 'de-DE',
+    'it': 'it-IT',
+    'pt': 'pt-BR',
+    'ru': 'ru-RU',
+    'zh': 'zh-CN',
+    'ja': 'ja-JP',
+    'ko': 'ko-KR',
+    'ar': 'ar-SA',
+    'hi': 'hi-IN',
+    'bn': 'bn-BD',
+    'te': 'te-IN',
+    'ta': 'ta-IN',
+    'mr': 'mr-IN',
+    'gu': 'gu-IN',
+    'kn': 'kn-IN',
+    'ml': 'ml-IN',
+    'pa': 'pa-IN',
+    'or': 'or-IN',
+    'as': 'as-IN',
+    'ur': 'ur-PK',
+    'ne': 'ne-NP',
+    'si': 'si-LK',
+    'my': 'my-MM',
+    'th': 'th-TH',
+    'vi': 'vi-VN',
+    'id': 'id-ID',
+    'ms': 'ms-MY',
+    'tl': 'tl-PH',
+    'sw': 'sw-KE',
+    'am': 'am-ET',
+    'tr': 'tr-TR',
+    'pl': 'pl-PL',
+    'cs': 'cs-CZ',
+    'hu': 'hu-HU',
+    'ro': 'ro-RO',
+    'bg': 'bg-BG',
+    'hr': 'hr-HR',
+    'sk': 'sk-SK',
+    'sl': 'sl-SI',
+    'et': 'et-EE',
+    'lv': 'lv-LV',
+    'lt': 'lt-LT',
+    'fi': 'fi-FI',
+    'da': 'da-DK',
+    'no': 'no-NO',
+    'sv': 'sv-SE',
+    'is': 'is-IS',
+    'nl': 'nl-NL',
+    'ca': 'ca-ES',
+    'eu': 'eu-ES',
+    'gl': 'gl-ES',
+    'cy': 'cy-GB',
+    'ga': 'ga-IE',
+    'mt': 'mt-MT',
+    'sq': 'sq-AL',
+    'mk': 'mk-MK',
+    'sr': 'sr-RS',
+    'bs': 'bs-BA',
+    'he': 'he-IL',
+    'fa': 'fa-IR',
+    'ka': 'ka-GE',
+    'hy': 'hy-AM',
+    'az': 'az-AZ',
+    'uz': 'uz-UZ',
+    'kk': 'kk-KZ',
+    'ky': 'ky-KG',
+    'mn': 'mn-MN'
+  }
+
+  // Language display names
+  const languageNames = {
+    'en': 'English',
+    'es': 'Español',
+    'fr': 'Français',
+    'de': 'Deutsch',
+    'it': 'Italiano',
+    'pt': 'Português',
+    'ru': 'Русский',
+    'zh': '中文',
+    'ja': '日本語',
+    'ko': '한국어',
+    'ar': 'العربية',
+    'hi': 'हिन्दी',
+    'bn': 'বাংলা',
+    'te': 'తెలుగు',
+    'ta': 'தமிழ்',
+    'mr': 'मराठी',
+    'gu': 'ગુજરાતી',
+    'kn': 'ಕನ್ನಡ',
+    'ml': 'മലയാളം',
+    'pa': 'ਪੰਜਾਬੀ',
+    'or': 'ଓଡ଼ିଆ',
+    'as': 'অসমীয়া',
+    'ur': 'اردو',
+    'ne': 'नेपाली',
+    'si': 'සිංහල',
+    'my': 'မြန်မာ',
+    'th': 'ไทย',
+    'vi': 'Tiếng Việt',
+    'id': 'Bahasa Indonesia',
+    'ms': 'Bahasa Melayu',
+    'tl': 'Filipino',
+    'sw': 'Kiswahili',
+    'am': 'አማርኛ',
+    'tr': 'Türkçe',
+    'pl': 'Polski',
+    'cs': 'Čeština',
+    'hu': 'Magyar',
+    'ro': 'Română',
+    'bg': 'Български',
+    'hr': 'Hrvatski',
+    'sk': 'Slovenčina',
+    'sl': 'Slovenščina',
+    'et': 'Eesti',
+    'lv': 'Latviešu',
+    'lt': 'Lietuvių',
+    'fi': 'Suomi',
+    'da': 'Dansk',
+    'no': 'Norsk',
+    'sv': 'Svenska',
+    'is': 'Íslenska',
+    'nl': 'Nederlands',
+    'ca': 'Català',
+    'eu': 'Euskera',
+    'gl': 'Galego',
+    'cy': 'Cymraeg',
+    'ga': 'Gaeilge',
+    'mt': 'Malti',
+    'sq': 'Shqip',
+    'mk': 'Македонски',
+    'sr': 'Српски',
+    'bs': 'Bosanski',
+    'he': 'עברית',
+    'fa': 'فارسی',
+    'ka': 'ქართული',
+    'hy': 'Հայերեն',
+    'az': 'Azərbaycan',
+    'uz': 'O\'zbek',
+    'kk': 'Қазақ',
+    'ky': 'Кыргыз',
+    'mn': 'Монгол'
+  }
+
   // Initialize everything when component mounts
   useEffect(() => {
     const initializeInterview = async () => {
@@ -150,21 +298,19 @@ export default function InterviewPage() {
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
-          autoGainControl: true
+          autoGainControl: true,
+          sampleRate: 44100
         }
       }
       
       const mediaStream = await navigator.mediaDevices.getUserMedia(constraints)
       console.log('Got media stream:', mediaStream)
-      console.log('Video tracks:', mediaStream.getVideoTracks())
       
       if (videoRef.current && mediaStream) {
         videoRef.current.srcObject = mediaStream
-        console.log('Video srcObject set')
         
-        // Wait for video to load and then play
         videoRef.current.addEventListener('loadedmetadata', () => {
-          console.log('Video metadata loaded, dimensions:', videoRef.current?.videoWidth, 'x', videoRef.current?.videoHeight)
+          console.log('Video metadata loaded')
           if (videoRef.current) {
             videoRef.current.play().then(() => {
               console.log('Video playing successfully')
@@ -172,163 +318,215 @@ export default function InterviewPage() {
               setIsVideoReady(true)
             }).catch(err => {
               console.error('Video play error:', err)
-              setCameraError('Video playback failed: ' + err.message)
+              setCameraError('Video playback failed')
             })
           }
         }, { once: true })
         
-        // Also handle loadeddata event as backup
-        videoRef.current.addEventListener('loadeddata', () => {
-          console.log('Video data loaded')
-          if (!stream) {
-            setStream(mediaStream)
-            setIsVideoReady(true)
-          }
-        }, { once: true })
-        
-        // Handle errors
-        videoRef.current.addEventListener('error', (e) => {
-          console.error('Video element error:', e)
-          setCameraError('Video display error')
-        })
-        
-        // Force load
         videoRef.current.load()
-      } else {
-        setCameraError('Video element not available')
       }
       
     } catch (error) {
       console.error('Error accessing media devices:', error)
-      setCameraError('Could not access camera/microphone. Please check permissions.')
+      if (error instanceof DOMException) {
+        if (error.name === 'NotAllowedError') {
+          setCameraError('Camera/microphone access denied. Please allow permissions and refresh.')
+        } else if (error.name === 'NotFoundError') {
+          setCameraError('Camera/microphone not found. Please check your devices.')
+        } else if (error.name === 'NotReadableError') {
+          setCameraError('Camera/microphone is being used by another application.')
+        } else {
+          setCameraError('Could not access camera/microphone: ' + error.message)
+        }
+      } else {
+        setCameraError('Could not access camera/microphone. Please check permissions.')
+      }
+    }
+  }
+
+  const translateText = async (text: string, sourceLang: string, targetLang: string) => {
+    try {
+      const response = await fetch('/api/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text,
+          sourceLang,
+          targetLang
+        })
+      })
+      
+      if (!response.ok) {
+        throw new Error('Translation failed')
+      }
+      
+      const data = await response.json()
+      return data.translatedText
+    } catch (error) {
+      console.error('Translation error:', error)
+      return text // Return original text if translation fails
     }
   }
 
   const initializeSpeechRecognition = () => {
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition
-      const recognitionInstance = new SpeechRecognition()
-      
-      // Enhanced settings for better performance
-      recognitionInstance.continuous = true
-      recognitionInstance.interimResults = true
-      recognitionInstance.lang = selectedLanguage === 'en' ? 'en-US' : selectedLanguage
-      recognitionInstance.maxAlternatives = 3 // More alternatives for better accuracy
-      
-      // Enhanced onresult with real-time feedback
-      recognitionInstance.onresult = (event: any) => {
-        let interimTranscript = ''
-        let finalTranscript = ''
-        
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          const transcript = event.results[i][0].transcript
-          if (event.results[i].isFinal) {
-            finalTranscript += transcript
-          } else {
-            interimTranscript += transcript
-          }
-        }
-        
-        // Show interim results immediately for better UX
-        setInterimText(interimTranscript)
-        
-        if (finalTranscript.trim()) {
-          setCurrentAnswer(prev => {
-            const cleaned = finalTranscript.trim()
-            // Avoid duplicate text
-            if (prev && prev.endsWith(cleaned)) {
-              return prev
-            }
-            return prev ? prev + ' ' + cleaned : cleaned
-          })
-          setInterimText('') // Clear interim when we have final text
-          setSpeechError(null)
-        }
-        
-        // Reset timeout for continuous listening
-        if (recognitionTimeoutRef.current) {
-          clearTimeout(recognitionTimeoutRef.current)
-        }
-        
-        // Auto-restart if no speech for 3 seconds
-        recognitionTimeoutRef.current = setTimeout(() => {
-          if (isRecording && recognitionInstance.continuous) {
-            try {
-              recognitionInstance.stop()
-              setTimeout(() => recognitionInstance.start(), 100)
-            } catch (e) {
-              console.log('Recognition restart failed:', e)
-            }
-          }
-        }, 3000)
-      }
-      
-      recognitionInstance.onstart = () => {
-        setIsListening(true)
-        setSpeechError(null)
-        console.log('Speech recognition started')
-      }
-      
-      recognitionInstance.onend = () => {
-        setIsListening(false)
-        setInterimText('')
-        console.log('Speech recognition ended')
-        
-        // Auto-restart if still recording
-        if (isRecording) {
-          setTimeout(() => {
-            try {
-              if (recognitionInstance && isRecording) {
-                recognitionInstance.start()
-              }
-            } catch (e) {
-              console.log('Recognition restart failed:', e)
-              setSpeechError('Speech recognition stopped. Click to restart.')
-            }
-          }, 100)
-        }
-      }
-      
-      recognitionInstance.onerror = (event: any) => {
-        console.error('Speech recognition error:', event.error)
-        setIsListening(false)
-        setInterimText('')
-        
-        switch (event.error) {
-          case 'no-speech':
-            setSpeechError('No speech detected. Try speaking louder.')
-            break
-          case 'audio-capture':
-            setSpeechError('Microphone not available. Check permissions.')
-            break
-          case 'not-allowed':
-            setSpeechError('Microphone permission denied.')
-            break
-          case 'network':
-            setSpeechError('Network error. Check your connection.')
-            break
-          default:
-            setSpeechError(`Speech recognition error: ${event.error}`)
-        }
-        
-        // Auto-retry for certain errors
-        if (event.error === 'no-speech' || event.error === 'network') {
-          if (isRecording) {
-            setTimeout(() => {
-              try {
-                recognitionInstance.start()
-              } catch (e) {
-                console.log('Recognition restart after error failed:', e)
-              }
-            }, 1500)
-          }
-        }
-      }
-      
-      setRecognition(recognitionInstance)
-    } else {
-      setSpeechError('Speech recognition not supported in this browser')
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      setSpeechError('Speech recognition not supported in this browser. Please use Chrome, Edge, or Safari.')
+      return
     }
+    
+    const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition
+    const recognitionInstance = new SpeechRecognition()
+    
+    // Enhanced settings for better multilingual support
+    recognitionInstance.continuous = true
+    recognitionInstance.interimResults = true
+    
+    // Set language based on selected language
+    const speechLang = languageMap[selectedLanguage as keyof typeof languageMap] || 'en-US'
+    recognitionInstance.lang = speechLang
+    console.log('Setting speech recognition language to:', speechLang)
+    
+    recognitionInstance.maxAlternatives = 3
+    
+    recognitionInstance.onresult = async (event: any) => {
+      let interimTranscript = ''
+      let finalTranscript = ''
+      
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript
+        console.log('Speech result:', transcript, 'isFinal:', event.results[i].isFinal)
+        
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript
+        } else {
+          interimTranscript += transcript
+        }
+      }
+      
+      // Update interim text for real-time feedback
+      setInterimText(interimTranscript)
+      
+      if (finalTranscript.trim()) {
+        const cleanedText = finalTranscript.trim()
+        console.log('Final transcript:', cleanedText)
+        
+        // Update current answer immediately
+        setCurrentAnswer(prev => {
+          const newAnswer = prev ? prev + ' ' + cleanedText : cleanedText
+          console.log('Updated answer:', newAnswer)
+          return newAnswer
+        })
+        
+        // If interview language is not English, translate for internal processing
+        if (selectedLanguage !== 'en' && cleanedText) {
+          try {
+            setIsTranslating(true)
+            console.log('Translating from', selectedLanguage, 'to English:', cleanedText)
+            const translatedResponse = await translateText(cleanedText, selectedLanguage, 'en')
+            if (translatedResponse && translatedResponse !== cleanedText) {
+              setTranslatedText(translatedResponse)
+              setDetectedLanguage(selectedLanguage)
+              console.log('Translation result:', translatedResponse)
+            }
+          } catch (error) {
+            console.error('Translation error:', error)
+          } finally {
+            setIsTranslating(false)
+          }
+        }
+        
+        setInterimText('')
+        setSpeechError(null)
+      }
+      
+      // Reset timeout for continuous listening
+      if (recognitionTimeoutRef.current) {
+        clearTimeout(recognitionTimeoutRef.current)
+      }
+      
+      recognitionTimeoutRef.current = setTimeout(() => {
+        if (isRecording) {
+          try {
+            console.log('Restarting speech recognition...')
+            recognitionInstance.stop()
+            setTimeout(() => {
+              if (isRecording) {
+                recognitionInstance.start()
+              }
+            }, 100)
+          } catch (e) {
+            console.log('Recognition restart failed:', e)
+          }
+        }
+      }, 5000) // Increased timeout to 5 seconds
+    }
+    
+    recognitionInstance.onstart = () => {
+      setIsListening(true)
+      setSpeechError(null)
+      console.log('Speech recognition started for language:', selectedLanguage)
+    }
+    
+    recognitionInstance.onend = () => {
+      setIsListening(false)
+      console.log('Speech recognition ended')
+      
+      // Auto-restart if still recording
+      if (isRecording) {
+        setTimeout(() => {
+          try {
+            if (recognitionInstance && isRecording) {
+              console.log('Auto-restarting speech recognition...')
+              recognitionInstance.start()
+            }
+          } catch (e) {
+            console.log('Auto-restart failed:', e)
+            setSpeechError('Speech recognition stopped. Please click the microphone button to restart.')
+          }
+        }, 500)
+      }
+    }
+    
+    recognitionInstance.onerror = (event: any) => {
+      console.error('Speech recognition error:', event.error)
+      setIsListening(false)
+      setInterimText('')
+      
+      const languageName = languageNames[selectedLanguage as keyof typeof languageNames] || selectedLanguage.toUpperCase()
+      
+      switch (event.error) {
+        case 'no-speech':
+          setSpeechError(`No speech detected. Please speak clearly in ${languageName}.`)
+          break
+        case 'audio-capture':
+          setSpeechError('Microphone not accessible. Please check permissions and try again.')
+          break
+        case 'not-allowed':
+          setSpeechError('Microphone permission denied. Please allow access and refresh the page.')
+          break
+        case 'network':
+          setSpeechError('Network error. Please check your internet connection.')
+          break
+        case 'language-not-supported':
+          setSpeechError(`${languageName} language not supported for speech recognition. Try English instead.`)
+          break
+        default:
+          setSpeechError(`Speech recognition error: ${event.error}. Please try again.`)
+      }
+      
+      // Auto-retry for recoverable errors
+      if (event.error === 'no-speech' && isRecording) {
+        setTimeout(() => {
+          try {
+            recognitionInstance.start()
+          } catch (e) {
+            console.log('Auto-retry failed:', e)
+          }
+        }, 2000)
+      }
+    }
+    
+    setRecognition(recognitionInstance)
   }
 
   const initializeSpeechSynthesis = () => {
@@ -354,22 +552,26 @@ export default function InterviewPage() {
         })
       })
       
-      const data = await response.json()
-      const generatedQuestions = data.questions || generateFallbackQuestions()
-      setQuestions(generatedQuestions)
-      
-      // Speak the first question after a brief delay
-      setTimeout(() => {
-        if (generatedQuestions.length > 0) {
-          speakQuestionAI(generatedQuestions[0].text)
-        }
-      }, 2000)
+      if (response.ok) {
+        const data = await response.json()
+        const generatedQuestions = data.questions || generateFallbackQuestions()
+        setQuestions(generatedQuestions)
+        
+        // Translate and speak the first question
+        setTimeout(async () => {
+          if (generatedQuestions.length > 0) {
+            await speakQuestionAI(generatedQuestions[0].text)
+          }
+        }, 2000)
+      } else {
+        throw new Error('Failed to generate questions')
+      }
     } catch (error) {
       console.error('Error generating questions:', error)
       const fallbackQuestions = generateFallbackQuestions()
       setQuestions(fallbackQuestions)
-      setTimeout(() => {
-        speakQuestionAI(fallbackQuestions[0].text)
+      setTimeout(async () => {
+        await speakQuestionAI(fallbackQuestions[0].text)
       }, 2000)
     } finally {
       setIsLoading(false)
@@ -378,112 +580,195 @@ export default function InterviewPage() {
   }
 
   const generateFallbackQuestions = (): Question[] => {
-    const roleBasedQuestions = {
-      'Software Engineer': [
-        { id: 1, text: `Hello! I'm your AI interviewer today. Let's start with a brief introduction. Tell me about yourself and your journey as a ${selectedRole}.`, category: 'Introduction', difficulty: 'junior' as const },
-        { id: 2, text: `What initially sparked your interest in software engineering? What keeps you passionate about coding?`, category: 'Motivation', difficulty: 'junior' as const },
-        { id: 3, text: `Walk me through a recent project you've worked on that you're particularly proud of. What technologies did you use?`, category: 'Experience', difficulty: 'mid' as const },
-        { id: 4, text: `How do you approach debugging a complex issue that you've never encountered before?`, category: 'Technical', difficulty: 'mid' as const },
-        { id: 5, text: `Describe your experience with version control. How do you handle merge conflicts in a team environment?`, category: 'Technical', difficulty: 'mid' as const },
-        { id: 6, text: `Tell me about a time when you had to learn a new technology quickly for a project. What was your strategy?`, category: 'Learning', difficulty: 'mid' as const },
-        { id: 7, text: `How do you ensure code quality and maintainability in your projects? What practices do you follow?`, category: 'Technical', difficulty: 'senior' as const },
-        { id: 8, text: `Describe a situation where you had to work with a difficult stakeholder or team member. How did you handle it?`, category: 'Soft Skills', difficulty: 'senior' as const },
-        { id: 9, text: `What's your approach to system design? How would you design a simple chat application?`, category: 'Technical', difficulty: 'senior' as const },
-        { id: 10, text: `Where do you see yourself in your software engineering career in the next 3-5 years? Any questions about our role?`, category: 'Career Goals', difficulty: 'mid' as const }
-      ],
-      'Data Scientist': [
-        { id: 1, text: `Hello! I'm excited to interview you today. Tell me about your background and what led you to data science.`, category: 'Introduction', difficulty: 'junior' as const },
-        { id: 2, text: `What aspects of data science do you find most compelling? How do you stay current with the field?`, category: 'Motivation', difficulty: 'junior' as const },
-        { id: 3, text: `Describe a recent data science project. What was the business problem and how did you approach it?`, category: 'Experience', difficulty: 'mid' as const },
-        { id: 4, text: `How do you handle missing or inconsistent data in your datasets?`, category: 'Technical', difficulty: 'mid' as const },
-        { id: 5, text: `Walk me through your process for feature selection and engineering.`, category: 'Technical', difficulty: 'mid' as const },
-        { id: 6, text: `How do you validate that your machine learning model is performing well and generalizing properly?`, category: 'Technical', difficulty: 'senior' as const },
-        { id: 7, text: `Describe a time when your model didn't perform as expected. How did you troubleshoot and improve it?`, category: 'Problem Solving', difficulty: 'senior' as const },
-        { id: 8, text: `How do you communicate complex technical findings to non-technical stakeholders?`, category: 'Soft Skills', difficulty: 'senior' as const },
-        { id: 9, text: `What ethical considerations do you keep in mind when building predictive models?`, category: 'Ethics', difficulty: 'senior' as const },
-        { id: 10, text: `What are your career aspirations in data science? Do you have any questions about this role?`, category: 'Career Goals', difficulty: 'mid' as const }
-      ]
-    }
+    // Generate questions directly in selected language
+    const baseQuestions = [
+      { 
+        id: 1, 
+        text: `Hello! I'm your AI interviewer today. Please introduce yourself and tell me about your background as a ${selectedRole}.`, 
+        category: 'Introduction', 
+        difficulty: 'junior' as const 
+      },
+      { 
+        id: 2, 
+        text: `What motivated you to pursue a career in ${selectedRole}? What aspects of this field excite you the most?`, 
+        category: 'Motivation', 
+        difficulty: 'junior' as const 
+      },
+      { 
+        id: 3, 
+        text: `Tell me about a recent project you worked on. What was your role and what technologies or methods did you use?`, 
+        category: 'Experience', 
+        difficulty: 'mid' as const 
+      },
+      { 
+        id: 4, 
+        text: `How do you approach learning new technologies or skills in your field? Can you give me an example?`, 
+        category: 'Learning', 
+        difficulty: 'mid' as const 
+      },
+      { 
+        id: 5, 
+        text: `Describe a challenging problem you encountered in your work. How did you solve it?`, 
+        category: 'Problem Solving', 
+        difficulty: 'mid' as const 
+      },
+      { 
+        id: 6, 
+        text: `How do you ensure quality in your work? What processes or practices do you follow?`, 
+        category: 'Quality', 
+        difficulty: 'senior' as const 
+      },
+      { 
+        id: 7, 
+        text: `Tell me about a time when you had to work with difficult stakeholders or team members. How did you handle the situation?`, 
+        category: 'Soft Skills', 
+        difficulty: 'senior' as const 
+      },
+      { 
+        id: 8, 
+        text: `How do you stay updated with the latest trends and developments in ${selectedRole}?`, 
+        category: 'Continuous Learning', 
+        difficulty: 'mid' as const 
+      },
+      { 
+        id: 9, 
+        text: `What do you think are the most important skills for someone in your position? How do you develop these skills?`, 
+        category: 'Skills', 
+        difficulty: 'senior' as const 
+      },
+      { 
+        id: 10, 
+        text: `Where do you see yourself in the next 3-5 years? What are your career goals? Do you have any questions about this role?`, 
+        category: 'Career Goals', 
+        difficulty: 'mid' as const 
+      }
+    ]
     
-    const questionsForRole = roleBasedQuestions[selectedRole as keyof typeof roleBasedQuestions] || roleBasedQuestions['Software Engineer']
-    
-    // Add some randomization while maintaining core structure
-    return questionsForRole.map(q => ({
-      ...q,
-      text: q.text.replace(/\\b(project|initiative|task)\\b/g, () => {
-        const alternatives = ['project', 'initiative', 'challenge', 'assignment']
-        return alternatives[Math.floor(Math.random() * alternatives.length)]
-      })
-    }))
+    // If not English, we'll translate these in real-time
+    return baseQuestions
   }
 
-  const speakQuestionAI = (text: string) => {
-    if (speechSynthesis) {
-      speechSynthesis.cancel()
-      
-      setAiAvatarSpeaking(true)
-      
-      const utterance = new SpeechSynthesisUtterance(text)
-      utterance.rate = 0.85 // Slightly slower for clarity
-      utterance.pitch = 1.0
-      utterance.volume = 0.9
-      
-      // Try to get a professional voice
-      setTimeout(() => {
-        const voices = speechSynthesis.getVoices()
-        const preferredVoice = voices.find(voice => 
-          voice.name.includes('Google') ||
-          voice.name.includes('Microsoft') ||
-          (voice.lang.startsWith('en') && voice.name.includes('Male'))
-        ) || voices.find(voice => voice.lang.startsWith('en'))
-        
-        if (preferredVoice) {
-          utterance.voice = preferredVoice
-        }
-        
-        utterance.onend = () => {
-          setAiAvatarSpeaking(false)
-          setQuestionStartTime(new Date())
-        }
-        
-        utterance.onerror = () => {
-          setAiAvatarSpeaking(false)
-          setQuestionStartTime(new Date())
-        }
-        
-        speechSynthesis.speak(utterance)
-      }, 100)
-    } else {
+  const speakQuestionAI = async (text: string) => {
+    if (!speechSynthesis) {
+      console.log('Speech synthesis not available')
       setQuestionStartTime(new Date())
+      return
+    }
+    
+    speechSynthesis.cancel()
+    setAiAvatarSpeaking(true)
+    
+    let textToSpeak = text
+    
+    // If selected language is not English, translate the question
+    if (selectedLanguage !== 'en') {
+      try {
+        console.log('Translating question to', selectedLanguage)
+        const translatedQuestion = await translateText(text, 'en', selectedLanguage)
+        if (translatedQuestion && translatedQuestion !== text) {
+          textToSpeak = translatedQuestion
+          console.log('Translated question:', translatedQuestion)
+        }
+      } catch (error) {
+        console.error('Question translation error:', error)
+      }
+    }
+    
+    const utterance = new SpeechSynthesisUtterance(textToSpeak)
+    utterance.rate = 0.8
+    utterance.pitch = 1.0
+    utterance.volume = 0.9
+    
+    // Enhanced voice selection
+    const setVoiceAndSpeak = () => {
+      const voices = speechSynthesis.getVoices()
+      const targetLang = selectedLanguage
+      
+      console.log('Available voices:', voices.map(v => `${v.name} (${v.lang})`))
+      
+      // Find the best voice for the selected language
+      const preferredVoice = voices.find(voice => {
+        const voiceLang = voice.lang.toLowerCase()
+        return voiceLang.startsWith(targetLang.toLowerCase()) && (
+          voice.name.toLowerCase().includes('google') ||
+          voice.name.toLowerCase().includes('microsoft') ||
+          voice.name.toLowerCase().includes('neural') ||
+          voice.name.toLowerCase().includes('premium')
+        )
+      }) || voices.find(voice => voice.lang.toLowerCase().startsWith(targetLang.toLowerCase()))
+      
+      if (preferredVoice) {
+        utterance.voice = preferredVoice
+        utterance.lang = preferredVoice.lang
+        console.log('Using voice:', preferredVoice.name, 'for language:', preferredVoice.lang)
+      } else {
+        const fallbackLang = languageMap[selectedLanguage as keyof typeof languageMap] || 'en-US'
+        utterance.lang = fallbackLang
+        console.log('Using fallback language:', fallbackLang)
+      }
+      
+      utterance.onend = () => {
+        setAiAvatarSpeaking(false)
+        setQuestionStartTime(new Date())
+      }
+      
+      utterance.onerror = (error) => {
+        console.error('Speech synthesis error:', error)
+        setAiAvatarSpeaking(false)
+        setQuestionStartTime(new Date())
+      }
+      
+      speechSynthesis.speak(utterance)
+    }
+    
+    // Wait for voices to be loaded
+    if (speechSynthesis.getVoices().length === 0) {
+      speechSynthesis.addEventListener('voiceschanged', setVoiceAndSpeak, { once: true })
+    } else {
+      setVoiceAndSpeak()
     }
   }
 
   const startRecording = async () => {
     if (!stream) {
       console.error('No media stream available')
-      alert('Camera/microphone not ready. Please wait or check permissions.')
+      setCameraError('Camera/microphone not ready. Please check permissions and try again.')
       return
     }
     
-    console.log('Starting recording...')
+    // Check if microphone is available
+    const audioTracks = stream.getAudioTracks()
+    if (audioTracks.length === 0) {
+      setSpeechError('No microphone detected. Please connect a microphone and refresh the page.')
+      return
+    }
+    
+    // Check if audio track is enabled
+    if (!audioTracks[0].enabled) {
+      setSpeechError('Microphone is disabled. Please enable it using the audio button.')
+      return
+    }
+    
+    console.log('Starting recording for language:', selectedLanguage)
     setIsRecording(true)
     setRecordingDuration(0)
-    setCurrentAnswer("") // Clear previous answer
-    setInterimText("") // Clear interim text
-    setSpeechError(null) // Clear speech errors
+    setCurrentAnswer("")
+    setInterimText("")
+    setSpeechError(null)
+    setTranslatedText("")
+    setDetectedLanguage(null)
     
-    // Start speech recognition with enhanced error handling
+    // Start speech recognition
     if (recognition) {
       try {
-        console.log('Starting speech recognition...')
+        console.log('Starting speech recognition for language:', selectedLanguage)
         recognition.start()
       } catch (error) {
         console.error('Error starting speech recognition:', error)
-        setSpeechError('Failed to start speech recognition. Try again.')
+        setSpeechError('Failed to start speech recognition. Please try again.')
       }
     } else {
-      console.error('Speech recognition not available')
-      setSpeechError('Speech recognition not supported in this browser')
+      setSpeechError('Speech recognition not available. Please check browser compatibility.')
     }
     
     // Start recording timer
@@ -704,9 +989,11 @@ export default function InterviewPage() {
               <div className="flex flex-col items-center space-y-4">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
                 <h3 className="text-xl font-semibold">Preparing Your AI Interview</h3>
-                <p className="text-gray-600">Generating personalized questions based on your profile and experience...</p>
+                <p className="text-gray-600">
+                  Generating personalized questions for {selectedRole} in {languageNames[selectedLanguage as keyof typeof languageNames] || selectedLanguage.toUpperCase()}...
+                </p>
                 <div className="text-sm text-gray-500">
-                  Role: {selectedRole} | Level: {candidateProfile.level} | Questions: {TOTAL_QUESTIONS}
+                  Role: {selectedRole} | Level: {candidateProfile.level} | Language: {languageNames[selectedLanguage as keyof typeof languageNames] || selectedLanguage}
                 </div>
               </div>
             </CardContent>
@@ -727,6 +1014,10 @@ export default function InterviewPage() {
                 {selectedRole}
               </Badge>
               <Badge variant="outline">{candidateProfile.level} Level</Badge>
+              <Badge variant="outline" className="flex items-center space-x-1">
+                <Globe className="h-3 w-3" />
+                <span>{languageNames[selectedLanguage as keyof typeof languageNames] || selectedLanguage.toUpperCase()}</span>
+              </Badge>
               <div className="flex items-center space-x-2 text-sm text-gray-600">
                 <Clock className="h-4 w-4" />
                 <span>{formatTime(interviewTimer)}</span>
@@ -892,15 +1183,26 @@ export default function InterviewPage() {
               </CardContent>
             </Card>
 
-            {/* Answer Section */}
+            {/* Enhanced Answer Section */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
-                  <span>Your Response</span>
+                  <div className="flex items-center space-x-2">
+                    <span>Your Response</span>
+                    <Badge variant="outline" className="text-xs">
+                      <Globe className="h-3 w-3 mr-1" />
+                      {languageNames[selectedLanguage as keyof typeof languageNames] || selectedLanguage.toUpperCase()}
+                    </Badge>
+                  </div>
                   <div className="flex items-center space-x-2">
                     {isListening && (
                       <Badge variant="outline" className="text-green-600 border-green-600 animate-pulse">
-                        🎤 Listening
+                        🎤 Listening ({languageNames[selectedLanguage as keyof typeof languageNames] || selectedLanguage.toUpperCase()})
+                      </Badge>
+                    )}
+                    {isTranslating && (
+                      <Badge variant="outline" className="text-blue-600 border-blue-600">
+                        🔄 Translating
                       </Badge>
                     )}
                     {speechError && (
@@ -916,10 +1218,12 @@ export default function InterviewPage() {
                   <Textarea
                     value={currentAnswer + (interimText ? ' ' + interimText : '')}
                     onChange={(e) => setCurrentAnswer(e.target.value)}
-                    placeholder="Your answer will appear here as you speak, or you can type directly..."
+                    placeholder={`Speak in ${languageNames[selectedLanguage as keyof typeof languageNames] || selectedLanguage.toUpperCase()} or type your answer here...`}
                     className={`min-h-[120px] resize-none transition-all ${
                       isListening ? 'border-green-300 bg-green-50' : ''
-                    } ${speechError ? 'border-red-300 bg-red-50' : ''}`}
+                    } ${speechError ? 'border-red-300 bg-red-50' : ''} ${
+                      isTranslating ? 'border-blue-300 bg-blue-50' : ''
+                    }`}
                   />
                   {interimText && (
                     <div className="absolute bottom-2 right-2 text-xs text-gray-400 italic">
@@ -928,12 +1232,27 @@ export default function InterviewPage() {
                   )}
                 </div>
                 
-                {/* Speech Error Display */}
+                {/* Translation Display */}
+                {translatedText && selectedLanguage !== 'en' && (
+                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center space-x-2">
+                        <Globe className="h-4 w-4 text-blue-600" />
+                        <span className="text-sm font-medium text-blue-800">
+                          Translation ({languageNames[detectedLanguage as keyof typeof languageNames] || detectedLanguage?.toUpperCase()} → English)
+                        </span>
+                      </div>
+                    </div>
+                    <p className="text-sm text-blue-700">{translatedText}</p>
+                  </div>
+                )}
+                
+                {/* Enhanced Speech Error Display */}
                 {speechError && (
                   <div className="p-3 bg-red-100 text-red-700 rounded-lg text-sm">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-medium">Speech Recognition Issue</p>
+                        <p className="font-medium">Microphone Issue</p>
                         <p>{speechError}</p>
                       </div>
                       <Button 
@@ -941,7 +1260,7 @@ export default function InterviewPage() {
                         variant="outline"
                         onClick={() => {
                           setSpeechError(null)
-                          if (isRecording && recognition) {
+                          if (recognition) {
                             try {
                               recognition.start()
                             } catch (e) {
@@ -961,6 +1280,7 @@ export default function InterviewPage() {
                     <Button
                       onClick={isRecording ? stopRecording : startRecording}
                       variant={isRecording ? "destructive" : "default"}
+                      disabled={!stream}
                       className={`flex items-center space-x-2 transition-all ${
                         isListening ? 'bg-green-600 hover:bg-green-700' : ''
                       }`}
@@ -968,8 +1288,8 @@ export default function InterviewPage() {
                       {isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
                       <span>
                         {isRecording 
-                          ? (isListening ? 'Stop Recording' : 'Recording...') 
-                          : 'Start Recording'
+                          ? (isListening ? `Recording (${languageNames[selectedLanguage as keyof typeof languageNames] || selectedLanguage.toUpperCase()})` : 'Recording...') 
+                          : `Record Answer (${languageNames[selectedLanguage as keyof typeof languageNames] || selectedLanguage.toUpperCase()})`
                         }
                       </span>
                       {isListening && <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>}
@@ -987,10 +1307,16 @@ export default function InterviewPage() {
                   </div>
                 </div>
                 
+                {/* Enhanced response info */}
                 {currentAnswer.length > 0 && (
                   <div className="text-xs text-gray-500 flex justify-between">
-                    <span>Word count: {currentAnswer.trim().split(/\\s+/).length}</span>
-                    <span>Response time: {formatTime(Math.round((new Date().getTime() - questionStartTime.getTime()) / 1000))}</span>
+                    <span>
+                      Words: {currentAnswer.trim().split(/\s+/).length}
+                      {detectedLanguage && selectedLanguage !== 'en' && (
+                        <span className="ml-2">| Language: {languageNames[detectedLanguage as keyof typeof languageNames] || detectedLanguage.toUpperCase()}</span>
+                      )}
+                    </span>
+                    <span>Time: {formatTime(Math.round((new Date().getTime() - questionStartTime.getTime()) / 1000))}</span>
                   </div>
                 )}
                 
@@ -1003,7 +1329,7 @@ export default function InterviewPage() {
                       <div className="w-1 h-4 bg-green-500 rounded animate-pulse delay-150"></div>
                       <div className="w-1 h-2 bg-green-400 rounded animate-pulse delay-300"></div>
                     </div>
-                    <span>Recording: {formatTime(recordingDuration)}</span>
+                    <span>Recording in {languageNames[selectedLanguage as keyof typeof languageNames] || selectedLanguage.toUpperCase()}: {formatTime(recordingDuration)}</span>
                   </div>
                 )}
               </CardContent>
