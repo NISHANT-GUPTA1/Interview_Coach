@@ -13,7 +13,6 @@ This is a full-scale AI-powered web application that helps users improve their c
 - **Voice-based AI Interviewer**: AI assistant speaks questions aloud like a real interviewer using selected language.
 - **Dynamic question flow**: AI generates follow-up questions based on user’s answers and role type.
 - **Resume integration (Planned)**: Customize interview questions based on uploaded resume.
-<!-- - **Stealth AI Assistant (Future)**: Real-time AI during live interviews/calls (like Cluely). -->
 - **PDF Report Export**: Automatically generate and export session summaries.
 
 ## 🧠 Tech Stack
