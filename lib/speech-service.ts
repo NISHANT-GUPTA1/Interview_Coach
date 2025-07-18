@@ -250,7 +250,7 @@ export class SpeechService {
       utterance.volume = 0.9
 
       // Set language
-      const ttsLang = this.ttsVoiceMap[language] || this.languageMap[language] || 'en-US'
+      const ttsLang = (this.ttsVoiceMap as any)[language] || (this.languageMap as any)[language] || 'en-US'
       utterance.lang = ttsLang
 
       // Find the best voice for the language
@@ -285,7 +285,7 @@ export class SpeechService {
 
   // Find the best voice for a given language
   private findBestVoice(voices: SpeechSynthesisVoice[], language: string): SpeechSynthesisVoice | null {
-    const targetLang = this.ttsVoiceMap[language] || this.languageMap[language] || 'en-US'
+    const targetLang = (this.ttsVoiceMap as any)[language] || (this.languageMap as any)[language] || 'en-US'
     
     // Priority order: Google > Microsoft > Neural > Default
     const priorities = ['google', 'microsoft', 'neural', 'default']

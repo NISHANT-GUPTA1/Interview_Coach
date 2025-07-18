@@ -1,10 +1,12 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import { Suspense } from 'react'
+import { TranslationProvider } from '@/contexts/TranslationContext'
 
 export const metadata: Metadata = {
-  title: 'v0 App',
-  description: 'Created with v0',
-  generator: 'v0.dev',
+  title: 'AI Interview Coach',
+  description: 'Multilingual AI-powered interview preparation platform',
+  generator: 'Next.js',
 }
 
 export default function RootLayout({
@@ -14,7 +16,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <Suspense fallback={<div>Loading...</div>}>
+          <TranslationProvider>
+            {children}
+          </TranslationProvider>
+        </Suspense>
+      </body>
     </html>
   )
 }
