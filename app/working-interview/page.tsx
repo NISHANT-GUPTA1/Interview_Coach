@@ -8,7 +8,8 @@ import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
 import { Progress } from "@/components/ui/progress"
 import { Mic, MicOff, Video, VideoOff, Clock, User, Bot, Globe } from "lucide-react"
-import { speechService, translationService } from "@/lib/speech-service"
+import { multiLanguageSpeechService } from "@/lib/multilingual-speech-service"
+import { translationService } from "@/lib/translations"
 
 export default function WorkingInterviewPage() {
   const searchParams = useSearchParams()
@@ -172,7 +173,7 @@ export default function WorkingInterviewPage() {
   // Translation function using enhanced service
   const translateText = async (text: string, sourceLang: string, targetLang: string) => {
     try {
-      return await translationService.translate(text, sourceLang, targetLang)
+      return await translationService.translateText(text, sourceLang, targetLang)
     } catch (error) {
       console.error('Translation error:', error)
       return text // Return original text if translation fails
@@ -186,15 +187,21 @@ export default function WorkingInterviewPage() {
       return
     }
 
-    if (!speechService.isReady()) {
+    if (!multiLanguageSpeechService.isReady()) {
       setSpeechError('Speech recognition not available. Please refresh the page.')
       return
     }
 
-    speechService.setLanguage(selectedLanguage)
-    setIsRecognitionInitialized(true)
-    setSpeechError(null)
-    console.log('🎤 Speech recognition initialized for language:', selectedLanguage)
+    // Set the language for speech recognition
+    const success = multiLanguageSpeechService.setLanguage(selectedLanguage)
+    if (success) {
+      setIsRecognitionInitialized(true)
+      setSpeechError(null)
+      console.log(`🎤 Speech recognition initialized for language: ${selectedLanguage}`)
+    } else {
+      setSpeechError(`Failed to initialize speech recognition for ${selectedLanguage}`)
+      console.error(`❌ Failed to set language for speech recognition: ${selectedLanguage}`)
+    }
   }
 
   // Enhanced speak question function using speech service
@@ -205,7 +212,7 @@ export default function WorkingInterviewPage() {
         return
       }
 
-      if (!speechService.isReady()) {
+      if (!multiLanguageSpeechService.isReady()) {
         console.log('Speech service not ready, skipping TTS')
         return
       }
@@ -214,29 +221,51 @@ export default function WorkingInterviewPage() {
       
       let textToSpeak = text
       
-      // If selected language is not English, translate the question
+      // Always translate questions for non-English languages
       if (selectedLanguage !== 'en') {
-        console.log('🌍 Translating question to', selectedLanguage)
-        textToSpeak = await translateText(text, 'en', selectedLanguage)
-        console.log('✅ Translated question:', textToSpeak)
+        try {
+          console.log(`🌍 Translating question from English to ${selectedLanguage}`)
+          textToSpeak = await translationService.translateText(text, 'en', selectedLanguage)
+          console.log('✅ Translated question:', textToSpeak)
+        } catch (translationError) {
+          console.warn('Translation failed, using original text:', translationError)
+          // If translation fails, still use the original text but set proper language for TTS
+        }
       }
       
       // Wait for voices to be loaded
-      await speechService.waitForVoices()
+      await multiLanguageSpeechService.waitForVoices()
       
-      // Speak the question
-      await speechService.speak(textToSpeak, selectedLanguage)
+      // Set language before speaking
+      multiLanguageSpeechService.setLanguage(selectedLanguage)
       
-      console.log('✅ Question spoken successfully')
+      // Speak the question in the selected language
+      await multiLanguageSpeechService.speak(textToSpeak, selectedLanguage)
+      
+      console.log(`✅ Question spoken successfully in ${selectedLanguage}`)
     } catch (error) {
       console.error('Speech synthesis error:', error)
       
-      // Fallback to basic browser speech synthesis
+      // Enhanced fallback to basic browser speech synthesis
       if (typeof window !== 'undefined' && window.speechSynthesis) {
         try {
+          console.log('🔄 Using fallback TTS...')
           const utterance = new SpeechSynthesisUtterance(text)
-          utterance.lang = languageMap[selectedLanguage as keyof typeof languageMap] || 'en-US'
+          
+          // Use proper language mapping
+          const speechLang = languageMap[selectedLanguage as keyof typeof languageMap] || 'en-US'
+          utterance.lang = speechLang
           utterance.rate = 0.8
+          utterance.volume = 0.9
+          
+          // Find best voice for the language
+          const voices = window.speechSynthesis.getVoices()
+          const voice = voices.find(v => v.lang.startsWith(speechLang.split('-')[0]))
+          if (voice) {
+            utterance.voice = voice
+            console.log(`🗣️ Fallback using voice: ${voice.name}`)
+          }
+          
           utterance.onend = () => setAiAvatarSpeaking(false)
           utterance.onerror = () => setAiAvatarSpeaking(false)
           window.speechSynthesis.speak(utterance)
@@ -301,18 +330,43 @@ export default function WorkingInterviewPage() {
     loadQuestions()
   }, [selectedLanguage])
 
-  // Start camera function (copied exactly from working simple-camera)
+  // Start camera function with enhanced error handling
   const startCamera = async () => {
     try {
       setCameraError(null)
-      console.log('🎥 Starting camera test...')
+      console.log('🎥 Starting camera and microphone...')
       
+      // Check for media device support
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Media devices not supported in this browser')
+      }
+      
+      // Request permissions with enhanced audio constraints
       const newStream = await navigator.mediaDevices.getUserMedia({
-        video: { width: 640, height: 480 },
-        audio: true
+        video: { 
+          width: { ideal: 640 }, 
+          height: { ideal: 480 },
+          facingMode: 'user'
+        },
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+          sampleRate: 44100
+        }
       })
       
-      console.log('🎥 Got stream:', newStream)
+      console.log('🎥 Got stream with tracks:', newStream.getTracks().map(t => `${t.kind}: ${t.label}`))
+      
+      // Check audio tracks
+      const audioTracks = newStream.getAudioTracks()
+      if (audioTracks.length === 0) {
+        console.warn('⚠️ No audio tracks found')
+        setSpeechError('No microphone access. Please allow microphone permission.')
+      } else {
+        console.log('🎤 Audio tracks available:', audioTracks.length)
+        setSpeechError(null)
+      }
       
       if (videoRef.current) {
         videoRef.current.srcObject = newStream
@@ -324,6 +378,11 @@ export default function WorkingInterviewPage() {
             console.log('🎥 Playing!')
             setStream(newStream)
             setIsVideoReady(true)
+            
+            // Initialize speech recognition after camera is ready
+            setTimeout(() => {
+              initializeSpeechRecognition()
+            }, 500)
           }).catch(err => {
             console.error('🎥 Play failed:', err)
             setCameraError(`Play failed: ${err.message}`)
@@ -334,6 +393,43 @@ export default function WorkingInterviewPage() {
     } catch (err) {
       console.error('🎥 Camera failed:', err)
       setCameraError(`Camera failed: ${err instanceof Error ? err.message : 'Unknown error'}`)
+    }
+  }
+
+  // Test speech recognition function
+  const testSpeechRecognition = () => {
+    if (!multiLanguageSpeechService.isReady()) {
+      setSpeechError('Speech recognition not available. Please refresh the page.')
+      return
+    }
+
+    console.log(`🧪 Testing speech recognition for ${selectedLanguage}...`)
+    setSpeechError(null)
+    
+    const success = multiLanguageSpeechService.startRecognition(
+      (text: string, isFinal: boolean) => {
+        if (isFinal) {
+          console.log('🧪 Test result:', text)
+          setSpeechError(`Test successful! Detected: "${text}"`)
+          multiLanguageSpeechService.stopRecognition()
+        } else {
+          console.log('🧪 Interim:', text)
+        }
+      },
+      (error: string) => {
+        console.error('🧪 Test failed:', error)
+        setSpeechError(`Test failed: ${error}`)
+      }
+    )
+
+    if (success) {
+      setSpeechError('🧪 Test started. Please say something...')
+      setTimeout(() => {
+        multiLanguageSpeechService.stopRecognition()
+        setSpeechError('Test completed.')
+      }, 5000)
+    } else {
+      setSpeechError('Failed to start test.')
     }
   }
 
@@ -372,7 +468,12 @@ export default function WorkingInterviewPage() {
     console.log('🎤 Recording started for language:', selectedLanguage)
     
     // Start speech recognition using enhanced service
-    const success = speechService.startRecognition(
+    console.log(`🎤 Initializing speech recognition for language: ${selectedLanguage}`)
+    
+    // Ensure language is set correctly
+    multiLanguageSpeechService.setLanguage(selectedLanguage)
+    
+    const success = multiLanguageSpeechService.startRecognition(
       async (text: string, isFinal: boolean) => {
         if (isFinal) {
           console.log('✅ Final transcript:', text)
@@ -388,7 +489,7 @@ export default function WorkingInterviewPage() {
             try {
               setIsTranslating(true)
               console.log('🌍 Translating from', selectedLanguage, 'to English:', text)
-              const translatedResponse = await translateText(text, selectedLanguage, 'en')
+              const translatedResponse = await translationService.translateText(text, selectedLanguage, 'en')
               if (translatedResponse && translatedResponse !== text) {
                 setTranslatedText(translatedResponse)
                 setDetectedLanguage(selectedLanguage)
@@ -440,7 +541,7 @@ export default function WorkingInterviewPage() {
     }
     
     // Stop speech recognition using enhanced service
-    speechService.stopRecognition()
+    multiLanguageSpeechService.stopRecognition()
     
     if (recordingIntervalRef.current) {
       clearInterval(recordingIntervalRef.current)
@@ -739,7 +840,7 @@ export default function WorkingInterviewPage() {
                         onClick={() => {
                           setSpeechError(null)
                           if (isRecognitionInitialized && isRecording) {
-                            const success = speechService.startRecognition(
+                            const success = multiLanguageSpeechService.startRecognition(
                               async (text: string, isFinal: boolean) => {
                                 if (isFinal) {
                                   setCurrentAnswer(prev => prev ? prev + ' ' + text : text)
@@ -760,6 +861,26 @@ export default function WorkingInterviewPage() {
                         }}
                       >
                         Retry
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Speech Recognition Test */}
+                {isVideoReady && !isRecording && (
+                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-blue-800">Speech Recognition Test</p>
+                        <p className="text-sm text-blue-600">Test if microphone works for {selectedLanguage.toUpperCase()}</p>
+                      </div>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={testSpeechRecognition}
+                        className="border-blue-300 text-blue-700 hover:bg-blue-100"
+                      >
+                        Test Mic 🎤
                       </Button>
                     </div>
                   </div>

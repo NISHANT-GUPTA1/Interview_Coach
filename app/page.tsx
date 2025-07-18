@@ -11,8 +11,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Brain, Camera, Mic, FileText, BarChart3, Zap, Star, Users, Trophy, TrendingUp, ArrowRight, CheckCircle, Search, Globe } from "lucide-react"
 import Link from "next/link"
 import { SUPPORTED_LANGUAGES, getLanguagesByCategory, searchLanguages, type Language } from "@/lib/language-service"
+import { useTranslationContext, TranslatedText } from "@/contexts/TranslationContext"
 
 export default function HomePage() {
+  const { language, setLanguage, t } = useTranslationContext()
   const [selectedGoal, setSelectedGoal] = useState("")
   const [selectedRole, setSelectedRole] = useState("")
   const [selectedLanguage, setSelectedLanguage] = useState("")
@@ -224,14 +226,13 @@ export default function HomePage() {
               🚀 Powered by Advanced AI
             </Badge>
             <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-              Master Your
+              <TranslatedText text="Master Your" />
               <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                {" "}Communication Skills
+                {" "}<TranslatedText text="Communication Skills" />
               </span>
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              AI-powered interview coaching with real-time feedback on your speech, body language, 
-              and responses. Get ready for your dream job with personalized training.
+              <TranslatedText text="AI-powered interview coaching with real-time feedback on your speech, body language, and responses. Get ready for your dream job with personalized training." />
             </p>
             
             {/* Stats */}
@@ -311,11 +312,11 @@ export default function HomePage() {
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <span className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm mr-3">1</span>
-                  Choose Your Goal
+                  <TranslatedText text="Choose Your Goal" />
                   {selectedGoal && <CheckCircle className="ml-auto h-5 w-5 text-green-500" />}
                 </CardTitle>
                 <CardDescription>
-                  Select what type of practice session you want
+                  <TranslatedText text="Select what type of practice session you want" />
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -362,16 +363,16 @@ export default function HomePage() {
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <span className={`rounded-full w-6 h-6 flex items-center justify-center text-sm mr-3 ${selectedGoal ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-500'}`}>2</span>
-                  Select Your Role
+                  <TranslatedText text="Select Your Role" />
                   {selectedRole && <CheckCircle className="ml-auto h-5 w-5 text-green-500" />}
                 </CardTitle>
                 <CardDescription>
                   {selectedGoal ? (
                     <>
-                      Roles for <strong>{goals.find(g => g.id === selectedGoal)?.name}</strong> - Choose your target position
+                      <TranslatedText text="Roles for" /> <strong>{goals.find(g => g.id === selectedGoal)?.name}</strong> - <TranslatedText text="Choose your target position" />
                     </>
                   ) : (
-                    "Choose the role you're preparing for (select a goal first)"
+                    <TranslatedText text="Choose the role you're preparing for (select a goal first)" />
                   )}
                 </CardDescription>
               </CardHeader>
@@ -404,11 +405,11 @@ export default function HomePage() {
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <span className={`rounded-full w-6 h-6 flex items-center justify-center text-sm mr-3 ${selectedRole ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-500'}`}>3</span>
-                  Choose Language
+                  <TranslatedText text="Choose Language" />
                   {selectedLanguage && <CheckCircle className="ml-auto h-5 w-5 text-green-500" />}
                 </CardTitle>
                 <CardDescription>
-                  Select your preferred interview language
+                  <TranslatedText text="Select your preferred interview language" />
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -549,7 +550,7 @@ export default function HomePage() {
 
           {/* Start Button */}
           <div className="mt-8 text-center">
-            <Link href={isReady ? "/config" : "#"}>
+            <Link href={isReady ? `/working-interview?role=${encodeURIComponent(selectedRole)}&language=${selectedLanguage}&type=${selectedGoal}` : "#"}>
               <Button 
                 size="lg" 
                 className={`px-8 py-3 text-lg ${
@@ -561,16 +562,16 @@ export default function HomePage() {
               >
                 {isReady ? (
                   <>
-                    Start AI Interview <ArrowRight className="ml-2 h-5 w-5" />
+                    <TranslatedText text="Start AI Interview" /> <ArrowRight className="ml-2 h-5 w-5" />
                   </>
                 ) : (
-                  'Complete Setup to Continue'
+                  <TranslatedText text="Complete Setup to Continue" />
                 )}
               </Button>
             </Link>
             {isReady && (
               <p className="mt-2 text-sm text-gray-600">
-                🎯 {selectedGoal?.replace('-', ' ')} • 👤 {selectedRole} • 🌍 {selectedLanguage}
+                🎯 {selectedGoal?.replace('-', ' ')} • 👤 {selectedRole} • 🌍 {SUPPORTED_LANGUAGES.find(l => l.code === selectedLanguage)?.name || selectedLanguage}
               </p>
             )}
           </div>
