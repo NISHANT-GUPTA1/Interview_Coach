@@ -5,8 +5,11 @@
   "scripts": {
     "build": "next build",
     "dev": "next dev",
+    "dev-https": "node https-server.js",
+    "dev-https-simple": "next dev --experimental-https --experimental-https-key ./localhost+2-key.pem --experimental-https-cert ./localhost+2.pem",
     "lint": "next lint",
-    "start": "next start"
+    "start": "next start",
+    "start-https": "next start --experimental-https --experimental-https-key ./localhost+2-key.pem --experimental-https-cert ./localhost+2.pem"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
