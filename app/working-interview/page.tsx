@@ -240,7 +240,9 @@ export default function WorkingInterviewPage() {
       multiLanguageSpeechService.setLanguage(selectedLanguage)
       
       // Speak the question in the selected language
-      await multiLanguageSpeechService.speak(textToSpeak, selectedLanguage)
+      await multiLanguageSpeechService.speak(textToSpeak, selectedLanguage, () => {
+        setAiAvatarSpeaking(false);
+      });
       
       console.log(`✅ Question spoken successfully in ${selectedLanguage}`)
     } catch (error) {
@@ -276,8 +278,6 @@ export default function WorkingInterviewPage() {
       } else {
         setAiAvatarSpeaking(false)
       }
-    } finally {
-      setAiAvatarSpeaking(false)
     }
   }
 
@@ -839,6 +839,8 @@ export default function WorkingInterviewPage() {
                         variant="outline"
                         onClick={() => {
                           setSpeechError(null)
+                          // Reset retry counter for manual retry
+                          multiLanguageSpeechService.resetRetryCount()
                           if (isRecognitionInitialized && isRecording) {
                             const success = multiLanguageSpeechService.startRecognition(
                               async (text: string, isFinal: boolean) => {
