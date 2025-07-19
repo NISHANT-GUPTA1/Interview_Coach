@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Translation Test</title>
+</head>
+<body>
+    <h1>Quick Translation Test</h1>
+    
+    <div>
+        <h2>English:</h2>
+        <p id="english">Tell me about yourself and your experience as a software engineer.</p>
+        
+        <h2>Hindi:</h2>
+        <p id="hindi">मुझे अपने बारे में और एक सॉफ्टवेयर इंजीनियर के रूप में अपने अनुभव के बारे में बताएं।</p>
+        
+        <h2>Tamil:</h2>
+        <p id="tamil">உங்களைப் பற்றியும் ஒரு மென்பொருள் பொறியாளராக உங்கள் அனுபவத்தைப் பற்றியும் சொல்லுங்கள்।</p>
+        
+        <h2>Telugu:</h2>
+        <p id="telugu">మీ గురించి మరియు సాఫ్ట్‌వేర్ ఇంజనీర్ గా మీ అనుభవం గురించి చెప్పండి।</p>
+    </div>
+
+    <div style="margin-top: 20px;">
+        <button onclick="testSpeech('hi')">Speak Hindi</button>
+        <button onclick="testSpeech('ta')">Speak Tamil</button>
+        <button onclick="testSpeech('te')">Speak Telugu</button>
+    </div>
+
+    <script>
+        function testSpeech(lang) {
+            const texts = {
+                'hi': 'मुझे अपने बारे में और एक सॉफ्टवेयर इंजीनियर के रूप में अपने अनुभव के बारे में बताएं।',
+                'ta': 'உங்களைப் பற்றியும் ஒரு மென்பொருள் பொறியாளராக உங்கள் அனுபவத்தைப் பற்றியும் சொல்லுங்கள்।',
+                'te': 'మీ గురించి మరియు సాఫ్ట్‌వేర్ ఇంజనీర్ గా మీ అనుభవం గురించి చెప్పండి।'
+            };
+            
+            const langCodes = {
+                'hi': 'hi-IN',
+                'ta': 'ta-IN', 
+                'te': 'te-IN'
+            };
+            
+            const utterance = new SpeechSynthesisUtterance(texts[lang]);
+            utterance.lang = langCodes[lang];
+            utterance.rate = 0.7;
+            utterance.volume = 1.0;
+            
+            console.log(`Speaking in ${lang}: ${texts[lang]}`);
+            speechSynthesis.speak(utterance);
+        }
+    </script>
+</body>
+</html>

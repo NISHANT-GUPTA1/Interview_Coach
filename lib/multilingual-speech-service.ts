@@ -389,7 +389,7 @@ export class MultilanguageSpeechService {
     }
   }
 
-  // Text-to-speech with multilingual support and real-time translation
+  // Text-to-speech with multilingual support
   async speak(text: string, languageCode?: string, onComplete?: () => void): Promise<void> {
     return new Promise(async (resolve, reject) => {
       if (!this.synthesis) {
@@ -405,18 +405,9 @@ export class MultilanguageSpeechService {
         this.synthesis.cancel();
         await new Promise(resolve => setTimeout(resolve, 100));
 
-        // Translate text in real-time for Indian languages
-        let textToSpeak = text;
-        if (this.indianLanguages.includes(lang) && lang !== 'en') {
-          try {
-            console.log(`🌍 Real-time translating to ${lang}:`, text);
-            textToSpeak = await this.translateTextRealTime(text, lang);
-            console.log(`✅ Translated text:`, textToSpeak);
-          } catch (translationError) {
-            console.warn('Translation failed, using original text:', translationError);
-            textToSpeak = text; // Fallback to original text
-          }
-        }
+        // Use the provided text directly (translation should happen before calling this function)
+        const textToSpeak = text;
+        console.log(`🎙️ TTS: Speaking "${textToSpeak}" in language: ${lang}`);
 
         const speechLang = this.speechLanguageMap[lang] || 'en-US';
         const utterance = new SpeechSynthesisUtterance(textToSpeak);
