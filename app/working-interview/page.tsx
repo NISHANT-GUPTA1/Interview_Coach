@@ -10,6 +10,7 @@ import { Progress } from "@/components/ui/progress"
 import { Mic, MicOff, Video, VideoOff, Clock, User, Bot, Globe } from "lucide-react"
 import { multiLanguageSpeechService } from "@/lib/multilingual-speech-service"
 import { translationService } from "@/lib/translations"
+import { getQuickTranslation } from "@/lib/quick-translations"
 
 export default function WorkingInterviewPage() {
   const searchParams = useSearchParams()
@@ -221,15 +222,26 @@ export default function WorkingInterviewPage() {
       
       let textToSpeak = text
       
-      // Always translate questions for non-English languages
+      // First try quick translation for immediate results
       if (selectedLanguage !== 'en') {
-        try {
-          console.log(`🌍 Translating question from English to ${selectedLanguage}`)
-          textToSpeak = await translationService.translateText(text, 'en', selectedLanguage)
-          console.log('✅ Translated question:', textToSpeak)
-        } catch (translationError) {
-          console.warn('Translation failed, using original text:', translationError)
-          // If translation fails, still use the original text but set proper language for TTS
+        console.log(`🚀 Quick translating question to ${selectedLanguage}:`, text)
+        
+        // Try quick translation first
+        const quickTranslation = getQuickTranslation(text, selectedLanguage)
+        if (quickTranslation !== text) {
+          textToSpeak = quickTranslation
+          console.log('✅ Quick translation found:', textToSpeak)
+        } else {
+          // Fallback to API translation if no quick translation
+          try {
+            console.log(`🌍 Fallback API translation to ${selectedLanguage}`)
+            const apiTranslation = await translationService.translateText(text, 'en', selectedLanguage)
+            textToSpeak = apiTranslation || text
+            console.log('✅ API translation result:', textToSpeak)
+          } catch (translationError) {
+            console.warn('API translation failed, using original text:', translationError)
+            textToSpeak = text
+          }
         }
       }
       
@@ -238,6 +250,8 @@ export default function WorkingInterviewPage() {
       
       // Set language before speaking
       multiLanguageSpeechService.setLanguage(selectedLanguage)
+      
+      console.log(`🗣️ Speaking text: "${textToSpeak}" in language: ${selectedLanguage}`)
       
       // Speak the question in the selected language
       await multiLanguageSpeechService.speak(textToSpeak, selectedLanguage, () => {

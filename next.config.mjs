@@ -9,11 +9,9 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  // Add HTTPS support for development
+  // Updated serverExternalPackages configuration
   ...(process.env.NODE_ENV === 'development' && {
-    experimental: {
-      serverComponentsExternalPackages: [],
-    },
+    serverExternalPackages: [],
   }),
 }
 
