@@ -6,6 +6,10 @@ export class MultilanguageSpeechService {
   private onResultCallback: ((text: string, isFinal: boolean) => void) | null = null;
   private onErrorCallback: ((error: string) => void) | null = null;
   private isInitialized: boolean = false;
+  private retryCount: number = 0; // Track auto-retry attempts
+  private isHttps: boolean = false;
+  private mediaRecorder: MediaRecorder | null = null;
+  private audioChunks: Blob[] = [];
 
   // Comprehensive language mapping for speech recognition
   private speechLanguageMap: { [key: string]: string } = {
@@ -59,6 +63,8 @@ export class MultilanguageSpeechService {
 
   constructor() {
     if (typeof window !== 'undefined') {
+      this.isHttps = window.location.protocol === 'https:';
+      console.log(`🔒 Running on ${this.isHttps ? 'HTTPS' : 'HTTP'} - Speech features: ${this.isHttps ? 'Full' : 'Limited'}`);
       this.initialize();
     }
   }
@@ -75,7 +81,6 @@ export class MultilanguageSpeechService {
         console.log('✅ Speech Recognition initialized');
       } else {
         console.warn('⚠️ Speech Recognition not supported in this browser');
-        return false;
       }
 
       // Initialize Speech Synthesis
@@ -87,10 +92,45 @@ export class MultilanguageSpeechService {
       }
 
       this.isInitialized = true;
+      
+      // Test if speech recognition actually works
+      this.testSpeechRecognitionAvailability();
+      
       return true;
     } catch (error) {
       console.error('❌ Failed to initialize speech services:', error);
       return false;
+    }
+  }
+
+  // Test if speech recognition is actually available and working
+  private async testSpeechRecognitionAvailability(): Promise<void> {
+    if (!this.recognition) return;
+    
+    try {
+      // Quick test to see if speech recognition works
+      const testRecognition = new ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition)();
+      testRecognition.lang = 'en-US';
+      testRecognition.continuous = false;
+      testRecognition.interimResults = false;
+      
+      testRecognition.onstart = () => {
+        console.log('✅ Speech recognition test successful');
+        testRecognition.stop();
+      };
+      
+      testRecognition.onerror = (event: any) => {
+        console.warn(`⚠️ Speech recognition test failed: ${event.error}`);
+        if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+          console.log('🔄 Switching to fallback speech input method');
+        }
+      };
+      
+      // Start test (will immediately stop)
+      testRecognition.start();
+      
+    } catch (error) {
+      console.warn('Speech recognition test failed:', error);
     }
   }
 
@@ -130,43 +170,66 @@ export class MultilanguageSpeechService {
     this.recognition.onerror = (event: any) => {
       console.error('Speech recognition error:', event.error);
       
-      // Handle different types of errors
+      // Handle different types of errors with specific solutions
       let errorMessage = '';
+      let solution = '';
+      
       switch (event.error) {
         case 'network':
-          errorMessage = 'Network connection error. Please check your internet connection and try again.';
+          if (!this.isHttps) {
+            errorMessage = '🔒 HTTPS Required: Speech recognition needs secure connection.';
+            solution = 'Please use HTTPS or deploy to a secure server. For local development, try: npx serve -s build --ssl-cert';
+          } else {
+            errorMessage = '🌐 Network issue with speech recognition service.';
+            solution = 'Check your internet connection and try again.';
+          }
           break;
         case 'not-allowed':
-          errorMessage = 'Microphone access denied. Please allow microphone permission and refresh the page.';
+          errorMessage = '🎤 Microphone access denied.';
+          solution = 'Please click the microphone icon in your browser address bar and allow access, then refresh the page.';
           break;
         case 'no-speech':
-          errorMessage = 'No speech detected. Please speak clearly into the microphone.';
+          errorMessage = '🔇 No speech detected.';
+          solution = 'Please speak clearly into your microphone. Make sure your microphone is not muted.';
           break;
         case 'audio-capture':
-          errorMessage = 'Audio capture failed. Please check your microphone and try again.';
+          errorMessage = '🎧 Microphone connection failed.';
+          solution = 'Please check your microphone connection and browser permissions.';
           break;
         case 'service-not-allowed':
-          errorMessage = 'Speech recognition service not allowed. Please try again.';
+          if (!this.isHttps) {
+            errorMessage = '🔒 Speech service requires HTTPS.';
+            solution = 'Please use HTTPS or enable microphone permissions in your browser settings.';
+          } else {
+            errorMessage = '🚫 Speech service blocked.';
+            solution = 'Please enable microphone permissions in your browser settings.';
+          }
+          break;
+        case 'aborted':
+          errorMessage = '⏹️ Speech recognition stopped.';
+          solution = 'Click the microphone button to start recording again.';
           break;
         default:
-          errorMessage = `Speech recognition error: ${event.error}`;
+          errorMessage = `❌ Speech error: ${event.error}`;
+          solution = this.isHttps ? 'Try refreshing the page or restarting your browser.' : 'Please use HTTPS for full speech recognition support.';
       }
+      
+      const fullMessage = `${errorMessage} ${solution}`;
       
       if (this.onErrorCallback) {
-        this.onErrorCallback(errorMessage);
+        this.onErrorCallback(fullMessage);
       }
       
-      // Auto-retry for network errors
-      if (event.error === 'network') {
-        console.log('🔄 Auto-retrying speech recognition after network error...');
+      // Enhanced auto-retry logic
+      if (event.error === 'network' || event.error === 'no-speech') {
+        this.handleAutoRetry(event.error);
+      }
+      
+      // For HTTPS issues, suggest solutions
+      if (!this.isHttps && (event.error === 'network' || event.error === 'service-not-allowed')) {
         setTimeout(() => {
-          if (this.recognition && this.onResultCallback) {
-            try {
-              this.recognition.start();
-              console.log('🔄 Speech recognition restarted after network error');
-            } catch (retryError) {
-              console.error('Failed to restart recognition:', retryError);
-            }
+          if (this.onErrorCallback) {
+            this.onErrorCallback('💡 Tip: For local HTTPS testing, run: npx http-server -S -C cert.pem -K key.pem');
           }
         }, 2000);
       }
@@ -177,8 +240,55 @@ export class MultilanguageSpeechService {
     };
 
     this.recognition.onstart = () => {
-      console.log('Speech recognition started');
+      console.log('Speech recognition started successfully');
+      // Reset retry counter on successful start
+      this.retryCount = 0;
     };
+  }
+
+  // Handle auto-retry logic
+  private handleAutoRetry(errorType: string): void {
+    console.log(`🔄 Auto-retrying speech recognition after ${errorType} error...`);
+    
+    // Increment retry count
+    this.retryCount = (this.retryCount || 0) + 1;
+    const maxRetries = 3;
+    const retryDelay = Math.min(1000 * Math.pow(2, this.retryCount), 10000); // Exponential backoff, max 10s
+    
+    if (this.retryCount <= maxRetries) {
+      setTimeout(() => {
+        if (this.recognition && this.onResultCallback) {
+          try {
+            // Clear any previous error state
+            this.stopRecognition();
+            
+            // Brief delay before restart
+            setTimeout(() => {
+              try {
+                this.recognition!.start();
+                console.log(`🔄 Speech recognition restarted (attempt ${this.retryCount}/${maxRetries})`);
+              } catch (startError) {
+                console.error('Failed to start recognition on retry:', startError);
+                if (this.onErrorCallback) {
+                  this.onErrorCallback('Auto-retry failed. Please click "Retry" manually.');
+                }
+              }
+            }, 500);
+            
+          } catch (retryError) {
+            console.error('Failed to restart recognition:', retryError);
+            if (this.onErrorCallback) {
+              this.onErrorCallback('Auto-retry failed. Please click "Retry" manually.');
+            }
+          }
+        }
+      }, retryDelay);
+    } else {
+      console.log('Max retries reached. Manual retry required.');
+      if (this.onErrorCallback) {
+        this.onErrorCallback('Max auto-retries reached. Please click "Retry" to try again manually.');
+      }
+    }
   }
 
   // Check if service is ready
@@ -216,6 +326,12 @@ export class MultilanguageSpeechService {
       console.error('Failed to set speech recognition language:', error);
       return false;
     }
+  }
+
+  // Reset retry counter (useful for manual retries)
+  resetRetryCount(): void {
+    this.retryCount = 0;
+    console.log('🔄 Retry counter reset');
   }
 
   // Start speech recognition
@@ -273,39 +389,52 @@ export class MultilanguageSpeechService {
     }
   }
 
-  // Text-to-speech with multilingual support
-  async speak(text: string, languageCode?: string): Promise<void> {
+  // Text-to-speech with multilingual support and real-time translation
+  async speak(text: string, languageCode?: string, onComplete?: () => void): Promise<void> {
     return new Promise(async (resolve, reject) => {
       if (!this.synthesis) {
+        console.error('Speech synthesis not available');
         reject('Speech synthesis not available');
         return;
       }
 
       const lang = languageCode || this.currentLanguage;
-      const speechLang = this.speechLanguageMap[lang] || 'en-US';
-
+      
       try {
         // Cancel any ongoing speech
         this.synthesis.cancel();
-
-        // Wait a bit for the cancel to take effect
         await new Promise(resolve => setTimeout(resolve, 100));
 
-        const utterance = new SpeechSynthesisUtterance(text);
+        // Translate text in real-time for Indian languages
+        let textToSpeak = text;
+        if (this.indianLanguages.includes(lang) && lang !== 'en') {
+          try {
+            console.log(`🌍 Real-time translating to ${lang}:`, text);
+            textToSpeak = await this.translateTextRealTime(text, lang);
+            console.log(`✅ Translated text:`, textToSpeak);
+          } catch (translationError) {
+            console.warn('Translation failed, using original text:', translationError);
+            textToSpeak = text; // Fallback to original text
+          }
+        }
+
+        const speechLang = this.speechLanguageMap[lang] || 'en-US';
+        const utterance = new SpeechSynthesisUtterance(textToSpeak);
         utterance.lang = speechLang;
         
-        // Adjust speech parameters based on language
+        // Enhanced settings for Indian languages
         if (this.indianLanguages.includes(lang)) {
-          utterance.rate = 0.7; // Slower for Indian languages for clarity
+          utterance.rate = 0.6; // Slower for Indian languages for clarity
           utterance.pitch = 1.1; // Slightly higher pitch
+          utterance.volume = 1.0; // Full volume
+          console.log(`🇮🇳 Configured for Indian language: ${lang}`);
         } else {
           utterance.rate = 0.8;
           utterance.pitch = 1.0;
+          utterance.volume = 0.9;
         }
-        
-        utterance.volume = 0.9;
 
-        // Wait for voices to be available
+        // Wait for voices and select best one
         const voices = await this.waitForVoices();
         const preferredVoice = this.findBestVoice(voices, lang);
         
@@ -316,15 +445,26 @@ export class MultilanguageSpeechService {
           console.log(`🗣️ Speaking in ${lang} using default voice (no specific voice found)`);
         }
 
+        utterance.onstart = () => {
+          console.log(`🎙️ Started speaking in ${lang}`);
+        };
+
         utterance.onend = () => {
           console.log(`✅ Speech synthesis completed for ${lang}`);
+          if (onComplete) onComplete();
           resolve();
         };
 
         utterance.onerror = (error) => {
           console.error(`❌ Speech synthesis error for ${lang}:`, error);
+          if (onComplete) onComplete(); // Still call completion to avoid hanging UI
           reject(error);
         };
+
+        // Ensure speech synthesis is ready
+        if (this.synthesis.paused) {
+          this.synthesis.resume();
+        }
 
         // Start speaking
         this.synthesis.speak(utterance);
@@ -334,15 +474,80 @@ export class MultilanguageSpeechService {
           if (this.synthesis && this.synthesis.speaking) {
             console.log('⏰ Speech synthesis timeout, cancelling...');
             this.synthesis.cancel();
+            if (onComplete) onComplete();
             reject('Speech synthesis timeout');
           }
         }, 30000); // 30 second timeout
         
       } catch (error) {
         console.error('Failed to speak:', error);
+        if (onComplete) onComplete();
         reject(error);
       }
     });
+  }
+
+  // Real-time translation for Indian languages
+  private async translateTextRealTime(text: string, targetLang: string): Promise<string> {
+    try {
+      // Simple translation mappings for common interview phrases
+      const quickTranslations: { [key: string]: { [lang: string]: string } } = {
+        'Tell me about yourself': {
+          'hi': 'अपने बारे में बताइए',
+          'ta': 'உங்களைப் பற்றி சொல்லுங்கள்',
+          'te': 'మీ గురించి చెప్పండి',
+          'bn': 'আপনার সম্পর্কে বলুন',
+          'mr': 'आपल्याबद्दल सांगा',
+          'gu': 'તમારા વિશે કહો'
+        },
+        'What is your experience': {
+          'hi': 'आपका अनुभव क्या है',
+          'ta': 'உங்கள் அனுபவம் என்ன',
+          'te': 'మీ అనుభవం ఏమిటి',
+          'bn': 'আপনার অভিজ্ঞতা কি',
+          'mr': 'तुमचा अनुभव काय आहे',
+          'gu': 'તમારો અનુભવ શું છે'
+        },
+        'Why do you want this job': {
+          'hi': 'आप यह नौकरी क्यों चाहते हैं',
+          'ta': 'இந்த வேலையை ஏன் விரும்புகிறீர்கள்',
+          'te': 'మీరు ఈ ఉద్యోగాన్ని ఎందుకు కోరుకుంటున్నారు',
+          'bn': 'আপনি কেন এই কাজ চান',
+          'mr': 'तुम्हाला ही नोकरी का हवी आहे',
+          'gu': 'તમે આ નોકરી કેમ ઇચ્છો છો'
+        }
+      };
+
+      // Check for quick translations first
+      for (const [english, translations] of Object.entries(quickTranslations)) {
+        if (text.toLowerCase().includes(english.toLowerCase())) {
+          const translation = translations[targetLang];
+          if (translation) {
+            return translation;
+          }
+        }
+      }
+
+      // For longer text, use a translation API
+      const response = await fetch('https://api.mymemory.translated.net/get', {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        return data.responseData?.translatedText || text;
+      }
+
+      // Fallback: return original text
+      return text;
+      
+    } catch (error) {
+      console.warn('Real-time translation failed:', error);
+      return text; // Return original text if translation fails
+    }
   }
 
   // Find the best voice for a language

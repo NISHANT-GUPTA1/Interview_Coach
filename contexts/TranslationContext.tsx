@@ -1,7 +1,7 @@
 "use client"
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, usePathname } from 'next/navigation';
 import { translationService } from '@/lib/translations';
 
 interface TranslationContextType {
@@ -22,18 +22,24 @@ interface TranslationProviderProps {
 
 export function TranslationProvider({ children, defaultLanguage = 'en' }: TranslationProviderProps) {
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const [language, setLanguage] = useState(defaultLanguage);
   const [cache, setCache] = useState<{ [key: string]: string }>({});
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Get language from URL params
+  // Only get language from URL params on interview pages, not on home page
   useEffect(() => {
     const urlLang = searchParams.get('language');
-    if (urlLang && urlLang !== language) {
+    const isInterviewPage = pathname.includes('/interview') || pathname.includes('/working-interview');
+    
+    if (urlLang && urlLang !== language && isInterviewPage) {
       setLanguage(urlLang);
+    } else if (!isInterviewPage) {
+      // Reset to English when not on interview pages
+      setLanguage('en');
     }
-  }, [searchParams, language]);
+  }, [searchParams, language, pathname]);
 
   const t = async (text: string): Promise<string> => {
     if (language === 'en') return text;

@@ -1,17 +1,19 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { translationService } from "@/lib/translations"
 
-// Translation function
+// Question interface
+interface Question {
+  id: number;
+  text: string;
+  category: string;
+  originalText?: string;
+}
+
+// Use our comprehensive translation service with multiple API fallbacks
 async function translateText(text: string, sourceLang: string, targetLang: string): Promise<string | null> {
   try {
-    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${sourceLang}|${targetLang}`
-    const response = await fetch(url)
-    
-    if (!response.ok) {
-      throw new Error('Translation API failed')
-    }
-    
-    const data = await response.json()
-    return data.responseData.translatedText
+    const result = await translationService.translateText(text, sourceLang, targetLang)
+    return result
   } catch (error) {
     console.error('Translation error:', error)
     return null
@@ -23,7 +25,7 @@ export async function POST(request: NextRequest) {
     const { role, goal, previousQuestions, userResponse, language = 'en', questionCount = 4 } = await request.json()
 
     // Enhanced question structure with categories
-    const questions = {
+    const questions: Record<string, Question[]> = {
       "Software Engineer": [
         { id: 1, text: "Tell me about yourself and your experience as a software engineer.", category: "Introduction" },
         { id: 2, text: "Describe a challenging technical problem you solved recently.", category: "Technical" },
@@ -85,8 +87,8 @@ export async function POST(request: NextRequest) {
       
       // If language is not English, translate the questions
       if (language !== 'en') {
-        const translatedQuestions = await Promise.all(
-          selectedQuestions.map(async (question) => {
+        const translatedQuestions: Question[] = await Promise.all(
+          selectedQuestions.map(async (question): Promise<Question> => {
             const translatedText = await translateText(question.text, 'en', language)
             return {
               ...question,
@@ -114,7 +116,7 @@ export async function POST(request: NextRequest) {
     const randomQuestion = roleQuestions[Math.floor(Math.random() * roleQuestions.length)]
     
     // Translate if needed
-    let finalQuestion = randomQuestion
+    let finalQuestion: Question = randomQuestion
     if (language !== 'en') {
       const translatedText = await translateText(randomQuestion.text, 'en', language)
       if (translatedText) {
