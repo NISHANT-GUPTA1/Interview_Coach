@@ -39,12 +39,12 @@
 ### 🎤 **Smart Speech Recognition** - AI-powered multilingual speech processing
 *Real-time speech recognition with 70+ language support and intelligent error handling*
 
-![Speech Recognition](public/placeholder.jpg)
+![Speech Recognition](public/placeholder.jpg) //image to be add
 
 ### 🌍 **Global Language Support** - Interview in your native language  
 *Comprehensive multilingual system supporting Indian regional languages and international languages*
 
-![Language Support](public/placeholder.jpg)
+![Language Support](public/placeholder.jpg)//image to be add here
 
 ### 🤖 **AI Question Generation** - Dynamic, role-specific interview questions
 *OpenAI GPT-4 powered question generation tailored to your role and experience level*
