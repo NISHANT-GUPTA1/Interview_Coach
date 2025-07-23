@@ -64,12 +64,12 @@
 ### 📈 **Progress Tracking** - Monitor your improvement over time
 *Detailed progress reports with PDF export and performance trend analysis*
 
-![Progress Tracking](public/placeholder.jpg)
+![Progress Tracking](public/placeholder.jpg) //images
 
 ### 🔊 **Text-to-Speech** - AI speaks questions in your language
 *Natural voice synthesis with proper pronunciation for 70+ languages*
 
-![Text to Speech](public/placeholder.jpg)
+![Text to Speech](public/placeholder.jpg) //images
 
 ### 🎭 **Emotion Analysis** - Real-time facial expression feedback
 *Computer vision-powered emotion detection for confidence and stress analysis*
