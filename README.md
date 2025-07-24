@@ -49,7 +49,7 @@
 ### 🤖 **AI Question Generation** - Dynamic, role-specific interview questions
 *OpenAI GPT-4 powered question generation tailored to your role and experience level*
 
-![AI Questions](public/placeholder.jpg)
+![AI Questions](public/placeholder.jpg) //Images to be add 
 
 ### 📊 **Real-time Analytics** - Performance tracking and detailed feedback
 *Comprehensive analytics dashboard with speech analysis, confidence metrics, and improvement suggestions*
