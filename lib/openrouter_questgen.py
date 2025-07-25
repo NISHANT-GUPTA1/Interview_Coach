@@ -14,7 +14,7 @@ class OpenRouterQuestionGenerator:
         """Initialize the OpenRouter AI Question Generator"""
         print("Initializing OpenRouter AI Question Generator...", file=sys.stderr)
         
-        self.api_key = "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"
+        self.api_key = "ADD YOUR API KEY"
         self.base_url = "https://openrouter.ai/api/v1"
         self.model = "google/gemma-3n-e4b-it:free"
         
