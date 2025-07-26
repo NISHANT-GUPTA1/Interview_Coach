@@ -74,7 +74,7 @@
 ### 🎭 **Emotion Analysis** - Real-time facial expression feedback
 *Computer vision-powered emotion detection for confidence and stress analysis*
 
-![Emotion Analysis](public/placeholder.jpg)
+![Emotion Analysis](public/placeholder.jpg) //image to be add
 
 ---
 
