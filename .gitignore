@@ -16,8 +16,30 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files
-.env*
+# env files (IMPORTANT: Contains API keys)
+# Environment variables (allow .env.example as template)
+.env
+.env.*
+!.env.example
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# API key test files (SECURITY: Contains hardcoded keys)
+test-openrouter*.py
+get-new-openrouter-key.py
+*api-key*.py
+
+# Python cache and environment
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.venv/
+venv/
+env/
 
 # vercel
 .vercel
@@ -25,3 +47,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
