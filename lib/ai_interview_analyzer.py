@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 AI Interview Analyzer
-Analyzes candidate responses and provides detailed feedback using OpenRouter AI
+Analyzes candidate responses and provides detailed feedback using AI APIs
 """
 
 import json
@@ -9,13 +9,53 @@ import sys
 import os
 import re
 import statistics
+import requests
 from typing import List, Dict, Any
-from openrouter_questgen import OpenRouterQuestionGenerator
 
 class AIInterviewAnalyzer:
     def __init__(self):
         """Initialize the AI Interview Analyzer"""
-        self.question_generator = OpenRouterQuestionGenerator()
+        self.use_openai = os.getenv('USE_OPENAI_INSTEAD', 'false').lower() == 'true'
+        
+        if self.use_openai:
+            print("Using OpenAI API for analysis", file=sys.stderr)
+            self.api_key = os.getenv('OPENAI_API_KEY')
+            self.api_url = "https://api.openai.com/v1/chat/completions"
+            self.model = "gpt-4o-mini"  # More cost-effective model
+            if not self.api_key:
+                raise RuntimeError("OpenAI API key not configured")
+        else:
+            print("Using OpenRouter API for analysis", file=sys.stderr)
+            from openrouter_questgen import OpenRouterQuestionGenerator
+            self.question_generator = OpenRouterQuestionGenerator()
+    
+    def _make_ai_request(self, messages: List[Dict[str, str]], max_tokens: int = 200) -> str:
+        """Make request to either OpenAI or OpenRouter API"""
+        if self.use_openai:
+            headers = {
+                "Authorization": f"Bearer {self.api_key}",
+                "Content-Type": "application/json"
+            }
+            data = {
+                "model": self.model,
+                "messages": messages,
+                "max_tokens": max_tokens,
+                "temperature": 0.7
+            }
+            try:
+                response = requests.post(self.api_url, headers=headers, json=data, timeout=30)
+                response.raise_for_status()
+                return response.json()['choices'][0]['message']['content']
+            except Exception as e:
+                print(f"OpenAI API request failed: {e}", file=sys.stderr)
+                return None
+        else:
+            # Use OpenRouter via the existing question generator
+            try:
+                return self.question_generator._make_api_request(messages, max_tokens)
+            except Exception as e:
+                print(f"OpenRouter API request failed: {e}", file=sys.stderr)
+                return None
         
     def analyze_interview(self, interview_data: Dict[str, Any]) -> Dict[str, Any]:
         """Analyze complete interview and generate comprehensive feedback"""

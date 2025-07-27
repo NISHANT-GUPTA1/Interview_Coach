@@ -40,6 +40,9 @@ export async function POST(req: NextRequest) {
     });
 
     return new Promise((resolve) => {
+      // Check if we should use OpenAI instead of OpenRouter
+      const useOpenAI = process.env.USE_OPENAI_INSTEAD === 'true';
+      
       const pythonProcess = spawn('python', [
         path.join(process.cwd(), 'lib', 'ai_interview_analyzer.py')
       ], {
@@ -47,9 +50,15 @@ export async function POST(req: NextRequest) {
         shell: true,
         env: {
           ...process.env,
-          OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,
-          OPENROUTER_MODEL: process.env.OPENROUTER_MODEL,
-          OPENROUTER_BASE_URL: process.env.OPENROUTER_BASE_URL
+          // Pass the appropriate API configuration
+          ...(useOpenAI ? {
+            OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+            USE_OPENAI_INSTEAD: 'true'
+          } : {
+            OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,
+            OPENROUTER_MODEL: process.env.OPENROUTER_MODEL,
+            OPENROUTER_BASE_URL: process.env.OPENROUTER_BASE_URL
+          })
         }
       });
 
