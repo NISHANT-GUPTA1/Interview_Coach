@@ -652,12 +652,12 @@ MIT License - Free for personal and commercial use
 **Nishant Gupta** - *Full Stack Developer & AI Enthusiast*
 
 [![GitHub](https://img.shields.io/badge/GitHub-NISHANT--GUPTA1-black?style=for-the-badge&logo=github)](https://github.com/NISHANT-GUPTA1)
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue?style=for-the-badge&logo=linkedin)](https://linkedin.com/in/nishant-gupta)
-[![Email](https://img.shields.io/badge/Email-Contact-red?style=for-the-badge&logo=gmail&logoColor=white)](mailto:nishant@example.com)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue?style=for-the-badge&logo=linkedin)](www.linkedin.com/in/nishant-gupta-b34858297)
+[![Email](https://img.shields.io/badge/Email-Contact-red?style=for-the-badge&logo=gmail&logoColor=white)](mailto:nishu30092000@ce.du.ac.in)
 
 **Project Link:** [https://github.com/NISHANT-GUPTA1/Interview_Coach](https://github.com/NISHANT-GUPTA1/Interview_Coach)
 
-**Live Demo:** [https://ai-interview-coach.vercel.app](https://ai-interview-coach.vercel.app)
+
 
 </div>
 
