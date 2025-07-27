@@ -24,7 +24,8 @@
 - [🎯 Key Highlights](#-key-highlights)  
 - [🛠️ Tech Stack](#️-tech-stack)
 - [🚀 Getting Started](#-getting-started)
-- [📁 Project Structure](#-project-structure)
+- [� Security Guidelines](#-security-guidelines)
+- [�📁 Project Structure](#-project-structure)
 - [🎮 Components Overview](#-components-overview)
 - [🌍 Language Support](#-language-support)
 - [📊 Performance Metrics](#-performance-metrics)
@@ -39,15 +40,296 @@
 ### 🎤 **Smart Speech Recognition** - AI-powered multilingual speech processing
 *Real-time speech recognition with 70+ language support and intelligent error handling*
 
-![Speech Recognition](public/placeholder.jpg) //image to be add
-
 ### 🌍 **Global Language Support** - Interview in your native language  
 *Comprehensive multilingual system supporting Indian regional languages and international languages*
 
-![Language Support](public/placeholder.jpg)//image to be add here
-
 ### 🤖 **AI Question Generation** - Dynamic, role-specific interview questions
 *OpenAI GPT-4 powered question generation tailored to your role and experience level*
+
+### 📊 **Real-time Analytics** - Instant performance feedback
+*Live analysis of speech patterns, confidence levels, and answer quality*
+
+### 🎯 **Adaptive Learning** - Personalized interview experience
+*Smart difficulty adjustment based on your performance and learning patterns*
+
+### 🔒 **Enterprise Security** - Bank-grade data protection
+*End-to-end encryption, secure API handling, and privacy-first architecture*
+
+---
+
+## 🎯 Key Highlights
+
+### ✅ **Complete Features Implemented**
+
+1. **Enhanced Homepage** ✅
+   - Modern UI/UX with gradient backgrounds and animations
+   - Interactive goal selection (Technical Interview, Presentation Skills, Group Discussion, Language Fluency)
+   - Role-based customization (Software Engineer, Product Manager, etc.)
+   - Comprehensive language selection with 70+ languages
+
+2. **Device Setup Page** ✅
+   - Camera and microphone permission handling
+   - Real-time camera preview
+   - Audio level testing with visualizer
+   - Setup progress tracking
+
+3. **Interview Interface** ✅
+   - Real-time speech recognition
+   - AI-powered question generation
+   - Live performance analysis
+   - Webcam feed with confidence metrics
+
+4. **Results & Analytics** ✅
+   - Comprehensive performance dashboard
+   - Speech analysis with charts
+   - Detailed feedback and recommendations
+   - Score breakdown by categories
+
+5. **Multilingual Support** 🌟
+   - 70+ languages including all Indian regional languages
+   - Translation API integration (Google Translate, Azure Translator)
+   - Real-time multilingual support
+
+---
+
+## 🛠️ Tech Stack
+
+### **Frontend Excellence**
+- **Framework:** Next.js 14 with App Router
+- **Language:** TypeScript for type safety
+- **Styling:** Tailwind CSS + Shadcn/UI components
+- **State Management:** React hooks + Context API
+- **Charts:** Recharts for data visualization
+
+### **AI & Backend**
+- **AI Provider:** OpenAI GPT-4 + OpenRouter API
+- **Speech Recognition:** Web Speech API + Whisper API
+- **Translation:** Google Translate API + Azure Translator
+- **Real-time:** WebRTC for video/audio processing
+
+### **Development & Deployment**
+- **Package Manager:** npm/pnpm
+- **Deployment:** Vercel/Netlify ready
+- **Environment:** Node.js 18+
+- **Database:** File-based (expandable to PostgreSQL/MongoDB)
+
+---
+
+## 🚀 Getting Started
+
+### **Prerequisites**
+- Node.js 18+ installed
+- npm or pnpm package manager
+- API keys for OpenAI and translation services
+
+### **Installation**
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/NISHANT-GUPTA1/Interview_Coach.git
+   cd Interview_Coach
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   # or
+   pnpm install
+   ```
+
+3. **Set up environment variables:**
+   ```bash
+   cp .env.example .env.local
+   ```
+
+4. **Configure your `.env.local` file:**
+   ```env
+   # OpenAI Configuration
+   OPENAI_API_KEY=your_openai_api_key_here
+   OPENAI_MODEL=gpt-4o
+
+   # OpenRouter Configuration (alternative)
+   OPENROUTER_API_KEY=your_openrouter_api_key_here
+
+   # Translation Service
+   LANGUAGE_SERVICE_PROVIDER=google
+   GOOGLE_TRANSLATE_API_KEY=your_google_translate_api_key_here
+
+   # Azure Translator (alternative)
+   AZURE_TRANSLATOR_KEY=your_azure_translator_key_here
+   AZURE_TRANSLATOR_REGION=your_azure_region_here
+   ```
+
+5. **Start the development server:**
+   ```bash
+   npm run dev
+   # or
+   pnpm dev
+   ```
+
+6. **Open your browser:**
+   Navigate to [http://localhost:3000](http://localhost:3000)
+
+---
+
+## 🔐 Security Guidelines
+
+### **API Key Management**
+
+**⚠️ CRITICAL**: Never commit API keys to git repository!
+
+#### **Setup Instructions**
+1. Always use `.env.local` for sensitive data
+2. Never commit environment files containing real keys
+3. Use environment variables for all sensitive configuration
+4. Rotate API keys immediately if accidentally exposed
+
+#### **Security Best Practices**
+- **File Exclusions**: `.env.local`, `*.env`, API key files automatically excluded
+- **Development**: Use mock/dummy keys for testing
+- **Production**: Use secure environment variable management
+- **Monitoring**: Monitor API usage for unauthorized access
+
+#### **If Keys Are Exposed**
+1. **Immediately rotate** all exposed API keys
+2. Remove files from git history if committed
+3. Update `.env.local` with new keys
+4. Never reuse exposed keys
+
+---
+
+## 📁 Project Structure
+
+```
+ai-interview-coach/
+├── app/                         # Next.js 14 App Router
+│   ├── page.tsx                 # Enhanced homepage
+│   ├── setup/page.tsx           # Device configuration
+│   ├── interview/page.tsx       # Main interview interface
+│   ├── working-interview/       # Advanced interview features
+│   ├── summary/page.tsx         # Results and analytics
+│   └── api/                     # API routes
+│       ├── ai-questions/        # AI question generation
+│       ├── translate/           # Language translation
+│       ├── speech-to-text/      # Voice processing
+│       └── analyze-response/    # Performance analysis
+├── lib/                         # Core utilities
+│   ├── ai_interview_analyzer.py # Python AI analysis engine
+│   ├── openrouter_questgen.py  # Question generation service
+│   ├── language-service.ts     # Multilingual support
+│   ├── interview-utils.ts      # Interview logic
+│   └── translations.ts         # Translation utilities
+├── components/                  # Reusable UI components
+│   ├── ui/                     # Shadcn/UI components
+│   └── theme-provider.tsx      # Theme management
+├── hooks/                      # Custom React hooks
+│   ├── use-interview.ts        # Interview state management
+│   ├── use-translation.ts      # Translation hooks
+│   └── use-mobile.tsx          # Mobile responsiveness
+├── contexts/                   # React Context providers
+│   └── TranslationContext.tsx  # Global translation state
+├── public/                     # Static assets
+├── styles/                     # Global styles
+└── .env.example               # Environment template
+```
+
+---
+
+## 🌍 Language Support
+
+### **Supported Languages (70+)**
+
+#### **Indian Regional Languages**
+- Hindi, Bengali, Tamil, Telugu, Marathi, Gujarati
+- Kannada, Malayalam, Punjabi, Urdu, Odia, Assamese
+- And many more regional languages
+
+#### **International Languages**
+- **European:** English, Spanish, French, German, Italian, Portuguese, Russian
+- **Asian:** Chinese, Japanese, Korean, Arabic, Thai, Vietnamese
+- **Others:** Hebrew, Turkish, Greek, Dutch, Swedish, and 40+ more
+
+#### **Features**
+- **Smart Search:** Find languages in English or native scripts
+- **RTL Support:** Proper display for Arabic, Hebrew, Urdu
+- **Real-time Translation:** Instant translation during interviews
+- **Context-Aware:** Industry and role-specific terminology
+
+### **API Integration Options**
+1. **Google Translate API** (Recommended for Indian languages)
+2. **Azure Translator Service** (Enterprise-grade)
+3. **Mock Service** (Development/testing)
+
+---
+
+## 🎮 Components Overview
+
+### **Core Interview Components**
+- **QuestionGenerator**: AI-powered dynamic question creation
+- **SpeechRecognizer**: Real-time speech-to-text processing
+- **PerformanceAnalyzer**: Live feedback and scoring
+- **VideoRecorder**: Interview session recording
+- **ProgressTracker**: Interview progress monitoring
+
+### **UI Components**
+- **LanguageSelector**: Comprehensive language selection
+- **DeviceSetup**: Camera/microphone configuration
+- **Dashboard**: Performance analytics display
+- **ThemeProvider**: Dark/light mode support
+
+---
+
+## 📊 Performance Metrics
+
+### **Real-time Analysis**
+- Speech clarity and confidence levels
+- Answer relevance and completeness
+- Technical terminology usage
+- Communication effectiveness
+
+### **Detailed Reporting**
+- Comprehensive performance dashboard
+- Category-wise score breakdown
+- Improvement recommendations
+- Progress tracking over time
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
+
+### **Development Workflow**
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 📞 Contact
+
+**Nishant Gupta**
+- GitHub: [@NISHANT-GUPTA1](https://github.com/NISHANT-GUPTA1)
+- Email: nishant.gupta@example.com
+- LinkedIn: [Nishant Gupta](https://linkedin.com/in/nishant-gupta)
+
+---
+
+<div align="center">
+
+**⭐ Star this repository if you found it helpful!**
+
+Made with ❤️ by [Nishant Gupta](https://github.com/NISHANT-GUPTA1)
+
+</div>
 
 ![AI Questions](public/placeholder.jpg) //Images to be add 
 
