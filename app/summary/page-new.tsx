@@ -83,71 +83,38 @@ export default function SummaryPage() {
 
   const loadInterviewData = async () => {
     try {
-      // ONLY load actual interview data - no demo fallback
+      // Try to get data from localStorage first
       const storedData = localStorage.getItem('interviewData')
       if (storedData) {
         const interviewData = JSON.parse(storedData)
-        console.log('📊 Loading real interview data:', interviewData)
-        
-        // Validate we have actual interview answers
-        if (interviewData.answers && interviewData.answers.length > 0) {
-          await analyzeInterview(interviewData)
-        } else {
-          setError('No interview answers found. Please complete an interview first.')
-          setIsLoading(false)
-        }
+        await analyzeInterview(interviewData)
       } else {
-        // Try URL params as backup
+        // Fallback: try URL params
         const answersParam = searchParams.get('answers')
         if (answersParam) {
           const interviewData = JSON.parse(decodeURIComponent(answersParam))
-          if (interviewData.answers && interviewData.answers.length > 0) {
-            await analyzeInterview(interviewData)
-          } else {
-            setError('No valid interview data found.')
-            setIsLoading(false)
-          }
+          await analyzeInterview(interviewData)
         } else {
-          // No interview data available
-          setError('No interview data found. Please complete an interview first.')
-          setIsLoading(false)
+          // Show demo analysis
+          generateDemoAnalysis()
         }
       }
     } catch (err) {
-      console.error('❌ Error loading interview data:', err)
-      setError('Failed to load interview data. Please try again.')
-      setIsLoading(false)
+      console.error('Error loading interview data:', err)
+      setError('Failed to load interview data')
+      generateDemoAnalysis()
     }
   }
 
   const analyzeInterview = async (interviewData: any) => {
     try {
       setIsLoading(true)
-      console.log('🤖 Starting REAL interview analysis with data:', interviewData)
-
-      // Ensure we have the language and actual questions/answers
-      const language = interviewData.language || 'en'
-      const answers = interviewData.answers || []
-      const role = interviewData.role || 'Software Engineer'
-      const experience = interviewData.experience || '2-3 years'
-
-      console.log(`🌍 Analysis Language: ${language}`)
-      console.log(`📝 Analyzing ${answers.length} actual answers`)
-
-      // Create analysis request with actual interview data
-      const analysisRequest = {
-        ...interviewData,
-        language,
-        role,
-        experience,
-        answers,
-        analysisInstructions: `Analyze this interview in ${language} language. Provide feedback in the same language the candidate used.`
-      }
+      console.log('🤖 Starting AI analysis with data:', interviewData)
 
       const response = await fetch('/api/analyze-interview', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(analysisRequest)
+        body: JSON.stringify(interviewData)
       })
 
       if (!response.ok) {
@@ -155,226 +122,90 @@ export default function SummaryPage() {
       }
 
       const result = await response.json()
-      console.log('✅ Real AI Analysis result:', result)
+      console.log('✅ AI Analysis result:', result)
 
-      if (result.success && result.analysis) {
-        // Use real AI analysis
+      if (result.success) {
         setAnalysis(result.analysis)
-        console.log('✅ Using REAL AI analysis based on actual interview')
-      } else if (result.fallback) {
-        // Use fallback but with real data
-        console.log('⚠️ Using fallback analysis with real interview data')
-        const fallbackAnalysis = await createDynamicAnalysis(interviewData)
-        setAnalysis(fallbackAnalysis)
       } else {
-        throw new Error('No analysis data received')
+        console.warn('Using fallback analysis:', result.fallback)
+        setAnalysis(result.fallback)
       }
     } catch (err) {
       console.error('❌ Analysis error:', err)
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred'
-      setError(`AI analysis failed: ${errorMessage}`)
-      
-      // Create basic analysis from real data as last resort
-      const basicAnalysis = await createDynamicAnalysis(interviewData)
-      setAnalysis(basicAnalysis)
+      setError('AI analysis failed, showing demo data')
+      generateDemoAnalysis()
     } finally {
       setIsLoading(false)
     }
   }
 
-  // Create REAL AI-powered dynamic analysis based on actual interview data
-  const createDynamicAnalysis = async (interviewData: any): Promise<AnalysisData> => {
-    const answers = interviewData.answers || []
-    const language = interviewData.language || 'en'
-    const role = interviewData.role || 'Software Engineer'
-    const experience = interviewData.experience || '2-3 years'
-    
-    console.log('🤖 Creating REAL AI-powered dynamic analysis for interview data')
-    
-    // Analyze each question with real AI or advanced logic
-    const questionAnalysis: QuestionAnalysis[] = await Promise.all(
-      answers.map(async (answer: any, index: number) => {
-        const answerText = answer.answerText || ''
-        const questionText = answer.questionText || ''
-        const category = answer.category || 'General'
-        
-        // Advanced scoring based on multiple factors
-        const answerLength = answerText.length
-        const wordCount = answerText.split(' ').length
-        const hasSpecificExamples = /\b(example|instance|experience|project|when|time)\b/i.test(answerText)
-        const hasTechnicalTerms = /\b(code|develop|implement|design|algorithm|database|API|framework)\b/i.test(answerText)
-        const hasQuantifiableResults = /\b(\d+%|\d+ (users|hours|days|months|years)|improved|increased|decreased|reduced)\b/i.test(answerText)
-        
-        // Calculate sophisticated score
-        let score = 50 // Base score
-        score += Math.min(wordCount / 5, 25) // Length bonus (max 25)
-        score += hasSpecificExamples ? 10 : 0
-        score += hasTechnicalTerms ? 10 : 0  
-        score += hasQuantifiableResults ? 15 : 0
-        score = Math.min(Math.max(score, 40), 95)
-        
-        // Generate dynamic strengths based on content analysis
-        const strengths: string[] = []
-        const weaknesses: string[] = []
-        const suggestions: string[] = []
-        
-        if (language === 'hi') {
-          if (wordCount > 50) strengths.push('विस्तृत उत्तर प्रदान किया')
-          if (hasSpecificExamples) strengths.push('उदाहरणों का उपयोग किया')
-          if (hasTechnicalTerms) strengths.push('तकनीकी शब्दावली का प्रयोग')
-          if (hasQuantifiableResults) strengths.push('मापने योग्य परिणाम शामिल किए')
-          
-          if (wordCount < 30) weaknesses.push('उत्तर बहुत संक्षिप्त है')
-          if (!hasSpecificExamples) weaknesses.push('अधिक उदाहरण की आवश्यकता')
-          if (!hasTechnicalTerms && category.includes('Technical')) weaknesses.push('तकनीकी विवरण जोड़ें')
-          
-          suggestions.push('STAR विधि का उपयोग करें')
-          if (!hasQuantifiableResults) suggestions.push('मापने योग्य परिणाम जोड़ें')
-          suggestions.push('अपने अनुभव से विशिष्ट उदाहरण दें')
-        } else {
-          if (wordCount > 50) strengths.push('Provided detailed response')
-          if (hasSpecificExamples) strengths.push('Used concrete examples')
-          if (hasTechnicalTerms) strengths.push('Demonstrated technical knowledge')
-          if (hasQuantifiableResults) strengths.push('Included measurable results')
-          
-          if (wordCount < 30) weaknesses.push('Response too brief')
-          if (!hasSpecificExamples) weaknesses.push('Needs more specific examples')
-          if (!hasTechnicalTerms && category.includes('Technical')) weaknesses.push('Add more technical details')
-          
-          suggestions.push('Use the STAR method (Situation, Task, Action, Result)')
-          if (!hasQuantifiableResults) suggestions.push('Include quantifiable outcomes')
-          suggestions.push('Provide specific examples from your experience')
-        }
-        
-        // Ensure we have at least some feedback
-        if (strengths.length === 0) {
-          strengths.push(language === 'hi' ? 'प्रश्न का उत्तर दिया' : 'Answered the question')
-        }
-        if (weaknesses.length === 0) {
-          weaknesses.push(language === 'hi' ? 'अधिक विस्तार जोड़ें' : 'Could provide more detail')
-        }
-        
-        return {
-          questionId: answer.questionId || `q${index + 1}`,
-          questionText: questionText,
-          answerText: answerText,
-          score: Math.round(score),
-          strengths,
-          weaknesses,
-          suggestions,
-          expectedAnswer: language === 'hi' ? 
-            `${role} भूमिका के लिए विशिष्ट उदाहरण, तकनीकी कौशल और मापने योग्य परिणामों के साथ एक व्यापक उत्तर अपेक्षित है।` :
-            `Expected a comprehensive answer with specific examples, technical skills, and measurable outcomes relevant to ${role} role.`,
-          technicalAccuracy: Math.round(score * (hasTechnicalTerms ? 1.0 : 0.85)),
-          communicationClarity: Math.round(score * (wordCount > 30 ? 1.0 : 0.9)),
-          completeness: Math.round(score * (hasSpecificExamples ? 1.0 : 0.8))
-        }
-      })
-    )
-
-    // Calculate real overall statistics
-    const totalWords = answers.reduce((sum: number, a: any) => sum + (a.answerText?.split(' ').length || 0), 0)
-    const avgScore = questionAnalysis.length > 0 
-      ? Math.round(questionAnalysis.reduce((sum, q) => sum + q.score, 0) / questionAnalysis.length)
-      : 70
-    
-    // Advanced breakdown scoring
-    const technicalQuestions = questionAnalysis.filter(q => 
-      q.questionText.toLowerCase().includes('technical') || 
-      q.questionText.toLowerCase().includes('code') ||
-      q.questionText.toLowerCase().includes('develop')
-    )
-    const technicalScore = technicalQuestions.length > 0 
-      ? Math.round(technicalQuestions.reduce((sum, q) => sum + q.score, 0) / technicalQuestions.length)
-      : avgScore
-
-    // Generate dynamic strengths and improvements based on actual performance
-    const overallStrengths: string[] = []
-    const overallImprovements: string[] = []
-    const dynamicRecommendations: string[] = []
-    
-    // Analyze overall performance patterns
-    const avgWordsPerAnswer = questionAnalysis.length > 0 ? totalWords / questionAnalysis.length : 0
-    const highScoringAnswers = questionAnalysis.filter(q => q.score >= 80).length
-    const lowScoringAnswers = questionAnalysis.filter(q => q.score < 60).length
-    const hasConsistentQuality = questionAnalysis.every(q => Math.abs(q.score - avgScore) < 20)
-    
-    if (language === 'hi') {
-      // Hindi feedback
-      if (avgWordsPerAnswer > 50) overallStrengths.push('विस्तृत और व्यापक उत्तर देने में अच्छे हैं')
-      if (highScoringAnswers > questionAnalysis.length / 2) overallStrengths.push('अधिकांश प्रश्नों में मजबूत प्रदर्शन')
-      if (hasConsistentQuality) overallStrengths.push('सभी उत्तरों में निरंतरता बनाए रखी')
-      if (technicalScore > avgScore) overallStrengths.push('तकनीकी प्रश्नों में विशेष रूप से अच्छा प्रदर्शन')
-      
-      if (avgWordsPerAnswer < 30) overallImprovements.push('उत्तरों में अधिक विवरण जोड़ें')
-      if (lowScoringAnswers > 2) overallImprovements.push('कम स्कोर वाले प्रश्नों पर काम करें')
-      if (!hasConsistentQuality) overallImprovements.push('सभी उत्तरों में एकरूपता लाएं')
-      
-      dynamicRecommendations.push(`${role} भूमिका के लिए विशिष्ट तकनीकी कौशल पर ध्यान दें`)
-      dynamicRecommendations.push('मॉक इंटरव्यू का अभ्यास करें')
-      if (avgScore < 75) dynamicRecommendations.push('STAR विधि का अधिक अभ्यास करें')
-    } else {
-      // English feedback  
-      if (avgWordsPerAnswer > 50) overallStrengths.push('Provides detailed and comprehensive answers')
-      if (highScoringAnswers > questionAnalysis.length / 2) overallStrengths.push('Strong performance on majority of questions')
-      if (hasConsistentQuality) overallStrengths.push('Maintains consistency across all answers')
-      if (technicalScore > avgScore) overallStrengths.push('Particularly strong in technical questions')
-      
-      if (avgWordsPerAnswer < 30) overallImprovements.push('Provide more detailed responses')
-      if (lowScoringAnswers > 2) overallImprovements.push('Focus on improving weaker question areas')
-      if (!hasConsistentQuality) overallImprovements.push('Work on maintaining consistent answer quality')
-      
-      dynamicRecommendations.push(`Focus on specific technical skills for ${role} role`)
-      dynamicRecommendations.push('Practice mock interviews with similar question types')
-      if (avgScore < 75) dynamicRecommendations.push('Practice the STAR method more extensively')
-    }
-    
-    // Ensure we have feedback
-    if (overallStrengths.length === 0) {
-      overallStrengths.push(language === 'hi' ? 'साक्षात्कार पूरा करने के लिए प्रतिबद्धता दिखाई' : 'Demonstrated commitment by completing the interview')
-    }
-    if (overallImprovements.length === 0) {
-      overallImprovements.push(language === 'hi' ? 'निरंतर अभ्यास से और भी बेहतर प्रदर्शन कर सकते हैं' : 'Can achieve even better performance with continued practice')
-    }
-
-    // Calculate real interview duration
-    const startTime = interviewData.startTime ? new Date(interviewData.startTime) : null
-    const endTime = interviewData.endTime ? new Date(interviewData.endTime) : null
-    let interviewDuration = '15m 00s'
-    
-    if (startTime && endTime) {
-      const durationMs = endTime.getTime() - startTime.getTime()
-      const minutes = Math.floor(durationMs / 60000)
-      const seconds = Math.floor((durationMs % 60000) / 1000)
-      interviewDuration = `${minutes}m ${seconds.toString().padStart(2, '0')}s`
-    }
-
-    return {
-      overallScore: avgScore,
+  const generateDemoAnalysis = () => {
+    setAnalysis({
+      overallScore: 82,
       breakdown: {
-        technical: technicalScore,
-        communication: Math.round(avgScore * (avgWordsPerAnswer > 40 ? 1.1 : 0.9)),
-        completeness: Math.round(questionAnalysis.reduce((sum, q) => sum + q.completeness, 0) / questionAnalysis.length),
-        confidence: Math.round(avgScore * (hasConsistentQuality ? 1.0 : 0.85))
+        technical: 85,
+        communication: 88,
+        completeness: 80,
+        confidence: 75
       },
-      questionAnalysis,
-      strengths: overallStrengths,
-      improvements: overallImprovements,
-      recommendations: dynamicRecommendations,
+      questionAnalysis: [
+        {
+          questionId: "1",
+          questionText: "Tell me about yourself and your experience.",
+          answerText: "I'm a software engineer with 3 years of experience working on web applications. I've worked with React, Node.js, and databases like PostgreSQL. In my current role, I've led a team of 3 developers and successfully delivered 5 major projects.",
+          score: 85,
+          strengths: ["Clear structure", "Relevant experience mentioned", "Specific technologies listed"],
+          weaknesses: ["Could include more specific achievements", "Missing career goals"],
+          suggestions: ["Add quantifiable results", "Include technical challenges overcome", "Mention future aspirations"],
+          expectedAnswer: "Should include background, key skills, specific achievements with metrics, and career goals aligned with the role.",
+          technicalAccuracy: 80,
+          communicationClarity: 90,
+          completeness: 85
+        },
+        {
+          questionId: "2", 
+          questionText: "Describe a challenging problem you solved recently.",
+          answerText: "We had a performance issue where our API was taking 5 seconds to respond. I analyzed the database queries and found several N+1 query problems. I implemented database indexing and query optimization, reducing response time to under 500ms.",
+          score: 90,
+          strengths: ["Specific problem identified", "Clear solution approach", "Quantifiable results"],
+          weaknesses: ["Could explain technical details better"],
+          suggestions: ["Describe the analysis process in more detail", "Mention collaboration with team"],
+          expectedAnswer: "Should follow STAR method with specific technical details and measurable outcomes.",
+          technicalAccuracy: 95,
+          communicationClarity: 85,
+          completeness: 90
+        }
+      ],
+      strengths: [
+        "Strong technical communication skills",
+        "Well-structured responses with clear examples",
+        "Good understanding of core software engineering concepts",
+        "Provides quantifiable results and metrics"
+      ],
+      improvements: [
+        "Include more specific examples with detailed metrics",
+        "Practice explaining complex technical concepts more simply",
+        "Prepare more detailed project stories with challenges faced",
+        "Add more information about collaboration and leadership"
+      ],
+      recommendations: [
+        "Research company-specific technical challenges and solutions",
+        "Practice the STAR method (Situation, Task, Action, Result) for all answers",
+        "Prepare technical examples that show problem-solving skills",
+        "Practice explaining technical concepts to non-technical audiences",
+        "Prepare questions about the company's technical stack and challenges"
+      ],
       statistics: {
-        totalQuestions: answers.length,
-        averageResponseLength: Math.round(avgWordsPerAnswer),
-        totalInterviewTime: interviewDuration,
-        keywordsUsed: totalWords > 100 ? Math.floor(totalWords / 10) : Math.floor(totalWords / 5),
-        expectedKeywords: Math.max(30, answers.length * 6),
-        confidenceLevel: avgScore >= 85 ? (language === 'hi' ? 'उच्च' : 'High') : 
-                        avgScore >= 70 ? (language === 'hi' ? 'अच्छा' : 'Good') : 
-                        (language === 'hi' ? 'सुधार की आवश्यकता' : 'Needs Improvement')
+        totalQuestions: 5,
+        averageResponseLength: 180,
+        totalInterviewTime: "22m 15s",
+        keywordsUsed: 25,
+        expectedKeywords: 35,
+        confidenceLevel: "Good"
       }
-    }
+    })
+    setIsLoading(false)
   }
-
-  // No demo analysis - only real interview data
 
   const getScoreColor = (score: number) => {
     if (score >= 80) return 'text-green-600'
@@ -488,24 +319,14 @@ export default function SummaryPage() {
       <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 flex items-center justify-center">
         <Card className="p-8 w-96 text-center">
           <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-red-700 mb-2">No Interview Data Found</h2>
-          <p className="text-red-600 mb-4">
-            {error || 'Please complete an interview first to see your analysis.'}
-          </p>
-          <div className="space-y-3">
-            <Link href="/working-interview">
-              <Button className="w-full bg-blue-600 hover:bg-blue-700">
-                <Brain className="h-4 w-4 mr-2" />
-                Take Interview Now
-              </Button>
-            </Link>
-            <Link href="/">
-              <Button variant="outline" className="w-full">
-                <Home className="h-4 w-4 mr-2" />
-                Go to Home
-              </Button>
-            </Link>
-          </div>
+          <h2 className="text-xl font-bold text-red-700 mb-2">Analysis Error</h2>
+          <p className="text-red-600 mb-4">{error || 'Failed to load analysis data'}</p>
+          <Link href="/">
+            <Button className="bg-red-600 hover:bg-red-700">
+              <Home className="h-4 w-4 mr-2" />
+              Start New Interview
+            </Button>
+          </Link>
         </Card>
       </div>
     )
@@ -710,109 +531,30 @@ export default function SummaryPage() {
             </div>
           </TabsContent>
 
-          {/* Breakdown Tab - Dynamic Analysis for Each Category */}
+          {/* Breakdown Tab */}
           <TabsContent value="breakdown">
             <div className="grid gap-6">
-              {Object.entries(analysis.breakdown).map(([category, score]) => {
-                // Generate dynamic category-specific insights
-                const getCategoryInsights = (cat: string, sc: number) => {
-                  const language = analysis.statistics?.confidenceLevel?.includes('उच्च') || analysis.statistics?.confidenceLevel?.includes('अच्छा') ? 'hi' : 'en'
-                  
-                  switch(cat) {
-                    case 'technical':
-                      if (language === 'hi') {
-                        return sc >= 80 ? 'तकनीकी कौशल में उत्कृष्ट प्रदर्शन। आप जटिल तकनीकी अवधारणाओं को स्पष्ट रूप से व्यक्त कर सकते हैं।' :
-                               sc >= 60 ? 'तकनीकी ज्ञान अच्छा है। अधिक विशिष्ट उदाहरण और गहरी समझ दिखाने पर काम करें।' :
-                               'तकनीकी कौशल में सुधार की आवश्यकता। मूलभूत अवधारणाओं पर अधिक अभ्यास करें।'
-                      }
-                      return sc >= 80 ? 'Excellent technical skills demonstrated. You clearly articulate complex technical concepts with confidence.' :
-                             sc >= 60 ? 'Good technical knowledge shown. Work on providing more specific examples and demonstrating deeper understanding.' :
-                             'Technical skills need development. Focus on practicing fundamental concepts and their practical applications.'
-                    
-                    case 'communication':
-                      if (language === 'hi') {
-                        return sc >= 80 ? 'संचार कौशल बहुत प्रभावी। आप विचारों को स्पष्ट और संरचित तरीके से व्यक्त करते हैं।' :
-                               sc >= 60 ? 'संचार अच्छा है। उत्तरों की संरचना और स्पष्टता में सुधार की जा सकती है।' :
-                               'संचार कौशल पर काम करने की आवश्यकता। अधिक स्पष्ट और संगठित उत्तर देने का अभ्यास करें।'
-                      }
-                      return sc >= 80 ? 'Excellent communication skills. You express ideas clearly and in a well-structured manner.' :
-                             sc >= 60 ? 'Good communication demonstrated. Can improve on answer structure and clarity of expression.' :
-                             'Communication skills need work. Practice giving clearer, more organized responses.'
-                    
-                    case 'completeness':
-                      if (language === 'hi') {
-                        return sc >= 80 ? 'उत्तर संपूर्ण और व्यापक हैं। आप सभी महत्वपूर्ण बिंदुओं को कवर करते हैं।' :
-                               sc >= 60 ? 'उत्तर अधिकतर पूरे हैं। कुछ अतिरिक्त विवरण और उदाहरण जोड़ने से फायदा होगा।' :
-                               'उत्तरों में अधिक विस्तार की आवश्यकता। सभी प्रश्न भागों को पूरी तरह संबोधित करने पर काम करें।'
-                      }
-                      return sc >= 80 ? 'Answers are complete and comprehensive. You address all key aspects of each question thoroughly.' :
-                             sc >= 60 ? 'Answers are mostly complete. Would benefit from adding more detail and specific examples.' :
-                             'Answers need more depth. Work on fully addressing all parts of each question.'
-                    
-                    case 'confidence':
-                      if (language === 'hi') {
-                        return sc >= 80 ? 'आत्मविश्वास से भरपूर प्रदर्शन। आप अपने उत्तरों में निश्चित और स्पष्ट हैं।' :
-                               sc >= 60 ? 'अच्छा आत्मविश्वास दिखाया। कुछ उत्तरों में अधिक दृढ़ता की आवश्यकता हो सकती है।' :
-                               'आत्मविश्वास बढ़ाने की आवश्यकता। अधिक अभ्यास और तैयारी से आत्मविश्वास में सुधार होगा।'
-                      }
-                      return sc >= 80 ? 'Confident performance throughout. You deliver answers with certainty and conviction.' :
-                             sc >= 60 ? 'Good confidence shown. Some answers could benefit from more assertive delivery.' :
-                             'Confidence needs building. More practice and preparation will improve your confidence level.'
-                    
-                    default:
-                      return sc >= 80 ? 'Excellent performance in this area.' : 
-                             sc >= 60 ? 'Good performance with room for improvement.' : 
-                             'This area needs focused development.'
-                  }
-                }
-
-                return (
-                  <Card key={category}>
-                    <CardHeader>
-                      <CardTitle className="capitalize flex items-center justify-between">
-                        <span>{category} Analysis</span>
-                        <Badge className={`${getScoreBgColor(score)} font-bold`}>
-                          {score}%
-                        </Badge>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <Progress value={score} className="h-3 mb-4" />
-                      <p className="text-sm text-gray-700 leading-relaxed">
-                        {getCategoryInsights(category, score)}
-                      </p>
-                      {/* Dynamic action items based on score */}
-                      <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                        <h4 className="font-semibold text-blue-800 text-sm mb-2">
-                          {score >= 80 ? '🌟 Keep Excelling:' : score >= 60 ? '📈 Next Steps:' : '🎯 Focus Areas:'}
-                        </h4>
-                        <p className="text-blue-700 text-sm">
-                          {(() => {
-                            const language = analysis.statistics?.confidenceLevel?.includes('उच्च') ? 'hi' : 'en'
-                            if (category === 'technical') {
-                              return score >= 80 ? 
-                                (language === 'hi' ? 'नवीनतम तकनीकों के साथ अद्यतन रहें और जटिल परिदृश्यों का अभ्यास करें।' : 'Stay updated with latest technologies and practice complex scenarios.') :
-                                (language === 'hi' ? 'मूलभूत अवधारणाओं को मजबूत करें और प्रैक्टिकल प्रोजेक्ट्स पर काम करें।' : 'Strengthen fundamental concepts and work on practical projects.')
-                            } else if (category === 'communication') {
-                              return score >= 80 ? 
-                                (language === 'hi' ? 'अपने संचार शैली को और परिष्कृत करें और नेतृत्व कौशल पर काम करें।' : 'Refine your communication style further and work on leadership skills.') :
-                                (language === 'hi' ? 'STAR विधि का अभ्यास करें और स्पष्ट कहानी कहने का अभ्यास करें।' : 'Practice STAR method and work on clear storytelling.')
-                            } else if (category === 'completeness') {
-                              return score >= 80 ? 
-                                (language === 'hi' ? 'विस्तृत उदाहरणों के साथ अपने मजबूत बिंदुओं को बनाए रखें।' : 'Maintain your thoroughness with detailed examples.') :
-                                (language === 'hi' ? 'प्रत्येक प्रश्न के सभी भागों को संबोधित करने का अभ्यास करें।' : 'Practice addressing all parts of each question comprehensively.')
-                            } else {
-                              return score >= 80 ? 
-                                (language === 'hi' ? 'अपने आत्मविश्वास को बनाए रखें और दूसरों को प्रेरित करें।' : 'Maintain your confidence and inspire others.') :
-                                (language === 'hi' ? 'अधिक मॉक इंटरव्यू का अभ्यास करें और सकारात्मक आत्म-चर्चा करें।' : 'Practice more mock interviews and positive self-talk.')
-                            }
-                          })()}
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )
-              })}
+              {Object.entries(analysis.breakdown).map(([category, score]) => (
+                <Card key={category}>
+                  <CardHeader>
+                    <CardTitle className="capitalize">{category} Analysis</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center justify-between mb-4">
+                      <span className="text-lg font-semibold capitalize">{category}</span>
+                      <Badge className={getScoreBgColor(score)}>
+                        {score}%
+                      </Badge>
+                    </div>
+                    <Progress value={score} className="h-3 mb-4" />
+                    <p className="text-sm text-gray-600">
+                      {score >= 80 ? `Excellent ${category} performance - well above average.` :
+                       score >= 60 ? `Good ${category} skills with room for improvement.` :
+                       `${category} needs focused development and practice.`}
+                    </p>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           </TabsContent>
 
