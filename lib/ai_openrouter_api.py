@@ -25,6 +25,7 @@ def generate_mixed_questions(data):
         role = data.get('role', 'Software Engineer')
         experience = data.get('experience', '2-3 years')
         count = int(data.get('count', 5))
+        language = data.get('language', 'en')
         
         print("Initializing OpenRouter AI Question Generator...", file=sys.stderr)
         generator = OpenRouterQuestionGenerator()
@@ -38,6 +39,20 @@ def generate_mixed_questions(data):
         
         # Create context from role and experience
         context = f"Interview for {role} position with {experience} experience level. Technologies and skills relevant to {role} development."
+        
+        # Add language instruction if not English
+        language_instruction = ""
+        if language != 'en':
+            language_names = {
+                'es': 'Spanish', 'fr': 'French', 'de': 'German', 'it': 'Italian', 
+                'pt': 'Portuguese', 'ru': 'Russian', 'zh': 'Chinese', 'ja': 'Japanese',
+                'ko': 'Korean', 'ar': 'Arabic', 'hi': 'Hindi', 'bn': 'Bengali',
+                'te': 'Telugu', 'ta': 'Tamil', 'mr': 'Marathi', 'gu': 'Gujarati',
+                'kn': 'Kannada', 'ml': 'Malayalam', 'pa': 'Punjabi', 'ur': 'Urdu'
+            }
+            lang_name = language_names.get(language, language)
+            language_instruction = f" Generate questions in {lang_name} language."
+            context += language_instruction
         
         if technical_count > 0:
             print(f"Generating {technical_count} technical questions...", file=sys.stderr)
@@ -61,9 +76,10 @@ def generate_mixed_questions(data):
             "metadata": {
                 "role": role,
                 "experience": experience,
+                "language": language,
                 "total_count": len(questions),
                 "generated_by": "OpenRouter AI",
-                "model": "google/gemma-3n-e4b-it:free"
+                "model": "qwen/qwen-2-7b-instruct:free"
             }
         }
     

@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
 import { Progress } from "@/components/ui/progress"
-import { Mic, MicOff, Video, VideoOff, Clock, User, Bot, Globe, Brain, AlertTriangle } from "lucide-react"
+import { Mic, MicOff, Video, VideoOff, Clock, User, Bot, Globe, Brain } from "lucide-react"
 import { multiLanguageSpeechService } from "@/lib/multilingual-speech-service"
 import { translationService } from "@/lib/translations"
 import { getQuickTranslation } from "@/lib/quick-translations"
@@ -51,29 +51,18 @@ export default function WorkingInterviewPage() {
   const [selectedLanguage, setSelectedLanguage] = useState("en")
   const [configLoaded, setConfigLoaded] = useState(false)
   
-  // Interview answers storage
-  const [interviewAnswers, setInterviewAnswers] = useState<Array<{
-    questionId: string;
-    questionText: string;
-    answerText: string;
-    category: string;
-    recordingDuration: number;
-    timestamp: Date;
-  }>>([])
-  
   // Questions loading states
   const [questionsLoading, setQuestionsLoading] = useState(true)
   const [questionsReady, setQuestionsReady] = useState(false)
   const [loadingProgress, setLoadingProgress] = useState(0)
   const [loadingMessage, setLoadingMessage] = useState("Initializing AI Interview...")
   
-  // Questions state - Enhanced fallback questions based on role and experience
+  // Questions state
   const [questions, setQuestions] = useState([
-    { id: 1, text: "Tell me about yourself and your experience in your field.", category: "Introduction" },
-    { id: 2, text: "Describe a challenging problem you solved recently and your approach.", category: "Problem Solving" },
-    { id: 3, text: "How do you stay updated with the latest trends and technologies in your industry?", category: "Learning" },
-    { id: 4, text: "What are your biggest strengths and how do they help you in your work?", category: "Self Assessment" },
-    { id: 5, text: "Where do you see yourself professionally in the next 3-5 years?", category: "Career Goals" }
+    { id: 1, text: "Tell me about yourself and your experience as a software engineer.", category: "Introduction" },
+    { id: 2, text: "Describe a challenging technical problem you solved recently.", category: "Technical" },
+    { id: 3, text: "How do you approach debugging complex issues?", category: "Technical" },
+    { id: 4, text: "What are your career goals for the next 5 years?", category: "Career" }
   ])
   
   // Refs for timers
@@ -224,162 +213,66 @@ export default function WorkingInterviewPage() {
   }
 
   // Initialize speech recognition with enhanced service
-  const initializeSpeechRecognition = async () => {
+  const initializeSpeechRecognition = () => {
     // Only initialize on client side
     if (typeof window === 'undefined') {
-      console.log('🎤 Skipping speech init on server side')
       return
     }
 
-    console.log('🎤 Initializing speech recognition')
-    
-    // Check for HTTPS requirement
-    if (window.location.protocol === 'http:' && window.location.hostname !== 'localhost') {
-      setSpeechError('Speech recognition requires HTTPS. Please use the HTTPS version of this site.')
-      return
-    }
-    
     if (!multiLanguageSpeechService.isReady()) {
-      console.log('🎤 Speech service not ready')
-      setSpeechError('Speech recognition not available in this browser. Please use Chrome, Safari, or Edge.')
-      return
-    }
-
-    // Test microphone permissions
-    try {
-      console.log('🎤 Testing microphone permissions...')
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      stream.getTracks().forEach(track => track.stop()) // Stop immediately after testing
-      console.log('🎤 Microphone permissions granted')
-    } catch (error) {
-      console.error('🎤 Microphone permission error:', error)
-      if (error instanceof Error) {
-        if (error.name === 'NotAllowedError') {
-          setSpeechError('Microphone access denied. Please allow microphone permissions and refresh the page.')
-        } else if (error.name === 'NotFoundError') {
-          setSpeechError('No microphone found. Please ensure your microphone is connected.')
-        } else {
-          setSpeechError('Microphone access failed. Please check your microphone settings.')
-        }
-      }
+      setSpeechError('Speech recognition not available. Please refresh the page.')
       return
     }
 
     // Set the language for speech recognition
-    console.log('🎤 Setting language to:', selectedLanguage)
     const success = multiLanguageSpeechService.setLanguage(selectedLanguage)
     if (success) {
-      console.log('🎤 Speech recognition initialized successfully')
       setIsRecognitionInitialized(true)
       setSpeechError(null)
     } else {
-      console.log('🎤 Language not supported, using English fallback')
       setSpeechError(`Speech recognition not available for ${selectedLanguage}. Using English fallback.`)
       multiLanguageSpeechService.setLanguage('en')
       setIsRecognitionInitialized(true)
     }
   }
 
-  // Simple test speech function
-  const testSpeech = async () => {
-    if ('speechSynthesis' in window) {
-      try {
-        // Cancel any ongoing speech
-        window.speechSynthesis.cancel()
-        
-        const utterance = new SpeechSynthesisUtterance("Hello, this is a test.")
-        utterance.rate = 0.8
-        utterance.pitch = 1.0
-        utterance.volume = 0.9
-        
-        utterance.onstart = () => console.log('🎤 Test speech started')
-        utterance.onend = () => console.log('🎤 Test speech ended')
-        utterance.onerror = (error) => console.error('🎤 Test speech error:', error)
-        
-        window.speechSynthesis.speak(utterance)
-      } catch (error) {
-        console.error('Test speech failed:', error)
-      }
-    }
-  }
-
-  // Speak question using enhanced browser speech synthesis
+  // Speak question using AI service
   const speakQuestionAI = async (questionText: string) => {
-    console.log('🗣️ Starting speakQuestionAI with text:', questionText)
-    
-    // Don't start if already speaking
-    if (aiAvatarSpeaking) {
-      console.log('🎤 Already speaking, skipping...')
-      return
-    }
-    
     setAiAvatarSpeaking(true)
     
     try {
-      // Use reliable browser speech synthesis directly
-      if ('speechSynthesis' in window) {
-        // Cancel any ongoing speech first
-        window.speechSynthesis.cancel()
-        
-        // Wait a moment for cancel to complete
-        await new Promise(resolve => setTimeout(resolve, 100))
-        
-        const utterance = new SpeechSynthesisUtterance(questionText)
-        const speechLang = languageMap[selectedLanguage as keyof typeof languageMap] || 'en-US'
-        utterance.lang = speechLang
-        utterance.rate = 0.9
-        utterance.pitch = 1.0
-        utterance.volume = 0.9
-        
-        // Find the best voice
-        const voices = window.speechSynthesis.getVoices()
-        const voice = voices.find(v => v.lang.startsWith(speechLang.split('-')[0])) || 
-                    voices.find(v => v.lang.startsWith('en')) ||
-                    voices[0] // fallback to first available voice
-        if (voice) {
-          utterance.voice = voice
-          console.log('🎤 Using voice:', voice.name)
-        }
-        
-        // Set up event handlers
-        utterance.onstart = () => {
-          console.log('🎤 Speech started')
-          setAiAvatarSpeaking(true)
-        }
-        
-        utterance.onend = () => {
-          console.log('🎤 Speech completed successfully')
-          setAiAvatarSpeaking(false)
-        }
-        
-        utterance.onerror = (error) => {
-          console.error('🎤 Speech error:', error)
-          setAiAvatarSpeaking(false)
-        }
-        
-        // Start speaking
-        window.speechSynthesis.speak(utterance)
-        
-        // Return a promise that resolves when speech ends
-        return new Promise<void>((resolve) => {
-          utterance.onend = () => {
-            console.log('🎤 Speech completed successfully')
-            setAiAvatarSpeaking(false)
-            resolve()
-          }
-          utterance.onerror = () => {
-            console.log('🎤 Speech error, but continuing...')
-            setAiAvatarSpeaking(false)
-            resolve()
-          }
-        })
-      } else {
-        console.log('🎤 Speech synthesis not supported in this browser')
-        setAiAvatarSpeaking(false)
+      const success = await multiLanguageSpeechService.speak(questionText, selectedLanguage)
+      if (!success) {
+        throw new Error('Primary speech service failed')
       }
     } catch (error) {
       console.error('Speech synthesis error:', error)
-      setAiAvatarSpeaking(false)
+      
+      // Fallback to browser speech synthesis
+      if ('speechSynthesis' in window) {
+        try {
+          const utterance = new SpeechSynthesisUtterance(questionText)
+          const speechLang = languageMap[selectedLanguage as keyof typeof languageMap] || selectedLanguage
+          utterance.lang = speechLang
+          utterance.rate = 0.9
+          utterance.pitch = 1.0
+          
+          const voices = window.speechSynthesis.getVoices()
+          const voice = voices.find(v => v.lang.startsWith(speechLang.split('-')[0]))
+          if (voice) {
+            utterance.voice = voice
+          }
+          
+          utterance.onend = () => setAiAvatarSpeaking(false)
+          utterance.onerror = () => setAiAvatarSpeaking(false)
+          window.speechSynthesis.speak(utterance)
+        } catch (fallbackError) {
+          console.error('Fallback speech synthesis error:', fallbackError)
+          setAiAvatarSpeaking(false)
+        }
+      } else {
+        setAiAvatarSpeaking(false)
+      }
     }
   }
 
@@ -403,17 +296,19 @@ export default function WorkingInterviewPage() {
     }
   }, [configLoaded, selectedLanguage])
 
-  // Load questions when configuration is ready - AI ONLY, NO FALLBACK
+  // Load questions when configuration is ready
   useEffect(() => {
     if (!configLoaded) return
 
     const loadQuestionsWithProgress = async () => {
       let progressInterval: NodeJS.Timeout | null = null
       
-        try {
+      try {
         setQuestionsLoading(true)
         setLoadingProgress(0)
-        setLoadingMessage("🤖 Connecting to OpenRouter AI (Mistral 7B)...")        // Simulate progress updates
+        setLoadingMessage("🤖 Connecting to AI Interview System...")
+        
+        // Simulate progress updates
         progressInterval = setInterval(() => {
           setLoadingProgress(prev => {
             if (prev < 70) return prev + 10
@@ -439,7 +334,7 @@ export default function WorkingInterviewPage() {
           progressInterval = null
         }
         setLoadingProgress(90)
-        setLoadingMessage("✨ Finalizing your AI interview setup...")
+        setLoadingMessage("✨ Finalizing your interview setup...")
 
         if (response.ok) {
           const data = await response.json()
@@ -451,251 +346,102 @@ export default function WorkingInterviewPage() {
             
             // Short delay then mark as ready
             setTimeout(() => {
-              console.log('🎯 Setting questionsReady to true with questions:', data.questions)
               setQuestionsLoading(false)
               setQuestionsReady(true)
               
-              // Start speaking first question after interface is ready - with proper delay
+              // Start speaking first question after interface is ready
               setTimeout(async () => {
-                console.log('🗣️ Starting to speak first question:', data.questions[0]?.text)
-                if (data.questions[0]?.text && !aiAvatarSpeaking) {
-                  await speakQuestionAI(data.questions[0].text)
-                }
-              }, 2000) // 2 second delay to ensure everything is loaded
+                await speakQuestionAI(data.questions[0].text)
+              }, 1000)
             }, 1000)
             
-            console.log('✅ AI Questions loaded:', data.questions)
+            console.log('✅ Questions loaded:', data.questions)
           } else {
-            throw new Error('No questions received from AI API')
+            throw new Error('No questions received from API')
           }
         } else {
-          const errorData = await response.json()
-          const errorMessage = errorData.error || errorData.details || 'Unknown API error'
-          throw new Error(`AI API error: ${response.status} - ${errorMessage}`)
+          throw new Error(`API error: ${response.status}`)
         }
       } catch (error) {
-        console.error('❌ AI Question Generation Failed:', error)
+        console.error('❌ Error loading questions:', error)
         if (progressInterval) {
           clearInterval(progressInterval)
         }
         
-        // Show error - NO FALLBACK
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
-        setLoadingMessage(`❌ AI Question Generation Failed: ${errorMessage}`)
-        setLoadingProgress(0)
+        // Fallback to default questions
+        setLoadingMessage("⚠️ Using backup questions...")
+        setLoadingProgress(100)
         
-        // Keep loading state to show error
-        // User must refresh to try again
+        setTimeout(() => {
+          setQuestionsLoading(false)
+          setQuestionsReady(true)
+          
+          setTimeout(async () => {
+            await speakQuestionAI(questions[0].text)
+          }, 1000)
+        }, 1000)
       }
     }
     
     loadQuestionsWithProgress()
   }, [configLoaded, selectedRole, selectedExperience, selectedCount, selectedLanguage])
 
-  // Stop camera function
-  const stopCamera = () => {
-    console.log('📹 Stopping camera...')
-    if (stream) {
-      stream.getTracks().forEach(track => {
-        track.stop()
-        console.log('📹 Stopped track:', track.kind)
-      })
-      setStream(null)
-    }
-    setIsVideoReady(false)
-    setCameraError(null)
-    
-    if (videoRef.current) {
-      videoRef.current.srcObject = null
-    }
-  }
-
   // Start camera function
   const startCamera = async () => {
-    console.log('📹 Starting camera...')
     try {
       setCameraError(null)
-      setIsVideoReady(false)
-      
-      // Wait a moment for DOM to be ready if video element not available
-      if (!videoRef.current) {
-        console.log('📹 Video element not immediately available, waiting...')
-        await new Promise(resolve => setTimeout(resolve, 100))
-      }
-      
-      // Check if video element is available after wait
-      if (!videoRef.current) {
-        console.error('📹 Video element still not available')
-        setCameraError('Video element not ready. This should not happen - please refresh the page.')
-        return
-      }
-      
-      console.log('📹 Video element found:', videoRef.current)
-      
-      // Check if getUserMedia is available
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error('Camera not supported in this browser. Please use Chrome, Firefox, or Safari.')
-      }
-      
-      // Check if running on HTTPS (required for camera in production)
-      if (window.location.protocol === 'http:' && window.location.hostname !== 'localhost') {
-        throw new Error('Camera requires HTTPS. Please use the HTTPS version of this site.')
-      }
-      
-      console.log('📹 Requesting camera permissions...')
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: {
-          width: { ideal: 1280, min: 640 },
-          height: { ideal: 720, min: 480 },
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
           facingMode: 'user'
         },
         audio: false
       })
 
-      console.log('📹 Camera stream obtained:', mediaStream)
-      console.log('📹 Stream active:', mediaStream.active)
-      console.log('📹 Video tracks:', mediaStream.getVideoTracks().length)
-      
       setStream(mediaStream)
       
       if (videoRef.current) {
-        console.log('📹 Setting video source...')
         videoRef.current.srcObject = mediaStream
-        
-        // Force video to load and play
-        videoRef.current.onloadedmetadata = () => {
-          console.log('📹 Video metadata loaded')
-          if (videoRef.current) {
-            videoRef.current.play().then(() => {
-              console.log('📹 Video playing successfully')
-              setIsVideoReady(true)
-            }).catch(error => {
-              console.error('📹 Error playing video:', error)
-              setCameraError('Error starting video playback')
-            })
-          }
-        }
-        
-        videoRef.current.onerror = (error) => {
-          console.error('📹 Video element error:', error)
-          setCameraError('Video element error')
-        }
-        
-        // Try to load metadata immediately
-        try {
-          await videoRef.current.load()
-          console.log('📹 Video load called')
-        } catch (loadError) {
-          console.warn('📹 Video load failed:', loadError)
-        }
-      } else {
-        console.error('📹 Video ref is null!')
-        setCameraError('Video element not found')
+        videoRef.current.play()
+        setIsVideoReady(true)
       }
     } catch (error) {
-      console.error('📹 Camera error:', error)
-      let errorMessage = 'Unknown camera error'
-      
-      if (error instanceof Error) {
-        if (error.name === 'NotAllowedError') {
-          errorMessage = 'Camera access denied. Please allow camera permissions in your browser and refresh the page.'
-        } else if (error.name === 'NotFoundError') {
-          errorMessage = 'No camera found. Please ensure your camera is connected and not in use by another application.'
-        } else if (error.name === 'NotReadableError') {
-          errorMessage = 'Camera is already in use by another application. Please close other apps using the camera.'
-        } else if (error.name === 'OverconstrainedError') {
-          errorMessage = 'Camera settings not supported. Trying with basic settings...'
-        } else {
-          errorMessage = error.message
-        }
-      }
-      
-      setCameraError(errorMessage)
-      
-      // If overconstrained, try with basic settings
-      if (error instanceof Error && error.name === 'OverconstrainedError') {
-        try {
-          console.log('📹 Retrying with basic camera settings...')
-          const basicStream = await navigator.mediaDevices.getUserMedia({
-            video: true,
-            audio: false
-          })
-          
-          console.log('📹 Basic stream obtained:', basicStream)
-          setStream(basicStream)
-          if (videoRef.current) {
-            videoRef.current.srcObject = basicStream
-            await videoRef.current.play()
-            setIsVideoReady(true)
-            setCameraError(null)
-            console.log('📹 Camera started with basic settings')
-          }
-        } catch (basicError) {
-          console.error('📹 Basic camera settings also failed:', basicError)
-        }
-      }
+      console.error('Camera error:', error)
+      setCameraError('Camera access denied. Please allow camera permissions.')
     }
   }
 
   // Start recording function
-  const startRecording = async () => {
-    console.log('🎤 Starting recording...')
-    
+  const startRecording = () => {
     if (!isRecognitionInitialized) {
-      setSpeechError('Speech recognition not initialized. Please refresh the page.')
+      setSpeechError('Speech recognition not initialized')
       return
     }
 
-    // Double-check microphone permissions before starting
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      stream.getTracks().forEach(track => track.stop()) // Stop immediately after testing
-      console.log('🎤 Microphone available for recording')
-    } catch (error) {
-      console.error('🎤 Microphone not available:', error)
-      setSpeechError('Microphone not available. Please ensure microphone permissions are granted.')
-      return
-    }
-
-    const success = multiLanguageSpeechService.startRecognition(
-      (text: string, isFinal: boolean) => {
-        console.log('🎤 Recognition result:', { text, isFinal })
-        if (isFinal) {
-          setCurrentAnswer(prev => {
-            const newAnswer = prev + (prev ? ' ' : '') + text
-            console.log('🎤 Final answer updated:', newAnswer)
-            return newAnswer
-          })
-          setInterimText('')
-        } else {
-          setInterimText(text)
-        }
-      },
-      (error: string) => {
-        console.error('🎤 Recognition error:', error)
-        setSpeechError(`Speech recognition error: ${error}`)
-        setIsRecording(false)
-        setIsListening(false)
+    const success = multiLanguageSpeechService.startListening((result) => {
+      if (result.isFinal) {
+        setCurrentAnswer(prev => prev + ' ' + result.transcript)
+        setInterimText('')
+      } else {
+        setInterimText(result.transcript)
       }
-    )
+    })
 
     if (success) {
-      console.log('🎤 Recording started successfully')
       setIsRecording(true)
       setIsListening(true)
-      setSpeechError(null)
       recordingIntervalRef.current = setInterval(() => {
         setRecordingDuration(prev => prev + 1)
       }, 1000)
     } else {
-      console.error('🎤 Failed to start recording')
-      setSpeechError('Failed to start speech recognition. Please try again.')
+      setSpeechError('Failed to start speech recognition')
     }
   }
 
   // Stop recording function
   const stopRecording = () => {
-    multiLanguageSpeechService.stopRecognition()
+    multiLanguageSpeechService.stopListening()
     setIsRecording(false)
     setIsListening(false)
     setInterimText('')
@@ -714,18 +460,6 @@ export default function WorkingInterviewPage() {
     
     console.log('Submitting answer:', currentAnswer)
     
-    // Store the current answer
-    const answerData = {
-      questionId: currentQuestion.id.toString(),
-      questionText: currentQuestion.text,
-      answerText: currentAnswer.trim(),
-      category: currentQuestion.category,
-      recordingDuration: recordingDuration,
-      timestamp: new Date()
-    }
-    
-    setInterviewAnswers(prev => [...prev, answerData])
-    
     // Move to next question
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1)
@@ -741,41 +475,18 @@ export default function WorkingInterviewPage() {
         }
       }, 1000)
     } else {
-      // Interview complete - store data and navigate to analysis
-      const finalAnswers = [...interviewAnswers, answerData]
-      const interviewData = {
-        answers: finalAnswers,
-        role: selectedRole,
-        experience: selectedExperience,
-        language: selectedLanguage,
-        interviewDuration: interviewTimer,
-        timestamp: new Date().toISOString()
-      }
-      
-      // Store in localStorage for analysis page
-      localStorage.setItem('interviewData', JSON.stringify(interviewData))
-      
-      // Navigate to analysis page
+      // Interview complete
+      alert('Interview completed! Thank you.')
       router.push('/summary')
     }
   }
 
   // Start interview timer on mount
   useEffect(() => {
-    console.log('🔄 Timer effect triggered, questionsReady:', questionsReady, 'stream:', !!stream)
     if (questionsReady) {
-      console.log('⏰ Starting interview timer')
       interviewTimerRef.current = setInterval(() => {
         setInterviewTimer(prev => prev + 1)
       }, 1000)
-      
-      // Auto-start camera when interview is ready - immediate start
-      if (!stream) {
-        console.log('📹 Auto-starting camera immediately...')
-        setTimeout(() => {
-          startCamera()
-        }, 500) // Very short delay to ensure DOM is ready
-      }
     }
 
     return () => {
@@ -783,7 +494,7 @@ export default function WorkingInterviewPage() {
         clearInterval(interviewTimerRef.current)
       }
     }
-  }, [questionsReady, stream])
+  }, [questionsReady])
 
   // Cleanup on unmount
   useEffect(() => {
@@ -809,17 +520,6 @@ export default function WorkingInterviewPage() {
 
   const currentQuestion = questions[currentQuestionIndex]
   const progress = ((currentQuestionIndex + 1) / questions.length) * 100
-
-  // Debug logging
-  console.log('🐛 Render state:', { 
-    questionsLoading, 
-    questionsReady, 
-    questionsLength: questions.length, 
-    currentQuestion: currentQuestion?.text?.substring(0, 50) + '...',
-    configLoaded,
-    stream: !!stream,
-    isVideoReady
-  })
 
   // Show loading screen while questions are being generated
   if (questionsLoading) {
@@ -847,33 +547,6 @@ export default function WorkingInterviewPage() {
                 </div>
                 <Progress value={loadingProgress} className="h-3" />
               </div>
-
-              {/* Interview Preparation Instructions */}
-              <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <h3 className="text-lg font-semibold text-blue-800 mb-3">📋 Interview Preparation</h3>
-                <div className="space-y-2 text-sm text-blue-700">
-                  <div className="flex items-start space-x-2">
-                    <span className="text-blue-500">📹</span>
-                    <span>Position yourself properly in front of the camera</span>
-                  </div>
-                  <div className="flex items-start space-x-2">
-                    <span className="text-blue-500">💡</span>
-                    <span>Ensure good lighting on your face</span>
-                  </div>
-                  <div className="flex items-start space-x-2">
-                    <span className="text-blue-500">🎤</span>
-                    <span>Check that your microphone is working</span>
-                  </div>
-                  <div className="flex items-start space-x-2">
-                    <span className="text-blue-500">🔊</span>
-                    <span>Turn on your speakers to hear questions</span>
-                  </div>
-                  <div className="flex items-start space-x-2">
-                    <span className="text-blue-500">🚀</span>
-                    <span>Camera will start automatically when ready</span>
-                  </div>
-                </div>
-              </div>
               
               <div className="space-y-2 text-sm text-gray-500">
                 <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
@@ -894,21 +567,7 @@ export default function WorkingInterviewPage() {
                 </div>
               </div>
               
-              {loadingProgress === 0 && loadingMessage.includes('Failed') && (
-                <div className="mt-6">
-                  <Button 
-                    onClick={() => window.location.reload()} 
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
-                  >
-                    🔄 Retry AI Question Generation
-                  </Button>
-                  <p className="mt-4 text-xs text-gray-500">
-                    If this keeps failing, check your OpenRouter API key in .env.local
-                  </p>
-                </div>
-              )}
-              
-              {loadingProgress < 100 && !loadingMessage.includes('Failed') && (
+              {loadingProgress < 100 && (
                 <div className="mt-6 text-xs text-gray-400">
                   This may take 10-30 seconds depending on AI processing...
                 </div>
@@ -923,21 +582,6 @@ export default function WorkingInterviewPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <div className="max-w-6xl mx-auto">
-        {/* HTTPS Warning */}
-        {typeof window !== 'undefined' && window.location.protocol === 'http:' && window.location.hostname !== 'localhost' && (
-          <div className="mb-4 bg-red-50 border border-red-200 rounded-lg p-4">
-            <div className="flex items-center space-x-2">
-              <AlertTriangle className="h-5 w-5 text-red-600" />
-              <div>
-                <h3 className="text-red-800 font-semibold">HTTPS Required</h3>
-                <p className="text-red-700 text-sm">
-                  Camera and microphone require HTTPS. Please use: <code className="bg-red-100 px-1 rounded">npm run dev-https</code>
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-        
         {/* Header - only show when config is loaded */}
         {configLoaded && (
           <div className="mb-6 bg-white rounded-lg shadow-sm p-4">
@@ -1023,18 +667,8 @@ export default function WorkingInterviewPage() {
                       variant="outline"
                       size="sm"
                       disabled={aiAvatarSpeaking}
-                      className="flex-1"
                     >
-                      {aiAvatarSpeaking ? (
-                        <>
-                          <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mr-2"></div>
-                          Speaking...
-                        </>
-                      ) : (
-                        <>
-                          🔊 Repeat Question
-                        </>
-                      )}
+                      🔊 Repeat Question
                     </Button>
                   </div>
                 </div>
@@ -1053,39 +687,26 @@ export default function WorkingInterviewPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="relative">
-                    {/* Always render video element, show overlay when no stream */}
-                    <div className="relative">
-                      <video
-                        ref={videoRef}
-                        className="w-full h-64 object-cover rounded-lg bg-black"
-                        autoPlay
-                        muted
-                        playsInline
-                        controls={false}
-                      />
-                      
-                      {/* Show start camera overlay when no stream */}
-                      {!stream && (
-                        <div className="absolute inset-0 bg-gray-100 rounded-lg flex items-center justify-center">
-                          <div className="text-center">
-                            <Video className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                            <p className="text-gray-600 mb-2">Camera starting automatically...</p>
-                            <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
-                            {cameraError && (
-                              <div className="mt-4">
-                                <p className="text-red-600 text-sm mb-2">{cameraError}</p>
-                                <Button onClick={startCamera} size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
-                                  <Video className="h-4 w-4 mr-2" />
-                                  Retry Camera
-                                </Button>
-                              </div>
-                            )}
-                          </div>
+                    {!stream ? (
+                      <div className="bg-gray-100 rounded-lg h-64 flex items-center justify-center">
+                        <div className="text-center">
+                          <Video className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                          <p className="text-gray-600 mb-4">Camera not started</p>
+                          <Button onClick={startCamera} variant="outline">
+                            <Video className="h-4 w-4 mr-2" />
+                            Start Camera
+                          </Button>
                         </div>
-                      )}
-                      
-                      {/* Show camera status badges when stream exists */}
-                      {stream && (
+                      </div>
+                    ) : (
+                      <div className="relative">
+                        <video
+                          ref={videoRef}
+                          className="w-full h-64 object-cover rounded-lg"
+                          autoPlay
+                          muted
+                          playsInline
+                        />
                         <div className="absolute top-2 right-2 flex space-x-2">
                           {isRecording && (
                             <Badge className="bg-red-500 text-white animate-pulse">
@@ -1096,29 +717,12 @@ export default function WorkingInterviewPage() {
                             ✅ Camera Active
                           </Badge>
                         </div>
-                      )}
-                      
-                      {/* Show loading overlay when stream exists but video not ready */}
-                      {stream && !isVideoReady && (
-                        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-lg">
-                          <div className="text-white text-center">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-2"></div>
-                            <p className="text-sm">Loading camera...</p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                      </div>
+                    )}
                     
-                    {cameraError && stream && (
+                    {cameraError && (
                       <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
                         {cameraError}
-                        <Button
-                          onClick={startCamera}
-                          size="sm"
-                          className="ml-2 bg-blue-600 hover:bg-blue-700 text-white text-xs"
-                        >
-                          Retry Camera
-                        </Button>
                       </div>
                     )}
 
@@ -1149,23 +753,6 @@ export default function WorkingInterviewPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {/* Status Panel */}
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                      <h3 className="text-sm font-semibold text-green-800 mb-2">✅ System Status</h3>
-                      <div className="grid grid-cols-2 gap-2 text-xs">
-                        <div>Interview Ready: {questionsReady ? '✅' : '⏳'}</div>
-                        <div>Camera Status: {isVideoReady ? '📹 Active' : stream ? '⏳ Loading...' : '📹 Starting...'}</div>
-                        <div>Speech Ready: {isRecognitionInitialized ? '🎤 Ready' : '⏳ Loading...'}</div>
-                        <div>AI Status: {aiAvatarSpeaking ? '🗣️ Speaking' : '✅ Ready'}</div>
-                      </div>
-                      {/* Camera debugging info - only if there's an issue */}
-                      {stream && !isVideoReady && (
-                        <div className="mt-2 text-xs text-blue-600">
-                          Camera initializing... Stream ID: {stream.id.substring(0, 8)}...
-                        </div>
-                      )}
-                    </div>
-                    
                     {/* Recording Controls */}
                     <div className="flex space-x-4">
                       {!isRecording ? (

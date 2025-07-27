@@ -468,7 +468,7 @@ export class MultilanguageSpeechService {
             if (onComplete) onComplete();
             reject('Speech synthesis timeout');
           }
-        }, 30000); // 30 second timeout
+        }, 10000); // 10 second timeout (reduced from 30)
         
       } catch (error) {
         console.error('Failed to speak:', error);

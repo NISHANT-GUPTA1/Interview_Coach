@@ -5,19 +5,25 @@ import path from 'path';
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { role = 'Software Engineer', experience = '2-3 years', count = 5 } = body;
+    const { role = 'Software Engineer', experience = '2-3 years', count = 5, language = 'en' } = body;
 
-    console.log('🤖 OpenRouter AI Question Generation API called:', { role, experience, count });
+    console.log('🤖 OpenRouter AI Question Generation API called:', { role, experience, count, language });
 
     // Prepare input data for Python script
-    const inputData = JSON.stringify({ role, experience, count });
+    const inputData = JSON.stringify({ role, experience, count, language });
 
     return new Promise((resolve) => {
       const pythonProcess = spawn('python', [
         path.join(process.cwd(), 'lib', 'ai_openrouter_api.py')
       ], {
         stdio: ['pipe', 'pipe', 'pipe'],
-        shell: true
+        shell: true,
+        env: {
+          ...process.env,
+          OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,
+          OPENROUTER_MODEL: process.env.OPENROUTER_MODEL,
+          OPENROUTER_BASE_URL: process.env.OPENROUTER_BASE_URL
+        }
       });
 
       let outputData = '';

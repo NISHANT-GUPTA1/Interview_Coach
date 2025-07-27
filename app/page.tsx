@@ -15,8 +15,9 @@ import { useTranslationContext, TranslatedText } from "@/contexts/TranslationCon
 
 export default function HomePage() {
   const { language, setLanguage, t } = useTranslationContext()
-  const [selectedGoal, setSelectedGoal] = useState("")
-  const [selectedRole, setSelectedRole] = useState("")
+  const [selectedRole, setSelectedRole] = useState("Software Engineer")
+  const [selectedExperience, setSelectedExperience] = useState("2-3 years")
+  const [selectedCount, setSelectedCount] = useState(5)
   const [selectedLanguage, setSelectedLanguage] = useState("")
   const [isReady, setIsReady] = useState(false)
   const [progressValue, setProgressValue] = useState(0)
@@ -32,137 +33,27 @@ export default function HomePage() {
   const indianLanguages = getLanguagesByCategory('indian-regional')
   const internationalLanguages = getLanguagesByCategory('international')
 
-  const goals = [
-    {
-      id: "interview",
-      name: "Technical Interview",
-      icon: Brain,
-      description: "Practice coding and system design interviews",
-      color: "bg-blue-500",
-      features: ["Live coding", "System design", "Behavioral questions"]
-    },
-    {
-      id: "presentation",
-      name: "Presentation Skills",
-      icon: FileText,
-      description: "Improve public speaking and presentation delivery",
-      color: "bg-green-500",
-      features: ["Voice analysis", "Gesture tracking", "Confidence building"]
-    },
-    {
-      id: "group-discussion",
-      name: "Group Discussion",
-      icon: BarChart3,
-      description: "Enhance group communication and leadership",
-      color: "bg-purple-500",
-      features: ["Leadership skills", "Team dynamics", "Debate techniques"]
-    },
-    {
-      id: "fluency",
-      name: "Language Fluency",
-      icon: Zap,
-      description: "Build confidence in spoken communication",
-      color: "bg-orange-500",
-      features: ["Pronunciation", "Grammar check", "Vocabulary building"]
-    },
+  // Available roles for technical interviews
+  const availableRoles = [
+    "Software Engineer",
+    "Frontend Developer", 
+    "Backend Developer",
+    "Full Stack Developer",
+    "DevOps Engineer",
+    "Data Scientist",
+    "Machine Learning Engineer",
+    "System Administrator",
+    "Cloud Architect",
+    "Product Manager"
   ]
 
-  // Dynamic roles based on selected goal
-  const getRolesByGoal = (goalId: string): string[] => {
-    switch (goalId) {
-      case "interview":
-        return [
-          "Software Engineer",
-          "Frontend Developer", 
-          "Backend Developer",
-          "Full Stack Developer",
-          "Data Scientist",
-          "ML Engineer",
-          "DevOps Engineer",
-          "Product Manager",
-          "System Architect",
-          "Tech Lead",
-          "Engineering Manager",
-          "QA Engineer",
-          "Mobile Developer",
-          "UI/UX Designer",
-          "Business Analyst"
-        ]
-      case "presentation":
-        return [
-          "Sales Executive",
-          "Marketing Manager",
-          "Team Lead",
-          "Project Manager",
-          "CEO/Founder",
-          "Business Development",
-          "Public Speaker",
-          "Trainer/Coach",
-          "Consultant",
-          "Product Manager",
-          "Account Manager",
-          "HR Manager",
-          "Event Manager",
-          "Academic Presenter"
-        ]
-      case "group-discussion":
-        return [
-          "Team Leader",
-          "Project Manager",
-          "Department Head",
-          "HR Manager",
-          "Consultant",
-          "Business Analyst",
-          "Product Owner",
-          "Scrum Master",
-          "Operations Manager",
-          "Marketing Lead",
-          "Strategy Manager",
-          "Community Manager",
-          "Facilitator",
-          "Group Coordinator"
-        ]
-      case "fluency":
-        return [
-          "Customer Service Representative",
-          "Sales Representative",
-          "Teacher/Instructor",
-          "Interpreter/Translator",
-          "Tour Guide",
-          "Call Center Agent",
-          "Content Creator",
-          "Public Relations",
-          "Radio/TV Host",
-          "Language Coach",
-          "International Business",
-          "Diplomat",
-          "Travel Consultant",
-          "Voice Over Artist"
-        ]
-      default:
-        return [
-          "Software Engineer",
-          "Product Manager",
-          "Sales Executive",
-          "Team Leader"
-        ]
-    }
-  }
-
-  const currentRoles = selectedGoal ? getRolesByGoal(selectedGoal) : []
-
-  // Handle goal selection and clear incompatible role
-  const handleGoalSelection = (goalId: string) => {
-    setSelectedGoal(goalId)
-    
-    // Clear role if it's not valid for the new goal
-    if (selectedRole) {
-      const newValidRoles = getRolesByGoal(goalId)
-      if (!newValidRoles.includes(selectedRole)) {
-        setSelectedRole("")
-      }
-    }
-  }
+  // Available experience levels
+  const experienceLevels = [
+    "Entry Level",
+    "2-3 years", 
+    "5+ years",
+    "Senior"
+  ]
 
   const features = [
     {
@@ -194,26 +85,37 @@ export default function HomePage() {
     { label: "Expert Rating", value: "4.9/5", icon: Star }
   ]
 
-  // Clear role selection when goal changes
-  useEffect(() => {
-    if (selectedGoal && selectedRole) {
-      const validRoles = getRolesByGoal(selectedGoal)
-      if (!validRoles.includes(selectedRole)) {
-        setSelectedRole("")
-      }
-    }
-  }, [selectedGoal, selectedRole])
-
   // Calculate progress based on selections
   useEffect(() => {
     let progress = 0
-    if (selectedGoal) progress += 33
-    if (selectedRole) progress += 33
-    if (selectedLanguage) progress += 34
+    
+    // Role is always selected (default)
+    progress += 25
+    
+    if (selectedLanguage) progress += 25
+    
+    // Experience is always selected (default)
+    progress += 25
+    
+    // Count is always selected (default)
+    progress += 25
     
     setProgressValue(progress)
-    setIsReady(progress === 100)
-  }, [selectedGoal, selectedRole, selectedLanguage])
+    setIsReady(selectedLanguage !== "")
+  }, [selectedLanguage])
+
+  const handleStartInterview = () => {
+    // Save selections to localStorage
+    localStorage.setItem('interviewConfig', JSON.stringify({
+      role: selectedRole,
+      experience: selectedExperience,
+      count: selectedCount,
+      language: selectedLanguage
+    }))
+    
+    // Navigate to interview page
+    window.location.href = '/working-interview'
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
@@ -293,7 +195,7 @@ export default function HomePage() {
               Start Your AI Interview Session
             </h2>
             <p className="text-lg text-gray-600">
-              Customize your practice session in 3 simple steps
+              Customize your practice session in 4 simple steps
             </p>
           </div>
 
@@ -307,90 +209,28 @@ export default function HomePage() {
           </div>
 
           <div className="grid gap-8">
-            {/* Step 1: Goal Selection */}
+            {/* Step 1: Role Selection */}
             <Card className="border-2 border-dashed border-gray-200 hover:border-blue-300 transition-colors">
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <span className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm mr-3">1</span>
-                  <TranslatedText text="Choose Your Goal" />
-                  {selectedGoal && <CheckCircle className="ml-auto h-5 w-5 text-green-500" />}
-                </CardTitle>
-                <CardDescription>
-                  <TranslatedText text="Select what type of practice session you want" />
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid md:grid-cols-2 gap-4">
-                  {goals.map((goal) => {
-                    const IconComponent = goal.icon
-                    return (
-                      <Card 
-                        key={goal.id}
-                        className={`cursor-pointer transition-all hover:shadow-md ${
-                          selectedGoal === goal.id 
-                            ? 'ring-2 ring-blue-500 bg-blue-50' 
-                            : 'hover:bg-gray-50'
-                        }`}
-                        onClick={() => handleGoalSelection(goal.id)}
-                      >
-                        <CardContent className="p-4">
-                          <div className="flex items-start space-x-3">
-                            <div className={`w-10 h-10 ${goal.color} rounded-lg flex items-center justify-center`}>
-                              <IconComponent className="h-5 w-5 text-white" />
-                            </div>
-                            <div className="flex-1">
-                              <h3 className="font-semibold text-gray-900">{goal.name}</h3>
-                              <p className="text-sm text-gray-600 mb-2">{goal.description}</p>
-                              <div className="flex flex-wrap gap-1">
-                                {goal.features.map((feature) => (
-                                  <Badge key={feature} variant="secondary" className="text-xs">
-                                    {feature}
-                                  </Badge>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Step 2: Role Selection */}
-            <Card className={`border-2 border-dashed ${selectedGoal ? 'border-gray-200 hover:border-blue-300' : 'border-gray-100 opacity-50'} transition-colors`}>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <span className={`rounded-full w-6 h-6 flex items-center justify-center text-sm mr-3 ${selectedGoal ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-500'}`}>2</span>
                   <TranslatedText text="Select Your Role" />
-                  {selectedRole && <CheckCircle className="ml-auto h-5 w-5 text-green-500" />}
+                  <CheckCircle className="ml-auto h-5 w-5 text-green-500" />
                 </CardTitle>
                 <CardDescription>
-                  {selectedGoal ? (
-                    <>
-                      <TranslatedText text="Roles for" /> <strong>{goals.find(g => g.id === selectedGoal)?.name}</strong> - <TranslatedText text="Choose your target position" />
-                    </>
-                  ) : (
-                    <TranslatedText text="Choose the role you're preparing for (select a goal first)" />
-                  )}
+                  <TranslatedText text="Choose the technical role you're preparing for" />
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <Select 
                   value={selectedRole} 
                   onValueChange={setSelectedRole}
-                  disabled={!selectedGoal}
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder={
-                      selectedGoal 
-                        ? `Choose from ${currentRoles.length} ${goals.find(g => g.id === selectedGoal)?.name.toLowerCase()} roles...`
-                        : "Select a goal first..."
-                    } />
+                    <SelectValue placeholder="Choose your target role..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {currentRoles.map((role) => (
+                    {availableRoles.map((role) => (
                       <SelectItem key={role} value={role}>
                         {role}
                       </SelectItem>
@@ -400,11 +240,74 @@ export default function HomePage() {
               </CardContent>
             </Card>
 
-            {/* Step 3: Language Selection */}
-            <Card className={`border-2 border-dashed ${selectedRole ? 'border-gray-200 hover:border-blue-300' : 'border-gray-100 opacity-50'} transition-colors`}>
+            {/* Step 2: Experience Level */}
+            <Card className="border-2 border-dashed border-gray-200 hover:border-blue-300 transition-colors">
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <span className={`rounded-full w-6 h-6 flex items-center justify-center text-sm mr-3 ${selectedRole ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-500'}`}>3</span>
+                  <span className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm mr-3">2</span>
+                  <TranslatedText text="Experience Level" />
+                  <CheckCircle className="ml-auto h-5 w-5 text-green-500" />
+                </CardTitle>
+                <CardDescription>
+                  <TranslatedText text="Select your professional experience level" />
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Select 
+                  value={selectedExperience} 
+                  onValueChange={setSelectedExperience}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Choose your experience level..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {experienceLevels.map((level) => (
+                      <SelectItem key={level} value={level}>
+                        {level}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </CardContent>
+            </Card>
+
+            {/* Step 3: Question Count */}
+            <Card className="border-2 border-dashed border-gray-200 hover:border-blue-300 transition-colors">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <span className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm mr-3">3</span>
+                  <TranslatedText text="Number of Questions" />
+                  <CheckCircle className="ml-auto h-5 w-5 text-green-500" />
+                </CardTitle>
+                <CardDescription>
+                  <TranslatedText text="How many questions would you like to practice?" />
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {[3, 5, 10, 15].map((count) => (
+                    <button
+                      key={count}
+                      onClick={() => setSelectedCount(count)}
+                      className={`p-4 text-center rounded-lg border-2 transition-colors ${
+                        selectedCount === count
+                          ? 'border-blue-500 bg-blue-50 text-blue-900'
+                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      <div className="text-2xl font-bold">{count}</div>
+                      <div className="text-sm text-gray-600">Questions</div>
+                    </button>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Step 4: Language Selection */}
+            <Card className={`border-2 border-dashed border-gray-200 hover:border-blue-300 transition-colors`}>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <span className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm mr-3">4</span>
                   <TranslatedText text="Choose Language" />
                   {selectedLanguage && <CheckCircle className="ml-auto h-5 w-5 text-green-500" />}
                 </CardTitle>
@@ -421,7 +324,6 @@ export default function HomePage() {
                       value={languageSearch}
                       onChange={(e) => setLanguageSearch(e.target.value)}
                       className="pl-10"
-                      disabled={!selectedRole}
                     />
                   </div>
                   
@@ -440,7 +342,6 @@ export default function HomePage() {
                                 ? 'bg-blue-50 border-blue-200 text-blue-900'
                                 : 'bg-white border-gray-200 hover:bg-gray-50'
                             }`}
-                            disabled={!selectedRole}
                           >
                             <div className="flex items-center justify-between">
                               <div>
@@ -550,28 +451,27 @@ export default function HomePage() {
 
           {/* Start Button */}
           <div className="mt-8 text-center">
-            <Link href={isReady ? `/working-interview?role=${encodeURIComponent(selectedRole)}&language=${selectedLanguage}&type=${selectedGoal}` : "#"}>
-              <Button 
-                size="lg" 
-                className={`px-8 py-3 text-lg ${
-                  isReady 
-                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700' 
-                    : 'bg-gray-300 cursor-not-allowed'
-                }`}
-                disabled={!isReady}
-              >
-                {isReady ? (
-                  <>
-                    <TranslatedText text="Start AI Interview" /> <ArrowRight className="ml-2 h-5 w-5" />
-                  </>
-                ) : (
-                  <TranslatedText text="Complete Setup to Continue" />
-                )}
-              </Button>
-            </Link>
+            <Button 
+              size="lg" 
+              className={`px-8 py-3 text-lg ${
+                isReady 
+                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700' 
+                  : 'bg-gray-300 cursor-not-allowed'
+              }`}
+              disabled={!isReady}
+              onClick={handleStartInterview}
+            >
+              {isReady ? (
+                <>
+                  <TranslatedText text="Start AI Interview" /> <ArrowRight className="ml-2 h-5 w-5" />
+                </>
+              ) : (
+                <TranslatedText text="Complete Setup to Continue" />
+              )}
+            </Button>
             {isReady && (
               <p className="mt-2 text-sm text-gray-600">
-                🎯 {selectedGoal?.replace('-', ' ')} • 👤 {selectedRole} • 🌍 {SUPPORTED_LANGUAGES.find(l => l.code === selectedLanguage)?.name || selectedLanguage}
+                👤 {selectedRole} • 📈 {selectedExperience} • � {selectedCount} questions • 🌍 {SUPPORTED_LANGUAGES.find(l => l.code === selectedLanguage)?.name || selectedLanguage}
               </p>
             )}
           </div>

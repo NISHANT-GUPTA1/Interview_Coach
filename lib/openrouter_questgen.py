@@ -1,10 +1,21 @@
 """
 OpenRouter AI Question Generation Service
-Uses Gemma 3n 4B model via OpenRouter API for AI Interview Coach
+Uses Gemma 3n 4B model via OpenRouter API for AI I                fallback_question = f"How would you approach solving a complex {role.lower()} challenge in a production environment?"
+                questions.append({
+                    "id": f"fallback_tech_{i}_{random.randint(1000, 9999)}",
+                    "text": fallback_question,  # Use "text" field
+                    "category": "Technical",
+                    "type": "technical",
+                    "difficulty": difficulty,
+                    "role": role,
+                    "source": "fallback",
+                    "confidence": 0.8
+                })oach
 """
 
 import json
 import sys
+import os
 import random
 import requests
 from typing import List, Dict, Any
@@ -14,9 +25,15 @@ class OpenRouterQuestionGenerator:
         """Initialize the OpenRouter AI Question Generator"""
         print("Initializing OpenRouter AI Question Generator...", file=sys.stderr)
         
-        self.api_key = "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"
-        self.base_url = "https://openrouter.ai/api/v1"
-        self.model = "google/gemma-3n-e4b-it:free"
+        # Get API key from environment variable
+        self.api_key = os.getenv('OPENROUTER_API_KEY')
+        if not self.api_key:
+            print("❌ OpenRouter API key not found in environment!", file=sys.stderr)
+            print("Please check your .env.local file", file=sys.stderr)
+            raise RuntimeError("OpenRouter API key not configured")
+            
+        self.base_url = os.getenv('OPENROUTER_BASE_URL', 'https://openrouter.ai/api/v1')
+        self.model = os.getenv('OPENROUTER_MODEL', 'qwen/qwen-2-7b-instruct:free')
         
         print(f"Using model: {self.model}", file=sys.stderr)
         print("OpenRouter AI Question Generator initialized successfully!", file=sys.stderr)
@@ -26,8 +43,8 @@ class OpenRouterQuestionGenerator:
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
-            "HTTP-Referer": "https://ai-interview-coach.com",
-            "X-Title": "AI Interview Coach"
+            "HTTP-Referer": "http://localhost:3000",  # Required by OpenRouter
+            "X-Title": "AI Interview Coach"  # Optional but recommended
         }
         
         data = {
@@ -38,16 +55,38 @@ class OpenRouterQuestionGenerator:
         }
         
         try:
-            response = requests.post(f"{self.base_url}/chat/completions", 
+            # Use the correct OpenRouter endpoint
+            url = "https://openrouter.ai/api/v1/chat/completions"
+            print(f"Making request to: {url}", file=sys.stderr)
+            print(f"Using model: {self.model}", file=sys.stderr)
+            print(f"API Key (first 20 chars): {self.api_key[:20]}...", file=sys.stderr)
+            
+            response = requests.post(url, 
                                    headers=headers, 
                                    json=data, 
                                    timeout=30)
+            
+            print(f"Response status: {response.status_code}", file=sys.stderr)
+            if not response.ok:
+                print(f"Response headers: {dict(response.headers)}", file=sys.stderr)
+                print(f"Response text: {response.text}", file=sys.stderr)
+            
             response.raise_for_status()
             
             result = response.json()
-            return result['choices'][0]['message']['content']
+            if 'choices' in result and len(result['choices']) > 0:
+                return result['choices'][0]['message']['content']
+            else:
+                print(f"Unexpected response format: {result}", file=sys.stderr)
+                raise RuntimeError("Invalid response format from API")
+                
+        except requests.exceptions.RequestException as e:
+            print(f"Request error: {e}", file=sys.stderr)
+            if hasattr(e, 'response') and e.response is not None:
+                print(f"Error response: {e.response.text}", file=sys.stderr)
+            raise RuntimeError(f"API request failed: {e}")
         except Exception as e:
-            print(f"API request error: {e}", file=sys.stderr)
+            print(f"General error: {e}", file=sys.stderr)
             raise RuntimeError(f"Failed to generate content: {e}")
 
     def generate_technical_questions(self, context: str, role: str, difficulty: str, count: int = 3) -> List[Dict[str, Any]]:
@@ -78,7 +117,8 @@ Requirements:
                 
                 questions.append({
                     "id": f"openrouter_tech_{i}_{random.randint(1000, 9999)}",
-                    "question": question_text,
+                    "text": question_text,  # Use "text" field instead of "question"
+                    "category": "Technical",
                     "type": "technical",
                     "difficulty": difficulty,
                     "role": role,
@@ -164,7 +204,8 @@ Correct: [Letter of correct answer]"""
                 
                 mcq_questions.append({
                     "id": f"openrouter_mcq_{i}_{random.randint(1000, 9999)}",
-                    "question": question_text,
+                    "text": question_text,  # Use "text" field
+                    "category": "Multiple Choice",
                     "options": options,
                     "correct_answer": correct_answer,
                     "type": "mcq",
@@ -177,7 +218,8 @@ Correct: [Letter of correct answer]"""
                 # Fallback MCQ
                 mcq_questions.append({
                     "id": f"fallback_mcq_{i}_{random.randint(1000, 9999)}",
-                    "question": "What is a key principle of good software design?",
+                    "text": "What is a key principle of good software design?",  # Use "text" field
+                    "category": "Multiple Choice",
                     "options": ["Single Responsibility Principle", "Multiple Inheritance", "Global Variables", "Tight Coupling"],
                     "correct_answer": "Single Responsibility Principle",
                     "type": "mcq",
@@ -236,7 +278,8 @@ Answer: True/False"""
                 
                 boolean_questions.append({
                     "id": f"openrouter_bool_{i}_{random.randint(1000, 9999)}",
-                    "question": statement,
+                    "text": statement,  # Use "text" field
+                    "category": "True/False",
                     "answer": answer.title(),
                     "type": "boolean",
                     "source": "openrouter_ai",
@@ -248,7 +291,8 @@ Answer: True/False"""
                 # Fallback boolean question
                 boolean_questions.append({
                     "id": f"fallback_bool_{i}_{random.randint(1000, 9999)}",
-                    "question": "True or False: Code reviews are essential for maintaining code quality in team projects?",
+                    "text": "True or False: Code reviews are essential for maintaining code quality in team projects?",  # Use "text" field
+                    "category": "True/False",
                     "answer": "True",
                     "type": "boolean",
                     "source": "fallback"
