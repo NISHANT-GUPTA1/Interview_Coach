@@ -145,7 +145,7 @@
 4. **Configure your `.env.local` file:**
    ```env
    # OpenAI Configuration
-   OPENAI_API_KEY=your_openai_api_key_here
+   OPENAI_API_KEY="your_openai_api_key_here"
    OPENAI_MODEL=gpt-4o
 
    # OpenRouter Configuration (alternative)
