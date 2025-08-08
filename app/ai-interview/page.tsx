@@ -14,6 +14,9 @@ interface Question {
   text: string;
   category: string;
   difficulty?: 'junior' | 'mid' | 'senior';
+  type?: 'technical' | 'mcq' | 'boolean';
+  options?: string[];
+  correct_answer?: string;
 }
 
 interface Answer {
@@ -603,7 +606,24 @@ export default function AIInterviewPage() {
                         </Badge>
                       )}
                     </div>
-                    <p className="text-lg leading-relaxed font-medium">{currentQuestion.text}</p>
+                    <p className="text-lg leading-relaxed font-medium mb-3">{currentQuestion.text}</p>
+                    
+                    {/* Display MCQ options if available */}
+                    {currentQuestion.type === 'mcq' && currentQuestion.options && (
+                      <div className="mt-4 ml-4">
+                        <p className="font-medium text-sm text-gray-600 mb-2">Options:</p>
+                        <div className="space-y-2">
+                          {currentQuestion.options.map((option, optionIndex) => (
+                            <div key={optionIndex} className="flex items-start p-2 bg-white rounded border">
+                              <span className="font-medium text-blue-600 mr-3">
+                                {String.fromCharCode(65 + optionIndex)}.
+                              </span>
+                              <span className="text-gray-800">{option}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

@@ -61,7 +61,7 @@ def generate_mixed_questions(data):
         
         if mcq_count > 0:
             print(f"Generating {mcq_count} MCQ questions...", file=sys.stderr)
-            mcq_questions = generator.generate_mcq_questions(context, mcq_count)
+            mcq_questions = generator.generate_mcq_questions(context, mcq_count, language)
             questions.extend(mcq_questions)
         
         if boolean_count > 0:

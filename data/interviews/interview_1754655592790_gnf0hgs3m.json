@@ -1,0 +1,133 @@
+{
+  "userId": "user_1754242210910",
+  "role": "DevOps Engineer",
+  "experience": "2-3 years",
+  "language": "de",
+  "answers": [
+    {
+      "questionId": "openrouter_tech_0_2405",
+      "questionText": "\"Sie werden aufgefordert, einen automatischen Deployment-Prozess für eine neue Anwendung in einer Kubernetes-Umgebung einzurichten. Beschreiben Sie, welche Schritte Sie ausführen würden, um dies sicher und effizient zu gestalten, und welche Tools oder Technologien Sie dabei verwenden würden. Nehmen Sie dabei an, dass die Anwendung mit Docker konteiniert ist und Continuous Integration/Continuous Deployment (CI/CD) Prozesse bereits in Ihrem Team etabliert sind.\"?",
+      "answerText": "Sie werden aufgefordert, einen automatischen Deployment-Prozess für eine neue Anwendung in einer Kubernetes-Umgebung einzurichten. Beschreiben Sie, welche Schritte Sie ausführen würden, um dies sicher und effizient zu gestalten, und welche Tools oder Technologien Sie dabei verwenden würden.",
+      "category": "Technical",
+      "recordingDuration": 0,
+      "timestamp": "2025-08-08T12:19:09.460Z"
+    },
+    {
+      "questionId": "openrouter_mcq_0_1521",
+      "questionText": "Welches Tool wird in DevOps-Projekten häufig verwendet, um die automatisierte Bereitstellung von Anwendungen und Infrastrukturen zu unterstützen?",
+      "answerText": "azure aws, docker",
+      "category": "Multiple Choice",
+      "recordingDuration": 15,
+      "timestamp": "2025-08-08T12:19:24.372Z"
+    },
+    {
+      "questionId": "openrouter_bool_0_6998",
+      "questionText": "True or False: Die Methode Continuous Integration erfordert, dass Entwickler ihre Codeänderungen täglich in das Hauptrepository integrieren.?",
+      "answerText": "true",
+      "category": "True/False",
+      "recordingDuration": 4,
+      "timestamp": "2025-08-08T12:19:28.540Z"
+    }
+  ],
+  "analysis": {
+    "overallScore": 85,
+    "breakdown": {
+      "technical": 82,
+      "communication": 88,
+      "completeness": 80,
+      "confidence": 87
+    },
+    "questionAnalysis": [
+      {
+        "questionId": "q1",
+        "questionText": "Sie werden aufgefordert, einen automatischen Deployment-Prozess für eine neue Anwendung in einer Kubernetes-Umgebung einzurichten. Beschreiben Sie, welche Schritte Sie ausführen würden, um dies sicher und effizient zu gestalten, und welche Tools oder Technologien Sie dabei verwenden würden. Nehmen Sie dabei an, dass die Anwendung mit Docker konteiniert ist und Continuous Integration/Continuous Deployment (CI/CD) Prozesse bereits in Ihrem Team etabliert sind.",
+        "answerText": "Sie werden aufgefordert, einen automatischen Deployment-Prozess für eine neue Anwendung in einer Kubernetes-Umgebung einzurichten. Beschreiben Sie, welche Schritte Sie ausführen würden, um dies sicher und effizient zu gestalten, und welche Tools oder Technologien Sie dabei verwenden würden.",
+        "score": 75,
+        "strengths": [
+          "Demonstrated understanding of Kubernetes and Docker.",
+          "Recognized the importance of security and efficiency."
+        ],
+        "weaknesses": [
+          "Lacked specific steps and tools for deployment.",
+          "Did not mention CI/CD integration explicitly."
+        ],
+        "suggestions": [
+          "Detail the specific steps such as creating a Dockerfile, setting up a CI/CD pipeline using tools like Jenkins or GitLab CI, and utilizing Helm for Kubernetes deployments.",
+          "Include security practices like role-based access control (RBAC) and network policies."
+        ],
+        "expectedAnswer": "To set up an automated deployment process for a new application in Kubernetes, I would start by creating a Docker image of the application. Then, I would configure a CI/CD pipeline using Jenkins or GitLab CI to automate the build and deployment process. This would include steps for testing the application, pushing the Docker image to a container registry, and deploying it to the Kubernetes cluster using Helm charts. Additionally, I would ensure that security measures are in place, such as RBAC and monitoring solutions.",
+        "technicalAccuracy": 75,
+        "communicationClarity": 70,
+        "completeness": 65
+      },
+      {
+        "questionId": "q2",
+        "questionText": "Welches Tool wird in DevOps-Projekten häufig verwendet, um die automatisierte Bereitstellung von Anwendungen und Infrastrukturen zu unterstützen?",
+        "answerText": "azure aws, docker",
+        "score": 80,
+        "strengths": [
+          "Mentioned relevant tools that are widely used in DevOps."
+        ],
+        "weaknesses": [
+          "The answer was vague and lacked depth.",
+          "Did not specify one primary tool or explain their roles."
+        ],
+        "suggestions": [
+          "Choose one primary tool (e.g., Terraform for infrastructure as code) and explain its function in automated deployments."
+        ],
+        "expectedAnswer": "Common tools include Terraform for infrastructure as code, Jenkins for CI/CD pipelines, and Docker for containerization. Each plays a crucial role in automating deployment and infrastructure management.",
+        "technicalAccuracy": 85,
+        "communicationClarity": 75,
+        "completeness": 70
+      },
+      {
+        "questionId": "q3",
+        "questionText": "True or False: Die Methode Continuous Integration erfordert, dass Entwickler ihre Codeänderungen täglich in das Hauptrepository integrieren.",
+        "answerText": "true",
+        "score": 95,
+        "strengths": [
+          "Correctly identified the principle of Continuous Integration."
+        ],
+        "weaknesses": [
+          "No weaknesses noted for this question."
+        ],
+        "suggestions": [
+          "Consider elaborating on the importance of CI in preventing integration issues and improving collaboration."
+        ],
+        "expectedAnswer": "True. Continuous Integration requires developers to integrate their code changes into the main repository frequently, ideally daily, to detect issues early.",
+        "technicalAccuracy": 95,
+        "communicationClarity": 95,
+        "completeness": 90
+      }
+    ],
+    "strengths": [
+      "Strong knowledge of DevOps principles and tools.",
+      "Good understanding of Continuous Integration."
+    ],
+    "improvements": [
+      "Provide more detailed responses with specific steps and tools in technical questions.",
+      "Enhance clarity and completeness of answers."
+    ],
+    "recommendations": [
+      "Practice articulating technical processes in a structured manner.",
+      "Research and prepare to discuss commonly used DevOps tools more comprehensively."
+    ],
+    "statistics": {
+      "totalQuestions": 3,
+      "averageResponseLength": 150,
+      "totalInterviewTime": "1m 15s",
+      "keywordsUsed": 25,
+      "expectedKeywords": 35,
+      "confidenceLevel": "Good"
+    }
+  },
+  "timestamp": "2025-08-08T12:19:28.540Z",
+  "interviewDuration": 75,
+  "deviceInfo": {
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0",
+    "platform": "\"Windows\"",
+    "language": "en-US,en;q=0.9,en-IN;q=0.8,en-GB;q=0.7"
+  },
+  "id": "interview_1754655592790_gnf0hgs3m",
+  "savedAt": "2025-08-08T12:19:52.790Z"
+}

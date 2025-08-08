@@ -29,6 +29,88 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 
+// Translation dictionaries for UI labels
+const UI_TRANSLATIONS = {
+  en: {
+    interviewSummary: "Interview Summary",
+    overallScore: "Overall Score",
+    questionAnalysis: "Question Analysis",
+    strengths: "Strengths",
+    areasToImprove: "Areas to Improve", 
+    suggestions: "Suggestions",
+    yourAnswer: "Your Answer",
+    expectedAnswer: "Expected Answer",
+    technicalAccuracy: "Technical Accuracy",
+    communicationClarity: "Communication Clarity",
+    completeness: "Completeness",
+    retakeInterview: "Retake Interview",
+    newInterview: "New Interview",
+    homeButton: "Home",
+    shareResults: "Share Results",
+    downloadReport: "Download Report",
+    loading: "Analyzing your interview...",
+    totalQuestions: "Total Questions",
+    totalTime: "Total Time",
+    avgScore: "Average Score",
+    performance: "Performance",
+    excellent: "Excellent",
+    good: "Good", 
+    needsImprovement: "Needs Improvement"
+  },
+  hi: {
+    interviewSummary: "साक्षात्कार सारांश",
+    overallScore: "समग्र स्कोर",
+    questionAnalysis: "प्रश्न विश्लेषण",
+    strengths: "मजबूत पक्ष",
+    areasToImprove: "सुधार के क्षेत्र",
+    suggestions: "सुझाव",
+    yourAnswer: "आपका उत्तर",
+    expectedAnswer: "अपेक्षित उत्तर",
+    technicalAccuracy: "तकनीकी सटीकता",
+    communicationClarity: "संवाद स्पष्टता",
+    completeness: "पूर्णता",
+    retakeInterview: "साक्षात्कार दोबारा लें",
+    newInterview: "नया साक्षात्कार",
+    homeButton: "होम",
+    shareResults: "परिणाम साझा करें",
+    downloadReport: "रिपोर्ट डाउनलोड करें",
+    loading: "आपके साक्षात्कार का विश्लेषण किया जा रहा है...",
+    totalQuestions: "कुल प्रश्न",
+    totalTime: "कुल समय",
+    avgScore: "औसत स्कोर",
+    performance: "प्रदर्शन",
+    excellent: "उत्कृष्ट",
+    good: "अच्छा",
+    needsImprovement: "सुधार की आवश्यकता"
+  },
+  es: {
+    interviewSummary: "Resumen de la Entrevista",
+    overallScore: "Puntuación General",
+    questionAnalysis: "Análisis de Preguntas",
+    strengths: "Fortalezas",
+    areasToImprove: "Áreas de Mejora",
+    suggestions: "Sugerencias",
+    yourAnswer: "Tu Respuesta",
+    expectedAnswer: "Respuesta Esperada",
+    technicalAccuracy: "Precisión Técnica",
+    communicationClarity: "Claridad de Comunicación",
+    completeness: "Completitud",
+    retakeInterview: "Repetir Entrevista",
+    newInterview: "Nueva Entrevista",
+    homeButton: "Inicio",
+    shareResults: "Compartir Resultados",
+    downloadReport: "Descargar Informe",
+    loading: "Analizando tu entrevista...",
+    totalQuestions: "Total de Preguntas",
+    totalTime: "Tiempo Total",
+    avgScore: "Puntuación Promedio",
+    performance: "Rendimiento",
+    excellent: "Excelente",
+    good: "Bueno",
+    needsImprovement: "Necesita Mejora"
+  }
+}
+
 interface QuestionAnalysis {
   questionId: string;
   questionText: string;
@@ -45,12 +127,6 @@ interface QuestionAnalysis {
 
 interface AnalysisData {
   overallScore: number;
-  breakdown: {
-    technical: number;
-    communication: number;
-    completeness: number;
-    confidence: number;
-  };
   questionAnalysis: QuestionAnalysis[];
   strengths: string[];
   improvements: string[];
@@ -76,6 +152,14 @@ export default function SummaryPage() {
   const [showAllAnswers, setShowAllAnswers] = useState(false)
   const [emailAddress, setEmailAddress] = useState("")
   const [isSharing, setIsSharing] = useState(false)
+
+  // Get language from URL params or default to English
+  const language = searchParams.get('language') || 'en'
+  
+  // Translation helper function
+  const t = (key: keyof typeof UI_TRANSLATIONS.en) => {
+    return UI_TRANSLATIONS[language as keyof typeof UI_TRANSLATIONS]?.[key] || UI_TRANSLATIONS.en[key]
+  }
 
   useEffect(() => {
     loadInterviewData()
@@ -144,7 +228,8 @@ export default function SummaryPage() {
         analysisInstructions: `Analyze this interview in ${language} language. Provide feedback in the same language the candidate used.`
       }
 
-      const response = await fetch('/api/analyze-interview', {
+      // Try enhanced AI analysis first
+      const response = await fetch('/api/enhanced-interview-analysis', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(analysisRequest)
@@ -155,19 +240,17 @@ export default function SummaryPage() {
       }
 
       const result = await response.json()
-      console.log('✅ Real AI Analysis result:', result)
+      console.log('✅ Enhanced AI Analysis result:', result)
 
       if (result.success && result.analysis) {
-        // Use real AI analysis
+        // Use enhanced AI analysis
         setAnalysis(result.analysis)
-        console.log('✅ Using REAL AI analysis based on actual interview')
-      } else if (result.fallback) {
-        // Use fallback but with real data
-        console.log('⚠️ Using fallback analysis with real interview data')
-        const fallbackAnalysis = await createDynamicAnalysis(interviewData)
-        setAnalysis(fallbackAnalysis)
+        console.log(`✅ Using ${result.source} AI analysis based on actual interview`)
+        
+        // Save analysis to database
+        await saveAnalysisToDatabase(interviewData, result.analysis)
       } else {
-        throw new Error('No analysis data received')
+        throw new Error('Enhanced analysis failed')
       }
     } catch (err) {
       console.error('❌ Analysis error:', err)
@@ -179,6 +262,42 @@ export default function SummaryPage() {
       setAnalysis(basicAnalysis)
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  // Save analysis to database for persistence
+  const saveAnalysisToDatabase = async (interviewData: any, analysis: any) => {
+    try {
+      const userId = localStorage.getItem('userId') || `user_${Date.now()}`
+      localStorage.setItem('userId', userId) // Store for future use
+      
+      // Save interview with analysis
+      const response = await fetch('/api/interview-database', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'save',
+          userId,
+          role: interviewData.role,
+          experience: interviewData.experience,
+          language: interviewData.language,
+          answers: interviewData.answers,
+          analysis,
+          timestamp: interviewData.timestamp,
+          interviewDuration: interviewData.interviewDuration
+        })
+      })
+
+      const result = await response.json()
+      if (result.success) {
+        console.log('✅ Interview saved to database:', result.interviewId)
+        localStorage.setItem('lastInterviewId', result.interviewId)
+      } else {
+        console.warn('⚠️ Failed to save to database:', result.error)
+      }
+    } catch (error) {
+      console.warn('⚠️ Database save error:', error)
+      // Continue without failing - database is optional
     }
   }
 
@@ -213,55 +332,15 @@ export default function SummaryPage() {
         score += hasQuantifiableResults ? 15 : 0
         score = Math.min(Math.max(score, 40), 95)
         
-        // Generate dynamic strengths based on content analysis
-        const strengths: string[] = []
-        const weaknesses: string[] = []
-        const suggestions: string[] = []
-        
-        if (language === 'hi') {
-          if (wordCount > 50) strengths.push('विस्तृत उत्तर प्रदान किया')
-          if (hasSpecificExamples) strengths.push('उदाहरणों का उपयोग किया')
-          if (hasTechnicalTerms) strengths.push('तकनीकी शब्दावली का प्रयोग')
-          if (hasQuantifiableResults) strengths.push('मापने योग्य परिणाम शामिल किए')
-          
-          if (wordCount < 30) weaknesses.push('उत्तर बहुत संक्षिप्त है')
-          if (!hasSpecificExamples) weaknesses.push('अधिक उदाहरण की आवश्यकता')
-          if (!hasTechnicalTerms && category.includes('Technical')) weaknesses.push('तकनीकी विवरण जोड़ें')
-          
-          suggestions.push('STAR विधि का उपयोग करें')
-          if (!hasQuantifiableResults) suggestions.push('मापने योग्य परिणाम जोड़ें')
-          suggestions.push('अपने अनुभव से विशिष्ट उदाहरण दें')
-        } else {
-          if (wordCount > 50) strengths.push('Provided detailed response')
-          if (hasSpecificExamples) strengths.push('Used concrete examples')
-          if (hasTechnicalTerms) strengths.push('Demonstrated technical knowledge')
-          if (hasQuantifiableResults) strengths.push('Included measurable results')
-          
-          if (wordCount < 30) weaknesses.push('Response too brief')
-          if (!hasSpecificExamples) weaknesses.push('Needs more specific examples')
-          if (!hasTechnicalTerms && category.includes('Technical')) weaknesses.push('Add more technical details')
-          
-          suggestions.push('Use the STAR method (Situation, Task, Action, Result)')
-          if (!hasQuantifiableResults) suggestions.push('Include quantifiable outcomes')
-          suggestions.push('Provide specific examples from your experience')
-        }
-        
-        // Ensure we have at least some feedback
-        if (strengths.length === 0) {
-          strengths.push(language === 'hi' ? 'प्रश्न का उत्तर दिया' : 'Answered the question')
-        }
-        if (weaknesses.length === 0) {
-          weaknesses.push(language === 'hi' ? 'अधिक विस्तार जोड़ें' : 'Could provide more detail')
-        }
-        
+        // Return minimal structure - all analysis will come from enhanced API
         return {
-          questionId: answer.questionId || `q${index + 1}`,
-          questionText: questionText,
-          answerText: answerText,
-          score: Math.round(score),
-          strengths,
-          weaknesses,
-          suggestions,
+          questionId: answer.questionId,
+          questionText: answer.questionText,
+          answerText: answer.answerText,
+          score,
+          strengths: [], // Will be populated by enhanced API
+          weaknesses: [], // Will be populated by enhanced API  
+          suggestions: [], // Will be populated by enhanced API
           expectedAnswer: language === 'hi' ? 
             `${role} भूमिका के लिए विशिष्ट उदाहरण, तकनीकी कौशल और मापने योग्य परिणामों के साथ एक व्यापक उत्तर अपेक्षित है।` :
             `Expected a comprehensive answer with specific examples, technical skills, and measurable outcomes relevant to ${role} role.`,
@@ -312,7 +391,9 @@ export default function SummaryPage() {
       
       dynamicRecommendations.push(`${role} भूमिका के लिए विशिष्ट तकनीकी कौशल पर ध्यान दें`)
       dynamicRecommendations.push('मॉक इंटरव्यू का अभ्यास करें')
-      if (avgScore < 75) dynamicRecommendations.push('STAR विधि का अधिक अभ्यास करें')
+      if (avgScore < 75) dynamicRecommendations.push('अधिक विस्तृत उत्तर देने का अभ्यास करें')
+      if (avgWordsPerAnswer < 40) dynamicRecommendations.push('अपने उत्तरों में अधिक विवरण जोड़ें')
+      if (technicalScore < avgScore) dynamicRecommendations.push('अपने तकनीकी ज्ञान को मजबूत बनाएं')
     } else {
       // English feedback  
       if (avgWordsPerAnswer > 50) overallStrengths.push('Provides detailed and comprehensive answers')
@@ -324,9 +405,12 @@ export default function SummaryPage() {
       if (lowScoringAnswers > 2) overallImprovements.push('Focus on improving weaker question areas')
       if (!hasConsistentQuality) overallImprovements.push('Work on maintaining consistent answer quality')
       
+      // Dynamic recommendations based on actual performance data
       dynamicRecommendations.push(`Focus on specific technical skills for ${role} role`)
-      dynamicRecommendations.push('Practice mock interviews with similar question types')
-      if (avgScore < 75) dynamicRecommendations.push('Practice the STAR method more extensively')
+      dynamicRecommendations.push('Practice similar technical questions to improve confidence')
+      if (avgScore < 75) dynamicRecommendations.push('Work on providing more comprehensive explanations')
+      if (avgWordsPerAnswer < 40) dynamicRecommendations.push('Expand your answers with more detailed explanations')
+      if (technicalScore < avgScore) dynamicRecommendations.push('Strengthen technical knowledge in your domain')
     }
     
     // Ensure we have feedback
@@ -351,12 +435,6 @@ export default function SummaryPage() {
 
     return {
       overallScore: avgScore,
-      breakdown: {
-        technical: technicalScore,
-        communication: Math.round(avgScore * (avgWordsPerAnswer > 40 ? 1.1 : 0.9)),
-        completeness: Math.round(questionAnalysis.reduce((sum, q) => sum + q.completeness, 0) / questionAnalysis.length),
-        confidence: Math.round(avgScore * (hasConsistentQuality ? 1.0 : 0.85))
-      },
       questionAnalysis,
       strengths: overallStrengths,
       improvements: overallImprovements,
@@ -432,7 +510,6 @@ export default function SummaryPage() {
     const reportData = {
       timestamp: new Date().toISOString(),
       overallScore: analysis.overallScore,
-      breakdown: analysis.breakdown,
       statistics: analysis.statistics,
       strengths: analysis.strengths,
       improvements: analysis.improvements,
@@ -461,20 +538,40 @@ export default function SummaryPage() {
                 <div className="w-3 h-3 bg-blue-600 rounded-full animate-ping"></div>
               </div>
             </div>
-            <h2 className="text-2xl font-bold mb-2">🤖 AI Analyzing Your Performance</h2>
-            <p className="text-gray-600 mb-4">Generating comprehensive feedback and insights</p>
+            <h2 className="text-2xl font-bold mb-2">
+              🤖 {language === 'hi' ? 'एआई आपके प्रदर्शन का विश्लेषण कर रहा है' :
+                   language === 'es' ? 'IA Analizando Tu Rendimiento' :
+                   'AI Analyzing Your Performance'}
+            </h2>
+            <p className="text-gray-600 mb-4">
+              {language === 'hi' ? 'व्यापक प्रतिक्रिया और अंतर्दृष्टि उत्पन्न कर रहा है' :
+               language === 'es' ? 'Generando comentarios e insights integrales' :
+               'Generating comprehensive feedback and insights'}
+            </p>
             <div className="space-y-2 text-sm text-gray-500">
               <div className="flex items-center justify-center space-x-2">
                 <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"></div>
-                <span>Analyzing responses...</span>
+                <span>
+                  {language === 'hi' ? 'उत्तरों का विश्लेषण कर रहा है...' :
+                   language === 'es' ? 'Analizando respuestas...' :
+                   'Analyzing responses...'}
+                </span>
               </div>
               <div className="flex items-center justify-center space-x-2">
                 <div className="w-2 h-2 bg-purple-600 rounded-full animate-bounce delay-100"></div>
-                <span>Evaluating technical accuracy...</span>
+                <span>
+                  {language === 'hi' ? 'तकनीकी सटीकता का मूल्यांकन कर रहा है...' :
+                   language === 'es' ? 'Evaluando precisión técnica...' :
+                   'Evaluating technical accuracy...'}
+                </span>
               </div>
               <div className="flex items-center justify-center space-x-2">
                 <div className="w-2 h-2 bg-green-600 rounded-full animate-bounce delay-200"></div>
-                <span>Generating recommendations...</span>
+                <span>
+                  {language === 'hi' ? 'सुझाव उत्पन्न कर रहा है...' :
+                   language === 'es' ? 'Generando recomendaciones...' :
+                   'Generating recommendations...'}
+                </span>
               </div>
             </div>
           </div>
@@ -502,7 +599,7 @@ export default function SummaryPage() {
             <Link href="/">
               <Button variant="outline" className="w-full">
                 <Home className="h-4 w-4 mr-2" />
-                Go to Home
+                {t('homeButton')}
               </Button>
             </Link>
           </div>
@@ -519,10 +616,14 @@ export default function SummaryPage() {
           <div className="flex items-center justify-center space-x-2 mb-4">
             <Award className="h-8 w-8 text-blue-600" />
             <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              AI Interview Analysis
+              {t('interviewSummary')}
             </h1>
           </div>
-          <p className="text-gray-600 text-lg">Comprehensive AI-powered performance evaluation</p>
+          <p className="text-gray-600 text-lg">
+            {language === 'hi' ? 'व्यापक एआई-संचालित प्रदर्शन मूल्यांकन' : 
+             language === 'es' ? 'Evaluación integral de rendimiento impulsada por IA' :
+             'Comprehensive AI-powered performance evaluation'}
+          </p>
         </div>
 
         {/* Overall Score Card */}
@@ -534,15 +635,21 @@ export default function SummaryPage() {
                   {analysis.overallScore}%
                 </div>
                 <Badge className={`text-lg px-4 py-2 ${getScoreBgColor(analysis.overallScore)}`}>
-                  {analysis.overallScore >= 80 ? 'Excellent Performance' :
-                   analysis.overallScore >= 60 ? 'Good Performance' : 'Needs Improvement'}
+                  {analysis.overallScore >= 80 ? t('excellent') :
+                   analysis.overallScore >= 60 ? t('good') : t('needsImprovement')}
                 </Badge>
                 <p className="mt-2 text-gray-600">
                   {analysis.overallScore >= 80 ?
-                    "Outstanding interview performance with strong technical and communication skills!" :
+                    (language === 'hi' ? "मजबूत तकनीकी और संवाद कौशल के साथ उत्कृष्ट साक्षात्कार प्रदर्शन!" :
+                     language === 'es' ? "¡Excelente rendimiento en la entrevista con fuertes habilidades técnicas y de comunicación!" :
+                     "Outstanding interview performance with strong technical and communication skills!") :
                     analysis.overallScore >= 60 ?
-                    "Good performance with room for focused improvements." :
-                    "Developing performance - focus on key improvement areas."}
+                    (language === 'hi' ? "केंद्रित सुधार की गुंजाइश के साथ अच्छा प्रदर्शन।" :
+                     language === 'es' ? "Buen rendimiento con espacio para mejoras específicas." :
+                     "Good performance with room for focused improvements.") :
+                    (language === 'hi' ? "विकासशील प्रदर्शन - मुख्य सुधार क्षेत्रों पर ध्यान दें।" :
+                     language === 'es' ? "Rendimiento en desarrollo - enfócate en áreas clave de mejora." :
+                     "Developing performance - focus on key improvement areas.")}
                 </p>
               </div>
               
@@ -581,14 +688,10 @@ export default function SummaryPage() {
         </Card>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 bg-white border">
+          <TabsList className="grid w-full grid-cols-4 bg-white border">
             <TabsTrigger value="overview" className="flex items-center space-x-2">
               <BarChart3 className="h-4 w-4" />
               <span>Overview</span>
-            </TabsTrigger>
-            <TabsTrigger value="breakdown" className="flex items-center space-x-2">
-              <TrendingUp className="h-4 w-4" />
-              <span>Breakdown</span>
             </TabsTrigger>
             <TabsTrigger value="questions" className="flex items-center space-x-2">
               <Eye className="h-4 w-4" />
@@ -606,64 +709,59 @@ export default function SummaryPage() {
 
           {/* Overview Tab */}
           <TabsContent value="overview">
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <Card className="border-green-200">
+            {/* Performance Overview Cards */}
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-blue-100">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-green-700">Technical Skills</CardTitle>
+                  <CardTitle className="text-sm font-medium text-blue-700 flex items-center gap-2">
+                    <BarChart3 className="h-4 w-4" />
+                    Overall Performance
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className={`text-2xl font-bold ${getScoreColor(analysis.breakdown.technical)}`}>
-                      {analysis.breakdown.technical}%
-                    </span>
-                    <CheckCircle className="h-5 w-5 text-green-600" />
+                  <div className="text-center">
+                    <div className={`text-3xl font-bold mb-2 ${getScoreColor(analysis.overallScore)}`}>
+                      {analysis.overallScore}%
+                    </div>
+                    <p className="text-sm text-gray-600">
+                      {analysis.overallScore >= 80 ? 'Excellent Performance' : 
+                       analysis.overallScore >= 60 ? 'Good Performance' : 'Needs Improvement'}
+                    </p>
                   </div>
-                  <Progress value={analysis.breakdown.technical} className="h-2" />
                 </CardContent>
               </Card>
 
-              <Card className="border-blue-200">
+              <Card className="border-green-200 bg-gradient-to-br from-green-50 to-green-100">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-blue-700">Communication</CardTitle>
+                  <CardTitle className="text-sm font-medium text-green-700 flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4" />
+                    Questions Completed
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className={`text-2xl font-bold ${getScoreColor(analysis.breakdown.communication)}`}>
-                      {analysis.breakdown.communication}%
-                    </span>
-                    <MessageSquare className="h-5 w-5 text-blue-600" />
+                  <div className="text-center">
+                    <div className="text-3xl font-bold mb-2 text-green-600">
+                      {analysis.statistics.totalQuestions}
+                    </div>
+                    <p className="text-sm text-gray-600">Total Questions</p>
                   </div>
-                  <Progress value={analysis.breakdown.communication} className="h-2" />
                 </CardContent>
               </Card>
 
-              <Card className="border-purple-200">
+              <Card className="border-purple-200 bg-gradient-to-br from-purple-50 to-purple-100">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-purple-700">Completeness</CardTitle>
+                  <CardTitle className="text-sm font-medium text-purple-700 flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
+                    Interview Duration
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className={`text-2xl font-bold ${getScoreColor(analysis.breakdown.completeness)}`}>
-                      {analysis.breakdown.completeness}%
-                    </span>
-                    <Target className="h-5 w-5 text-purple-600" />
+                  <div className="text-center">
+                    <div className="text-3xl font-bold mb-2 text-purple-600">
+                      {analysis.statistics.totalInterviewTime}
+                    </div>
+                    <p className="text-sm text-gray-600">Time Taken</p>
                   </div>
-                  <Progress value={analysis.breakdown.completeness} className="h-2" />
-                </CardContent>
-              </Card>
-
-              <Card className="border-orange-200">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-orange-700">Confidence</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className={`text-2xl font-bold ${getScoreColor(analysis.breakdown.confidence)}`}>
-                      {analysis.breakdown.confidence}%
-                    </span>
-                    <User className="h-5 w-5 text-orange-600" />
-                  </div>
-                  <Progress value={analysis.breakdown.confidence} className="h-2" />
                 </CardContent>
               </Card>
             </div>
@@ -674,7 +772,7 @@ export default function SummaryPage() {
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2 text-green-700">
                     <CheckCircle className="h-5 w-5" />
-                    <span>Key Strengths</span>
+                    <span>{t('strengths')}</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -693,7 +791,7 @@ export default function SummaryPage() {
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2 text-orange-700">
                     <AlertCircle className="h-5 w-5" />
-                    <span>Areas for Improvement</span>
+                    <span>{t('areasToImprove')}</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -707,112 +805,6 @@ export default function SummaryPage() {
                   </ul>
                 </CardContent>
               </Card>
-            </div>
-          </TabsContent>
-
-          {/* Breakdown Tab - Dynamic Analysis for Each Category */}
-          <TabsContent value="breakdown">
-            <div className="grid gap-6">
-              {Object.entries(analysis.breakdown).map(([category, score]) => {
-                // Generate dynamic category-specific insights
-                const getCategoryInsights = (cat: string, sc: number) => {
-                  const language = analysis.statistics?.confidenceLevel?.includes('उच्च') || analysis.statistics?.confidenceLevel?.includes('अच्छा') ? 'hi' : 'en'
-                  
-                  switch(cat) {
-                    case 'technical':
-                      if (language === 'hi') {
-                        return sc >= 80 ? 'तकनीकी कौशल में उत्कृष्ट प्रदर्शन। आप जटिल तकनीकी अवधारणाओं को स्पष्ट रूप से व्यक्त कर सकते हैं।' :
-                               sc >= 60 ? 'तकनीकी ज्ञान अच्छा है। अधिक विशिष्ट उदाहरण और गहरी समझ दिखाने पर काम करें।' :
-                               'तकनीकी कौशल में सुधार की आवश्यकता। मूलभूत अवधारणाओं पर अधिक अभ्यास करें।'
-                      }
-                      return sc >= 80 ? 'Excellent technical skills demonstrated. You clearly articulate complex technical concepts with confidence.' :
-                             sc >= 60 ? 'Good technical knowledge shown. Work on providing more specific examples and demonstrating deeper understanding.' :
-                             'Technical skills need development. Focus on practicing fundamental concepts and their practical applications.'
-                    
-                    case 'communication':
-                      if (language === 'hi') {
-                        return sc >= 80 ? 'संचार कौशल बहुत प्रभावी। आप विचारों को स्पष्ट और संरचित तरीके से व्यक्त करते हैं।' :
-                               sc >= 60 ? 'संचार अच्छा है। उत्तरों की संरचना और स्पष्टता में सुधार की जा सकती है।' :
-                               'संचार कौशल पर काम करने की आवश्यकता। अधिक स्पष्ट और संगठित उत्तर देने का अभ्यास करें।'
-                      }
-                      return sc >= 80 ? 'Excellent communication skills. You express ideas clearly and in a well-structured manner.' :
-                             sc >= 60 ? 'Good communication demonstrated. Can improve on answer structure and clarity of expression.' :
-                             'Communication skills need work. Practice giving clearer, more organized responses.'
-                    
-                    case 'completeness':
-                      if (language === 'hi') {
-                        return sc >= 80 ? 'उत्तर संपूर्ण और व्यापक हैं। आप सभी महत्वपूर्ण बिंदुओं को कवर करते हैं।' :
-                               sc >= 60 ? 'उत्तर अधिकतर पूरे हैं। कुछ अतिरिक्त विवरण और उदाहरण जोड़ने से फायदा होगा।' :
-                               'उत्तरों में अधिक विस्तार की आवश्यकता। सभी प्रश्न भागों को पूरी तरह संबोधित करने पर काम करें।'
-                      }
-                      return sc >= 80 ? 'Answers are complete and comprehensive. You address all key aspects of each question thoroughly.' :
-                             sc >= 60 ? 'Answers are mostly complete. Would benefit from adding more detail and specific examples.' :
-                             'Answers need more depth. Work on fully addressing all parts of each question.'
-                    
-                    case 'confidence':
-                      if (language === 'hi') {
-                        return sc >= 80 ? 'आत्मविश्वास से भरपूर प्रदर्शन। आप अपने उत्तरों में निश्चित और स्पष्ट हैं।' :
-                               sc >= 60 ? 'अच्छा आत्मविश्वास दिखाया। कुछ उत्तरों में अधिक दृढ़ता की आवश्यकता हो सकती है।' :
-                               'आत्मविश्वास बढ़ाने की आवश्यकता। अधिक अभ्यास और तैयारी से आत्मविश्वास में सुधार होगा।'
-                      }
-                      return sc >= 80 ? 'Confident performance throughout. You deliver answers with certainty and conviction.' :
-                             sc >= 60 ? 'Good confidence shown. Some answers could benefit from more assertive delivery.' :
-                             'Confidence needs building. More practice and preparation will improve your confidence level.'
-                    
-                    default:
-                      return sc >= 80 ? 'Excellent performance in this area.' : 
-                             sc >= 60 ? 'Good performance with room for improvement.' : 
-                             'This area needs focused development.'
-                  }
-                }
-
-                return (
-                  <Card key={category}>
-                    <CardHeader>
-                      <CardTitle className="capitalize flex items-center justify-between">
-                        <span>{category} Analysis</span>
-                        <Badge className={`${getScoreBgColor(score)} font-bold`}>
-                          {score}%
-                        </Badge>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <Progress value={score} className="h-3 mb-4" />
-                      <p className="text-sm text-gray-700 leading-relaxed">
-                        {getCategoryInsights(category, score)}
-                      </p>
-                      {/* Dynamic action items based on score */}
-                      <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                        <h4 className="font-semibold text-blue-800 text-sm mb-2">
-                          {score >= 80 ? '🌟 Keep Excelling:' : score >= 60 ? '📈 Next Steps:' : '🎯 Focus Areas:'}
-                        </h4>
-                        <p className="text-blue-700 text-sm">
-                          {(() => {
-                            const language = analysis.statistics?.confidenceLevel?.includes('उच्च') ? 'hi' : 'en'
-                            if (category === 'technical') {
-                              return score >= 80 ? 
-                                (language === 'hi' ? 'नवीनतम तकनीकों के साथ अद्यतन रहें और जटिल परिदृश्यों का अभ्यास करें।' : 'Stay updated with latest technologies and practice complex scenarios.') :
-                                (language === 'hi' ? 'मूलभूत अवधारणाओं को मजबूत करें और प्रैक्टिकल प्रोजेक्ट्स पर काम करें।' : 'Strengthen fundamental concepts and work on practical projects.')
-                            } else if (category === 'communication') {
-                              return score >= 80 ? 
-                                (language === 'hi' ? 'अपने संचार शैली को और परिष्कृत करें और नेतृत्व कौशल पर काम करें।' : 'Refine your communication style further and work on leadership skills.') :
-                                (language === 'hi' ? 'STAR विधि का अभ्यास करें और स्पष्ट कहानी कहने का अभ्यास करें।' : 'Practice STAR method and work on clear storytelling.')
-                            } else if (category === 'completeness') {
-                              return score >= 80 ? 
-                                (language === 'hi' ? 'विस्तृत उदाहरणों के साथ अपने मजबूत बिंदुओं को बनाए रखें।' : 'Maintain your thoroughness with detailed examples.') :
-                                (language === 'hi' ? 'प्रत्येक प्रश्न के सभी भागों को संबोधित करने का अभ्यास करें।' : 'Practice addressing all parts of each question comprehensively.')
-                            } else {
-                              return score >= 80 ? 
-                                (language === 'hi' ? 'अपने आत्मविश्वास को बनाए रखें और दूसरों को प्रेरित करें।' : 'Maintain your confidence and inspire others.') :
-                                (language === 'hi' ? 'अधिक मॉक इंटरव्यू का अभ्यास करें और सकारात्मक आत्म-चर्चा करें।' : 'Practice more mock interviews and positive self-talk.')
-                            }
-                          })()}
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )
-              })}
             </div>
           </TabsContent>
 
@@ -846,7 +838,7 @@ export default function SummaryPage() {
                     {/* Your Answer */}
                     {showAllAnswers && (
                       <div>
-                        <h4 className="font-semibold text-sm text-gray-700 mb-2">Your Answer:</h4>
+                        <h4 className="font-semibold text-sm text-gray-700 mb-2">{t('yourAnswer')}:</h4>
                         <div className="bg-gray-50 p-3 rounded-lg border">
                           <p className="text-sm">{question.answerText}</p>
                         </div>
@@ -859,19 +851,31 @@ export default function SummaryPage() {
                         <div className={`font-bold ${getScoreColor(question.technicalAccuracy)}`}>
                           {question.technicalAccuracy}%
                         </div>
-                        <div className="text-xs text-gray-600">Technical</div>
+                        <div className="text-xs text-gray-600">
+                          {language === 'hi' ? 'तकनीकी' :
+                           language === 'es' ? 'Técnico' :
+                           'Technical'}
+                        </div>
                       </div>
                       <div className="text-center">
                         <div className={`font-bold ${getScoreColor(question.communicationClarity)}`}>
                           {question.communicationClarity}%
                         </div>
-                        <div className="text-xs text-gray-600">Clarity</div>
+                        <div className="text-xs text-gray-600">
+                          {language === 'hi' ? 'स्पष्टता' :
+                           language === 'es' ? 'Claridad' :
+                           'Clarity'}
+                        </div>
                       </div>
                       <div className="text-center">
                         <div className={`font-bold ${getScoreColor(question.completeness)}`}>
                           {question.completeness}%
                         </div>
-                        <div className="text-xs text-gray-600">Complete</div>
+                        <div className="text-xs text-gray-600">
+                          {language === 'hi' ? 'पूर्ण' :
+                           language === 'es' ? 'Completo' :
+                           'Complete'}
+                        </div>
                       </div>
                     </div>
 
@@ -923,7 +927,7 @@ export default function SummaryPage() {
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2 text-blue-700">
                     <Target className="h-5 w-5" />
-                    <span>Actionable Recommendations</span>
+                    <span>{t('suggestions')}</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -942,25 +946,45 @@ export default function SummaryPage() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Next Steps for Improvement</CardTitle>
+                  <CardTitle>
+                    {language === 'hi' ? 'व्यक्तिगत सुधार योजना' :
+                     language === 'es' ? 'Plan de Mejora Personalizado' :
+                     'Personalized Improvement Plan'}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
+                    {/* Dynamic immediate actions based on weakest areas */}
                     <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                      <h4 className="font-semibold text-green-800 mb-2">🚀 Immediate Actions (This Week)</h4>
+                      <h4 className="font-semibold text-green-800 mb-2">🚀 Immediate Focus Areas</h4>
                       <ul className="text-sm text-green-700 space-y-1">
-                        <li>• Review and practice answers to common interview questions</li>
-                        <li>• Research the company's technical stack and recent projects</li>
-                        <li>• Prepare 3-4 detailed project stories using the STAR method</li>
+                        {analysis.questionAnalysis
+                          .filter(q => q.score < 70)
+                          .slice(0, 3)
+                          .map((q, index) => (
+                            <li key={index}>• Practice questions similar to: "{q.questionText.substring(0, 50)}..."</li>
+                          ))
+                        }
+                        {analysis.questionAnalysis.filter(q => q.score < 70).length === 0 && (
+                          <li>• Continue practicing to maintain your strong performance</li>
+                        )}
+                        <li>• Focus on your identified improvement areas: {analysis.improvements.slice(0, 2).join(', ')}</li>
                       </ul>
                     </div>
                     
+                    {/* Dynamic medium-term goals based on role and performance */}
                     <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                      <h4 className="font-semibold text-blue-800 mb-2">📚 Medium-term Goals (Next Month)</h4>
+                      <h4 className="font-semibold text-blue-800 mb-2">📚 Skill Development Goals</h4>
                       <ul className="text-sm text-blue-700 space-y-1">
-                        <li>• Complete technical skill assessments in weak areas</li>
-                        <li>• Practice mock interviews with peers or mentors</li>
-                        <li>• Build portfolio projects that demonstrate key skills</li>
+                        {analysis.questionAnalysis
+                          .filter(q => q.weaknesses.length > 0)
+                          .slice(0, 2)
+                          .map((q, index) => (
+                            <li key={index}>• Work on: {q.weaknesses[0]}</li>
+                          ))
+                        }
+                        <li>• Strengthen areas identified in your analysis: {analysis.improvements[0] || 'Continue practicing'}</li>
+                        <li>• Take more practice interviews to build consistency</li>
                       </ul>
                     </div>
                   </div>

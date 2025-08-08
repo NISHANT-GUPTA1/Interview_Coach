@@ -1,0 +1,138 @@
+{
+  "userId": "user_1754420483690",
+  "role": "Software Engineer",
+  "experience": "2-3 years",
+  "language": "de",
+  "answers": [
+    {
+      "questionId": "openrouter_tech_0_1126",
+      "questionText": "\"Sie erhalten ein Legacy-Code-Projekt, das Probleme mit der Skalierbarkeit aufweist. Wie würden Sie den Code refaktorisieren, um das Skalierungsverhalten zu verbessern? Welche Schritte würden Sie unternehmen, um die Codequalität zu erhöhen und mögliche Fehlerquellen zu minimieren?\"?",
+      "answerText": "en ein Legacy-Code-Projekt, das Probleme mit der Skalierbarkeit aufweist. Wie würden Sie den Code refaktorisieren, um das Skalierungsverhalten zu verbessern? Welche Schritte würden Sie unternehmen, um die Codequalität zu erhöhen und möglic",
+      "category": "Technical",
+      "recordingDuration": 0,
+      "timestamp": "2025-08-08T13:34:15.156Z"
+    },
+    {
+      "questionId": "openrouter_mcq_0_6212",
+      "questionText": "Welche Methode wird verwendet, um in Java eine Methode als abstrakt zu kennzeichnen?",
+      "answerText": "static",
+      "category": "Multiple Choice",
+      "recordingDuration": 0,
+      "timestamp": "2025-08-08T13:35:09.836Z"
+    },
+    {
+      "questionId": "openrouter_bool_0_2982",
+      "questionText": "True or False: Im Agile-Entwicklungskonzept ist die Verwendung von Daily Scrums oder täglichen Stand-up Meetings ausschließlich dazu da, den Fortschritt des Projekts zu kontrollieren.?",
+      "answerText": "true, Agile-Entwicklungskonzept ist die Verwendung von Daily Scrums oder täglichen Stand-up Meetings ausschließlich dazu da, den Fortschritt des Projekts zu kontrollieren",
+      "category": "True/False",
+      "recordingDuration": 0,
+      "timestamp": "2025-08-08T13:35:40.035Z"
+    }
+  ],
+  "analysis": {
+    "overallScore": 58,
+    "breakdown": {
+      "technical": 59,
+      "communication": 61,
+      "completeness": 61,
+      "confidence": 63
+    },
+    "questionAnalysis": [
+      {
+        "questionId": "openrouter_tech_0_1126",
+        "questionText": "\"Sie erhalten ein Legacy-Code-Projekt, das Probleme mit der Skalierbarkeit aufweist. Wie würden Sie den Code refaktorisieren, um das Skalierungsverhalten zu verbessern? Welche Schritte würden Sie unternehmen, um die Codequalität zu erhöhen und mögliche Fehlerquellen zu minimieren?\"?",
+        "answerText": "en ein Legacy-Code-Projekt, das Probleme mit der Skalierbarkeit aufweist. Wie würden Sie den Code refaktorisieren, um das Skalierungsverhalten zu verbessern? Welche Schritte würden Sie unternehmen, um die Codequalität zu erhöhen und möglic",
+        "score": 70,
+        "strengths": [
+          "Demonstrated technical knowledge"
+        ],
+        "weaknesses": [
+          "Add more specific examples",
+          "Add measurable outcomes"
+        ],
+        "suggestions": [
+          "Include a specific example from your experience",
+          "Add numbers or metrics to quantify your achievements"
+        ],
+        "expectedAnswer": "For this Technical question, ideal answers should include specific examples, metrics, and clear problem-solving approaches.",
+        "technicalAccuracy": 69.55960503463592,
+        "communicationClarity": 72.40806412634576,
+        "completeness": 73.77109546953832
+      },
+      {
+        "questionId": "openrouter_mcq_0_6212",
+        "questionText": "Welche Methode wird verwendet, um in Java eine Methode als abstrakt zu kennzeichnen?",
+        "answerText": "static",
+        "score": 50,
+        "strengths": [],
+        "weaknesses": [
+          "Response too brief, needs more detail",
+          "Add more specific examples",
+          "Add measurable outcomes"
+        ],
+        "suggestions": [
+          "Expand your answer with more detail",
+          "Include a specific example from your experience",
+          "Add numbers or metrics to quantify your achievements"
+        ],
+        "expectedAnswer": "For this Multiple Choice question, ideal answers should include specific examples, metrics, and clear problem-solving approaches.",
+        "technicalAccuracy": 54.92370443020139,
+        "communicationClarity": 54.423820896740956,
+        "completeness": 53.595289975603364
+      },
+      {
+        "questionId": "openrouter_bool_0_2982",
+        "questionText": "True or False: Im Agile-Entwicklungskonzept ist die Verwendung von Daily Scrums oder täglichen Stand-up Meetings ausschließlich dazu da, den Fortschritt des Projekts zu kontrollieren.?",
+        "answerText": "true, Agile-Entwicklungskonzept ist die Verwendung von Daily Scrums oder täglichen Stand-up Meetings ausschließlich dazu da, den Fortschritt des Projekts zu kontrollieren",
+        "score": 55,
+        "strengths": [],
+        "weaknesses": [
+          "Response too brief, needs more detail",
+          "Add more specific examples",
+          "Add measurable outcomes"
+        ],
+        "suggestions": [
+          "Expand your answer with more detail",
+          "Include a specific example from your experience",
+          "Add numbers or metrics to quantify your achievements"
+        ],
+        "expectedAnswer": "For this True/False question, ideal answers should include specific examples, metrics, and clear problem-solving approaches.",
+        "technicalAccuracy": 53.26813354294786,
+        "communicationClarity": 56.0621329057346,
+        "completeness": 55.341509879303565
+      }
+    ],
+    "strengths": [
+      "Strong technical knowledge and understanding"
+    ],
+    "improvements": [
+      "Improve overall response quality and depth",
+      "Provide more detailed and comprehensive answers",
+      "Focus on improving performance in weaker areas",
+      "Include more specific examples from experience"
+    ],
+    "recommendations": [
+      "Focus on specific technical skills required for Software Engineer",
+      "Conduct more mock interviews for practice",
+      "Work on providing more comprehensive explanations",
+      "Dedicate extra preparation time to weaker areas"
+    ],
+    "statistics": {
+      "totalQuestions": 3,
+      "averageResponseLength": 138,
+      "totalInterviewTime": "1m 30s",
+      "keywordsUsed": 9,
+      "expectedKeywords": 15,
+      "confidenceLevel": "Needs Improvement"
+    }
+  },
+  "timestamp": "2025-08-08T13:35:40.035Z",
+  "interviewDuration": 90,
+  "deviceInfo": {
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0",
+    "platform": "\"Windows\"",
+    "language": "en-US,en;q=0.9,en-IN;q=0.8,en-GB;q=0.7"
+  },
+  "id": "interview_1754660757762_oqzuhccfs",
+  "savedAt": "2025-08-08T13:45:57.762Z"
+}

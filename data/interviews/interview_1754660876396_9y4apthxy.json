@@ -1,0 +1,136 @@
+{
+  "userId": "user_1754420483690",
+  "role": "Full Stack Developer",
+  "experience": "2-3 years",
+  "language": "fr",
+  "answers": [
+    {
+      "questionId": "openrouter_tech_0_4460",
+      "questionText": "\"Imaginez que vous travaillez sur une application web e-commerce. Vous devez intégrer un système de paiement en ligne à cette application. Décrivez les étapes que vous suivriez pour cette intégration, en mentionnant spécifiquement comment vous géreriez la sécurité des transactions et la compatibilité avec les différentes plateformes de paiement en ligne.\"?",
+      "answerText": "Et avec les différentes plate ? Il me met. Le système.",
+      "category": "Technical",
+      "recordingDuration": 18,
+      "timestamp": "2025-08-08T13:47:16.288Z"
+    },
+    {
+      "questionId": "openrouter_mcq_0_5754",
+      "questionText": "Quelle est la bonne pratique pour gérer les erreurs dans une application web ?",
+      "answerText": "Afficher tous les détails de l'erreur à l'utilisateur pour faciliter le débogage",
+      "category": "Multiple Choice",
+      "recordingDuration": 8,
+      "timestamp": "2025-08-08T13:47:24.736Z"
+    },
+    {
+      "questionId": "openrouter_bool_0_7524",
+      "questionText": "True or False: Dans le développement logiciel, l'utilisation de Git permet un meilleur contrôle de version et facilite la collaboration entre les développeurs.?",
+      "answerText": "false, Dans le développement logiciel, l'utilisation de Git permet un meilleur contrôle de version et facilite la collaboration entre les développeurs.",
+      "category": "True/False",
+      "recordingDuration": 14,
+      "timestamp": "2025-08-08T13:47:38.223Z"
+    }
+  ],
+  "analysis": {
+    "overallScore": 60,
+    "breakdown": {
+      "technical": 50,
+      "communication": 70,
+      "completeness": 40,
+      "confidence": 75
+    },
+    "questionAnalysis": [
+      {
+        "questionId": "q1",
+        "questionText": "Imaginez que vous travaillez sur une application web e-commerce. Vous devez intégrer un système de paiement en ligne à cette application. Décrivez les étapes que vous suivriez pour cette intégration, en mentionnant spécifiquement comment vous géreriez la sécurité des transactions et la compatibilité avec les différentes plateformes de paiement en ligne.",
+        "answerText": "Et avec les différentes plate ? Il me met. Le système.",
+        "score": 20,
+        "strengths": [],
+        "weaknesses": [
+          "Réponse très incomplète et incohérente",
+          "Manque de connaissances techniques sur l'intégration des systèmes de paiement",
+          "Absence de mention des aspects de sécurité"
+        ],
+        "suggestions": [
+          "Préparer des réponses structurées sur l'intégration de systèmes de paiement",
+          "Étudier les protocoles de sécurité comme SSL/TLS et les normes PCI DSS",
+          "Pratiquer la communication claire des étapes techniques"
+        ],
+        "expectedAnswer": "Décrire les étapes comme la recherche et sélection d'une plateforme de paiement, intégration via API, gestion des erreurs, mise en œuvre de la sécurité avec SSL, et conformité PCI.",
+        "technicalAccuracy": 10,
+        "communicationClarity": 10,
+        "completeness": 5
+      },
+      {
+        "questionId": "q2",
+        "questionText": "Quelle est la bonne pratique pour gérer les erreurs dans une application web ?",
+        "answerText": "Afficher tous les détails de l'erreur à l'utilisateur pour faciliter le débogage",
+        "score": 40,
+        "strengths": [
+          "Compréhension de la gestion des erreurs",
+          "Reconnaissance de l'importance du débogage"
+        ],
+        "weaknesses": [
+          "Mauvaise pratique suggérée",
+          "Ne mentionne pas la nécessité de masquer les détails techniques pour l'utilisateur final"
+        ],
+        "suggestions": [
+          "Apprendre les meilleures pratiques en gestion des erreurs, notamment l'affichage d'un message générique pour les utilisateurs et l'enregistrement des erreurs pour les développeurs"
+        ],
+        "expectedAnswer": "Afficher un message d'erreur générique aux utilisateurs, tout en enregistrant des détails techniques pour le débogage.",
+        "technicalAccuracy": 30,
+        "communicationClarity": 70,
+        "completeness": 50
+      },
+      {
+        "questionId": "q3",
+        "questionText": "True or False: Dans le développement logiciel, l'utilisation de Git permet un meilleur contrôle de version et facilite la collaboration entre les développeurs.",
+        "answerText": "false, Dans le développement logiciel, l'utilisation de Git permet un meilleur contrôle de version et facilite la collaboration entre les développeurs.",
+        "score": 50,
+        "strengths": [
+          "Réponse correcte identifiée",
+          "Compréhension générale des principes de Git"
+        ],
+        "weaknesses": [
+          "Réponse mal formulée et contradictoire",
+          "Ne démontre pas une compréhension claire de l'importance de Git"
+        ],
+        "suggestions": [
+          "Clarifier la réponse et expliquer pourquoi Git est bénéfique pour le contrôle de version et la collaboration",
+          "Pratiquer la formulation de réponses claires et concises"
+        ],
+        "expectedAnswer": "True, l'utilisation de Git permet un meilleur contrôle de version et facilite la collaboration entre les développeurs.",
+        "technicalAccuracy": 70,
+        "communicationClarity": 40,
+        "completeness": 60
+      }
+    ],
+    "strengths": [
+      "Connaissance de la gestion des erreurs",
+      "Reconnaissance de l'importance de Git"
+    ],
+    "improvements": [
+      "Améliorer la communication et la clarté des réponses",
+      "Renforcer les connaissances techniques sur l'intégration de systèmes de paiement et la gestion des erreurs"
+    ],
+    "recommendations": [
+      "Participer à des formations ou des ateliers sur l'intégration de systèmes de paiement en ligne",
+      "Pratiquer des simulations d'entretien technique pour mieux gérer le stress et la communication"
+    ],
+    "statistics": {
+      "totalQuestions": 3,
+      "averageResponseLength": 30,
+      "totalInterviewTime": "1m 1s",
+      "keywordsUsed": 15,
+      "expectedKeywords": 35,
+      "confidenceLevel": "Moderate"
+    }
+  },
+  "timestamp": "2025-08-08T13:47:38.223Z",
+  "interviewDuration": 61,
+  "deviceInfo": {
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0",
+    "platform": "\"Windows\"",
+    "language": "en-US,en;q=0.9,en-IN;q=0.8,en-GB;q=0.7"
+  },
+  "id": "interview_1754660876396_9y4apthxy",
+  "savedAt": "2025-08-08T13:47:56.396Z"
+}

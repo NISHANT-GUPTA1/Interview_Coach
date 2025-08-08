@@ -1,0 +1,144 @@
+{
+  "userId": "user_1754420483690",
+  "role": "Machine Learning Engineer",
+  "experience": "Entry Level",
+  "language": "en",
+  "answers": [
+    {
+      "questionId": "openrouter_tech_0_4986",
+      "questionText": "\"You have been given a dataset containing information about customers of an e-commerce website, including their purchase history, demographic data, and website activity. Your task is to develop a machine learning model that predicts which customers are most likely to make a purchase in the next month. Describe the steps you would take to approach this problem, from preprocessing the data to evaluating model performance. Also, explain how you would ensure that your model is not overfitting and how you would interpret the model's predictions.\"?",
+      "answerText": "I have been given a dataset containing information about customers of an e-commerce website, including their purchase history, demographic data, and website activity. Your task is to develop a machine learning model that predicts which customers are most likely to make a purchase in the next month. i'll test model overfitting by testing same model on different dataset it was trained on",
+      "category": "Technical",
+      "recordingDuration": 0,
+      "timestamp": "2025-08-08T12:42:27.213Z"
+    },
+    {
+      "questionId": "openrouter_mcq_0_4744",
+      "questionText": "In the context of machine learning, which algorithm is most suitable for predicting housing prices based on features like the number of bedrooms, area, and location?",
+      "answerText": "k-means algorithm",
+      "category": "Multiple Choice",
+      "recordingDuration": 0,
+      "timestamp": "2025-08-08T12:42:47.845Z"
+    },
+    {
+      "questionId": "openrouter_bool_0_7151",
+      "questionText": "True or False: In the context of machine learning, it is best practice to use the same dataset for both training and testing your model to ensure the best performance.?",
+      "answerText": "false",
+      "category": "True/False",
+      "recordingDuration": 0,
+      "timestamp": "2025-08-08T12:42:58.821Z"
+    }
+  ],
+  "analysis": {
+    "overallScore": 61,
+    "breakdown": {
+      "technical": 60,
+      "communication": 60,
+      "completeness": 58,
+      "confidence": 66
+    },
+    "questionAnalysis": [
+      {
+        "questionId": "openrouter_tech_0_4986",
+        "questionText": "\"You have been given a dataset containing information about customers of an e-commerce website, including their purchase history, demographic data, and website activity. Your task is to develop a machine learning model that predicts which customers are most likely to make a purchase in the next month. Describe the steps you would take to approach this problem, from preprocessing the data to evaluating model performance. Also, explain how you would ensure that your model is not overfitting and how you would interpret the model's predictions.\"?",
+        "answerText": "I have been given a dataset containing information about customers of an e-commerce website, including their purchase history, demographic data, and website activity. Your task is to develop a machine learning model that predicts which customers are most likely to make a purchase in the next month. i'll test model overfitting by testing same model on different dataset it was trained on",
+        "score": 73,
+        "strengths": [
+          "Provided comprehensive and detailed answer",
+          "Well-structured response"
+        ],
+        "weaknesses": [
+          "Add more specific examples",
+          "Include more technical details",
+          "Add measurable outcomes"
+        ],
+        "suggestions": [
+          "Include a specific example from your experience",
+          "Add numbers or metrics to quantify your achievements",
+          "Use technical terminology and methodologies"
+        ],
+        "expectedAnswer": "For this Technical question, ideal answers should include specific examples, metrics, and clear problem-solving approaches.",
+        "technicalAccuracy": 70.2159007733511,
+        "communicationClarity": 72.98567814373992,
+        "completeness": 68.17296345652827
+      },
+      {
+        "questionId": "openrouter_mcq_0_4744",
+        "questionText": "In the context of machine learning, which algorithm is most suitable for predicting housing prices based on features like the number of bedrooms, area, and location?",
+        "answerText": "k-means algorithm",
+        "score": 60,
+        "strengths": [
+          "Demonstrated technical knowledge"
+        ],
+        "weaknesses": [
+          "Response too brief, needs more detail",
+          "Add more specific examples",
+          "Add measurable outcomes"
+        ],
+        "suggestions": [
+          "Expand your answer with more detail",
+          "Include a specific example from your experience",
+          "Add numbers or metrics to quantify your achievements"
+        ],
+        "expectedAnswer": "For this Multiple Choice question, ideal answers should include specific examples, metrics, and clear problem-solving approaches.",
+        "technicalAccuracy": 57.353270388884,
+        "communicationClarity": 61.81433509165096,
+        "completeness": 58.39840503736078
+      },
+      {
+        "questionId": "openrouter_bool_0_7151",
+        "questionText": "True or False: In the context of machine learning, it is best practice to use the same dataset for both training and testing your model to ensure the best performance.?",
+        "answerText": "false",
+        "score": 50,
+        "strengths": [],
+        "weaknesses": [
+          "Response too brief, needs more detail",
+          "Add more specific examples",
+          "Add measurable outcomes"
+        ],
+        "suggestions": [
+          "Expand your answer with more detail",
+          "Include a specific example from your experience",
+          "Add numbers or metrics to quantify your achievements"
+        ],
+        "expectedAnswer": "For this True/False question, ideal answers should include specific examples, metrics, and clear problem-solving approaches.",
+        "technicalAccuracy": 52.80148058769672,
+        "communicationClarity": 46.687079344268916,
+        "completeness": 48.787608800661694
+      }
+    ],
+    "strengths": [
+      "Strong technical knowledge and understanding"
+    ],
+    "improvements": [
+      "Improve overall response quality and depth",
+      "Provide more detailed and comprehensive answers",
+      "Focus on improving performance in weaker areas",
+      "Include more specific examples from experience",
+      "Strengthen technical knowledge and terminology"
+    ],
+    "recommendations": [
+      "Focus on specific technical skills required for Machine Learning Engineer",
+      "Conduct more mock interviews for practice",
+      "Work on providing more comprehensive explanations",
+      "Dedicate extra preparation time to weaker areas"
+    ],
+    "statistics": {
+      "totalQuestions": 3,
+      "averageResponseLength": 137,
+      "totalInterviewTime": "1m 43s",
+      "keywordsUsed": 9,
+      "expectedKeywords": 15,
+      "confidenceLevel": "Moderate"
+    }
+  },
+  "timestamp": "2025-08-08T12:42:58.821Z",
+  "interviewDuration": 103,
+  "deviceInfo": {
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0",
+    "platform": "\"Windows\"",
+    "language": "en-US,en;q=0.9,en-IN;q=0.8,en-GB;q=0.7"
+  },
+  "id": "interview_1754657005334_8biwra58t",
+  "savedAt": "2025-08-08T12:43:25.334Z"
+}

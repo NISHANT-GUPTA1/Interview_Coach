@@ -1,0 +1,190 @@
+{
+  "userId": "user_1754658921826",
+  "role": "Software Engineer",
+  "experience": "2-3 years",
+  "language": "en",
+  "answers": [
+    {
+      "questionId": "fallback_tech_0_7975",
+      "answerText": "vjhbm",
+      "recordingDuration": 0,
+      "timestamp": "2025-07-27T16:15:21.157Z"
+    },
+    {
+      "questionId": "fallback_tech_1_3307",
+      "answerText": "njbj",
+      "recordingDuration": 0,
+      "timestamp": "2025-07-27T16:15:23.219Z"
+    },
+    {
+      "questionId": "fallback_mcq_0_6192",
+      "questionText": "What is a key principle of good software design?",
+      "answerText": "afgh jk",
+      "category": "Multiple Choice",
+      "recordingDuration": 0,
+      "timestamp": "2025-07-27T16:15:25.615Z"
+    },
+    {
+      "questionId": "fallback_bool_0_5654",
+      "questionText": "True or False: Code reviews are essential for maintaining code quality in team projects?",
+      "answerText": "true",
+      "category": "True/False",
+      "recordingDuration": 0,
+      "timestamp": "2025-07-27T16:15:36.820Z"
+    },
+    {
+      "questionId": "fallback_bool_1_5780",
+      "questionText": "True or False: Code reviews are essential for maintaining code quality in team projects?",
+      "answerText": "yes",
+      "category": "True/False",
+      "recordingDuration": 0,
+      "timestamp": "2025-07-27T16:15:45.685Z"
+    }
+  ],
+  "analysis": {
+    "overallScore": 50,
+    "breakdown": {
+      "technical": 50,
+      "communication": 50,
+      "completeness": 49,
+      "confidence": 55
+    },
+    "questionAnalysis": [
+      {
+        "questionId": "fallback_tech_0_7975",
+        "answerText": "vjhbm",
+        "score": 50,
+        "strengths": [],
+        "weaknesses": [
+          "Response too brief, needs more detail",
+          "Add more specific examples",
+          "Add measurable outcomes"
+        ],
+        "suggestions": [
+          "Expand your answer with more detail",
+          "Include a specific example from your experience",
+          "Add numbers or metrics to quantify your achievements"
+        ],
+        "expectedAnswer": "For this undefined question, ideal answers should include specific examples, metrics, and clear problem-solving approaches.",
+        "technicalAccuracy": 49.95190089434266,
+        "communicationClarity": 52.20869808103864,
+        "completeness": 48.37556190854892
+      },
+      {
+        "questionId": "fallback_tech_1_3307",
+        "answerText": "njbj",
+        "score": 50,
+        "strengths": [],
+        "weaknesses": [
+          "Response too brief, needs more detail",
+          "Add more specific examples",
+          "Add measurable outcomes"
+        ],
+        "suggestions": [
+          "Expand your answer with more detail",
+          "Include a specific example from your experience",
+          "Add numbers or metrics to quantify your achievements"
+        ],
+        "expectedAnswer": "For this undefined question, ideal answers should include specific examples, metrics, and clear problem-solving approaches.",
+        "technicalAccuracy": 49.6790618875864,
+        "communicationClarity": 50.59031925509782,
+        "completeness": 45.145547368695404
+      },
+      {
+        "questionId": "fallback_mcq_0_6192",
+        "questionText": "What is a key principle of good software design?",
+        "answerText": "afgh jk",
+        "score": 50,
+        "strengths": [],
+        "weaknesses": [
+          "Response too brief, needs more detail",
+          "Add more specific examples",
+          "Add measurable outcomes"
+        ],
+        "suggestions": [
+          "Expand your answer with more detail",
+          "Include a specific example from your experience",
+          "Add numbers or metrics to quantify your achievements"
+        ],
+        "expectedAnswer": "For this Multiple Choice question, ideal answers should include specific examples, metrics, and clear problem-solving approaches.",
+        "technicalAccuracy": 48.644951367362474,
+        "communicationClarity": 49.42745350129793,
+        "completeness": 49.85985197333998
+      },
+      {
+        "questionId": "fallback_bool_0_5654",
+        "questionText": "True or False: Code reviews are essential for maintaining code quality in team projects?",
+        "answerText": "true",
+        "score": 50,
+        "strengths": [],
+        "weaknesses": [
+          "Response too brief, needs more detail",
+          "Add more specific examples",
+          "Add measurable outcomes"
+        ],
+        "suggestions": [
+          "Expand your answer with more detail",
+          "Include a specific example from your experience",
+          "Add numbers or metrics to quantify your achievements"
+        ],
+        "expectedAnswer": "For this True/False question, ideal answers should include specific examples, metrics, and clear problem-solving approaches.",
+        "technicalAccuracy": 52.445073964305145,
+        "communicationClarity": 46.61554327078997,
+        "completeness": 51.12785463738641
+      },
+      {
+        "questionId": "fallback_bool_1_5780",
+        "questionText": "True or False: Code reviews are essential for maintaining code quality in team projects?",
+        "answerText": "yes",
+        "score": 50,
+        "strengths": [],
+        "weaknesses": [
+          "Response too brief, needs more detail",
+          "Add more specific examples",
+          "Add measurable outcomes"
+        ],
+        "suggestions": [
+          "Expand your answer with more detail",
+          "Include a specific example from your experience",
+          "Add numbers or metrics to quantify your achievements"
+        ],
+        "expectedAnswer": "For this True/False question, ideal answers should include specific examples, metrics, and clear problem-solving approaches.",
+        "technicalAccuracy": 50.02769283806094,
+        "communicationClarity": 50.791775423616244,
+        "completeness": 51.88022809488412
+      }
+    ],
+    "strengths": [
+      "Completed the interview"
+    ],
+    "improvements": [
+      "Improve overall response quality and depth",
+      "Provide more detailed and comprehensive answers",
+      "Focus on improving performance in weaker areas",
+      "Include more specific examples from experience"
+    ],
+    "recommendations": [
+      "Focus on specific technical skills required for Software Engineer",
+      "Conduct more mock interviews for practice",
+      "Work on providing more comprehensive explanations",
+      "Dedicate extra preparation time to weaker areas"
+    ],
+    "statistics": {
+      "totalQuestions": 5,
+      "averageResponseLength": 5,
+      "totalInterviewTime": "1m 59s",
+      "keywordsUsed": 15,
+      "expectedKeywords": 25,
+      "confidenceLevel": "Needs Improvement"
+    }
+  },
+  "timestamp": "2025-07-27T16:15:45.685Z",
+  "interviewDuration": 119,
+  "deviceInfo": {
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.103.0 Chrome/138.0.7204.100 Electron/37.2.3 Safari/537.36",
+    "platform": "\"Windows\"",
+    "language": "en-US"
+  },
+  "id": "interview_1754658922733_o83egz9na",
+  "savedAt": "2025-08-08T13:15:22.733Z"
+}
