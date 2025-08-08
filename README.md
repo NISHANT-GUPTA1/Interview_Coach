@@ -56,7 +56,6 @@
 *End-to-end encryption, secure API handling, and privacy-first architecture*
 
 ---
-
 ## 🎯 Key Highlights
 
 ### ✅ **Complete Features Implemented**
