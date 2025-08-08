@@ -143,62 +143,146 @@ Requirements:
         
         return questions
 
-    def generate_mcq_questions(self, context: str, count: int = 3) -> List[Dict[str, Any]]:
-        """Generate Multiple Choice Questions using OpenRouter API"""
+    def generate_mcq_questions(self, context: str, count: int = 3, language: str = 'en') -> List[Dict[str, Any]]:
+        """Generate Multiple Choice Questions using OpenRouter API with language support"""
+        
+        # Language-specific prompt templates
+        prompts = {
+            'en': {
+                'instruction': "Create a multiple choice question for a software engineering interview.",
+                'requirements': [
+                    "Generate a technical question with 4 options",
+                    "Make it relevant to software development", 
+                    "Include clear, distinct options",
+                    "Make sure one option is clearly correct"
+                ],
+                'format': "Format your response as:\nQuestion: [Your question here]\nA) [Option 1]\nB) [Option 2]\nC) [Option 3]\nD) [Option 4]\nCorrect: [Letter of correct answer]"
+            },
+            'hi': {
+                'instruction': "सॉफ्टवेयर इंजीनियरिंग साक्षात्कार के लिए एक बहुविकल्पीय प्रश्न बनाएं।",
+                'requirements': [
+                    "4 विकल्पों के साथ एक तकनीकी प्रश्न बनाएं",
+                    "इसे सॉफ्टवेयर विकास के लिए प्रासंगिक बनाएं",
+                    "स्पष्ट, अलग विकल्प शामिल करें", 
+                    "सुनिश्चित करें कि एक विकल्प स्पष्ट रूप से सही है"
+                ],
+                'format': "अपने उत्तर को इस प्रारूप में दें:\nप्रश्न: [आपका प्रश्न यहाँ]\nक) [विकल्प 1]\nख) [विकल्प 2]\nग) [विकल्प 3]\nघ) [विकल्प 4]\nसही: [सही उत्तर का अक्षर]"
+            },
+            'es': {
+                'instruction': "Crea una pregunta de opción múltiple para una entrevista de ingeniería de software.",
+                'requirements': [
+                    "Genera una pregunta técnica con 4 opciones",
+                    "Hazla relevante para el desarrollo de software",
+                    "Incluye opciones claras y distintas",
+                    "Asegúrate de que una opción sea claramente correcta"
+                ],
+                'format': "Formatea tu respuesta como:\nPregunta: [Tu pregunta aquí]\nA) [Opción 1]\nB) [Opción 2]\nC) [Opción 3]\nD) [Opción 4]\nCorrecta: [Letra de la respuesta correcta]"
+            }
+        }
+        
+        # Use English as fallback if language not supported
+        prompt_template = prompts.get(language, prompts['en'])
         
         mcq_questions = []
         
         for i in range(count):
             try:
-                prompt = f"""Create a multiple choice question for a software engineering interview.
+                # Build language-specific prompt
+                requirements_text = '\n- '.join([''] + prompt_template['requirements'])
+                
+                prompt = f"""{prompt_template['instruction']}
 
 Context: {context}
 
-Requirements:
-- Generate a technical question with 4 options
-- Make it relevant to software development
-- Include clear, distinct options
-- Make sure one option is clearly correct
+Requirements:{requirements_text}
 
-Format your response as:
-Question: [Your question here]
-A) [Option 1]
-B) [Option 2] 
-C) [Option 3]
-D) [Option 4]
-Correct: [Letter of correct answer]"""
+{prompt_template['format']}"""
 
                 messages = [{"role": "user", "content": prompt}]
                 response = self._make_api_request(messages, max_tokens=200)
                 
-                # Parse the response to extract question and options
+                # Parse the response to extract question and options (language-aware)
                 lines = response.strip().split('\n')
                 question_text = ""
                 options = []
                 correct_answer = ""
                 
+                # Language-specific parsing patterns
+                question_prefixes = {
+                    'en': 'Question:',
+                    'hi': 'प्रश्न:',
+                    'es': 'Pregunta:'
+                }
+                
+                option_patterns = {
+                    'en': ('A)', 'B)', 'C)', 'D)'),
+                    'hi': ('क)', 'ख)', 'ग)', 'घ)'),
+                    'es': ('A)', 'B)', 'C)', 'D)')
+                }
+                
+                correct_prefixes = {
+                    'en': 'Correct:',
+                    'hi': 'सही:',
+                    'es': 'Correcta:'
+                }
+                
+                question_prefix = question_prefixes.get(language, 'Question:')
+                patterns = option_patterns.get(language, ('A)', 'B)', 'C)', 'D)'))
+                correct_prefix = correct_prefixes.get(language, 'Correct:')
+                
                 for line in lines:
                     line = line.strip()
-                    if line.startswith('Question:'):
-                        question_text = line.replace('Question:', '').strip()
-                    elif line.startswith(('A)', 'B)', 'C)', 'D)')):
-                        option_text = line[3:].strip()  # Remove "A) "
+                    if line.startswith(question_prefix):
+                        question_text = line.replace(question_prefix, '').strip()
+                    elif line.startswith(patterns):
+                        option_text = line[3:].strip()  # Remove option prefix like "A) "
                         options.append(option_text)
-                    elif line.startswith('Correct:'):
-                        correct_letter = line.replace('Correct:', '').strip()
-                        if correct_letter in ['A', 'B', 'C', 'D'] and len(options) > ord(correct_letter) - ord('A'):
-                            correct_answer = options[ord(correct_letter) - ord('A')]
+                    elif line.startswith(correct_prefix):
+                        correct_letter = line.replace(correct_prefix, '').strip()
+                        
+                        # Handle different language patterns for correct answers
+                        if language == 'hi':
+                            # Map Hindi letters to English for indexing
+                            hindi_to_index = {'क': 0, 'ख': 1, 'ग': 2, 'घ': 3}
+                            if correct_letter in hindi_to_index and len(options) > hindi_to_index[correct_letter]:
+                                correct_answer = options[hindi_to_index[correct_letter]]
+                        else:
+                            # English and Spanish use A, B, C, D
+                            if correct_letter in ['A', 'B', 'C', 'D'] and len(options) > ord(correct_letter) - ord('A'):
+                                correct_answer = options[ord(correct_letter) - ord('A')]
                 
-                # Fallback if parsing fails
+                # Language-specific fallbacks if parsing fails
                 if not question_text:
-                    question_text = "What is a key principle of software engineering?"
+                    fallback_questions = {
+                        'en': "What is a key principle of software engineering?",
+                        'hi': "सॉफ्टवेयर इंजीनियरिंग का मुख्य सिद्धांत क्या है?",
+                        'es': "¿Cuál es un principio clave de la ingeniería de software?"
+                    }
+                    question_text = fallback_questions.get(language, fallback_questions['en'])
+                    
                 if len(options) < 4:
-                    options = [
-                        "Code reusability and modularity",
-                        "Writing code as fast as possible", 
-                        "Using only the latest technologies",
-                        "Avoiding documentation"
-                    ]
+                    fallback_options = {
+                        'en': [
+                            "Code reusability and modularity",
+                            "Writing code as fast as possible", 
+                            "Using only the latest technologies",
+                            "Avoiding documentation"
+                        ],
+                        'hi': [
+                            "कोड पुन: उपयोग और मॉड्यूलरिटी",
+                            "जितनी जल्दी हो सके कोड लिखना",
+                            "केवल नवीनतम तकनीकों का उपयोग करना",
+                            "दस्तावेजीकरण से बचना"
+                        ],
+                        'es': [
+                            "Reutilización de código y modularidad",
+                            "Escribir código lo más rápido posible",
+                            "Usar solo las tecnologías más recientes", 
+                            "Evitar la documentación"
+                        ]
+                    }
+                    options = fallback_options.get(language, fallback_options['en'])
+                    
                 if not correct_answer:
                     correct_answer = options[0]
                 

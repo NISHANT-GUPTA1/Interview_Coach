@@ -1,0 +1,138 @@
+{
+  "userId": "user_1754242210910",
+  "role": "DevOps Engineer",
+  "experience": "2-3 years",
+  "language": "de",
+  "answers": [
+    {
+      "questionId": "openrouter_tech_0_2405",
+      "questionText": "\"Sie werden aufgefordert, einen automatischen Deployment-Prozess für eine neue Anwendung in einer Kubernetes-Umgebung einzurichten. Beschreiben Sie, welche Schritte Sie ausführen würden, um dies sicher und effizient zu gestalten, und welche Tools oder Technologien Sie dabei verwenden würden. Nehmen Sie dabei an, dass die Anwendung mit Docker konteiniert ist und Continuous Integration/Continuous Deployment (CI/CD) Prozesse bereits in Ihrem Team etabliert sind.\"?",
+      "answerText": "Sie werden aufgefordert, einen automatischen Deployment-Prozess für eine neue Anwendung in einer Kubernetes-Umgebung einzurichten. Beschreiben Sie, welche Schritte Sie ausführen würden, um dies sicher und effizient zu gestalten, und welche Tools oder Technologien Sie dabei verwenden würden.",
+      "category": "Technical",
+      "recordingDuration": 0,
+      "timestamp": "2025-08-08T12:19:09.460Z"
+    },
+    {
+      "questionId": "openrouter_mcq_0_1521",
+      "questionText": "Welches Tool wird in DevOps-Projekten häufig verwendet, um die automatisierte Bereitstellung von Anwendungen und Infrastrukturen zu unterstützen?",
+      "answerText": "azure aws, docker",
+      "category": "Multiple Choice",
+      "recordingDuration": 15,
+      "timestamp": "2025-08-08T12:19:24.372Z"
+    },
+    {
+      "questionId": "openrouter_bool_0_6998",
+      "questionText": "True or False: Die Methode Continuous Integration erfordert, dass Entwickler ihre Codeänderungen täglich in das Hauptrepository integrieren.?",
+      "answerText": "true",
+      "category": "True/False",
+      "recordingDuration": 4,
+      "timestamp": "2025-08-08T12:19:28.540Z"
+    }
+  ],
+  "analysis": {
+    "overallScore": 53,
+    "breakdown": {
+      "technical": 51,
+      "communication": 53,
+      "completeness": 52,
+      "confidence": 58
+    },
+    "questionAnalysis": [
+      {
+        "questionId": "openrouter_tech_0_2405",
+        "questionText": "\"Sie werden aufgefordert, einen automatischen Deployment-Prozess für eine neue Anwendung in einer Kubernetes-Umgebung einzurichten. Beschreiben Sie, welche Schritte Sie ausführen würden, um dies sicher und effizient zu gestalten, und welche Tools oder Technologien Sie dabei verwenden würden. Nehmen Sie dabei an, dass die Anwendung mit Docker konteiniert ist und Continuous Integration/Continuous Deployment (CI/CD) Prozesse bereits in Ihrem Team etabliert sind.\"?",
+        "answerText": "Sie werden aufgefordert, einen automatischen Deployment-Prozess für eine neue Anwendung in einer Kubernetes-Umgebung einzurichten. Beschreiben Sie, welche Schritte Sie ausführen würden, um dies sicher und effizient zu gestalten, und welche Tools oder Technologien Sie dabei verwenden würden.",
+        "score": 60,
+        "strengths": [],
+        "weaknesses": [
+          "Add more specific examples",
+          "Include more technical details",
+          "Add measurable outcomes"
+        ],
+        "suggestions": [
+          "Use STAR method (Situation, Task, Action, Result)",
+          "Provide specific examples from your experience",
+          "Include quantifiable achievements"
+        ],
+        "expectedAnswer": "For this Technical question, ideal answers should include specific examples, metrics, and clear problem-solving approaches.",
+        "technicalAccuracy": 56.75313767839732,
+        "communicationClarity": 61.992915751711465,
+        "completeness": 56.9667883856958
+      },
+      {
+        "questionId": "openrouter_mcq_0_1521",
+        "questionText": "Welches Tool wird in DevOps-Projekten häufig verwendet, um die automatisierte Bereitstellung von Anwendungen und Infrastrukturen zu unterstützen?",
+        "answerText": "azure aws, docker",
+        "score": 50,
+        "strengths": [],
+        "weaknesses": [
+          "Response too brief, needs more detail",
+          "Add more specific examples",
+          "Add measurable outcomes"
+        ],
+        "suggestions": [
+          "Use STAR method (Situation, Task, Action, Result)",
+          "Provide specific examples from your experience",
+          "Include quantifiable achievements"
+        ],
+        "expectedAnswer": "For this Multiple Choice question, ideal answers should include specific examples, metrics, and clear problem-solving approaches.",
+        "technicalAccuracy": 49.4121670056232,
+        "communicationClarity": 50.72894550865487,
+        "completeness": 51.76394618790992
+      },
+      {
+        "questionId": "openrouter_bool_0_6998",
+        "questionText": "True or False: Die Methode Continuous Integration erfordert, dass Entwickler ihre Codeänderungen täglich in das Hauptrepository integrieren.?",
+        "answerText": "true",
+        "score": 50,
+        "strengths": [],
+        "weaknesses": [
+          "Response too brief, needs more detail",
+          "Add more specific examples",
+          "Add measurable outcomes"
+        ],
+        "suggestions": [
+          "Use STAR method (Situation, Task, Action, Result)",
+          "Provide specific examples from your experience",
+          "Include quantifiable achievements"
+        ],
+        "expectedAnswer": "For this True/False question, ideal answers should include specific examples, metrics, and clear problem-solving approaches.",
+        "technicalAccuracy": 46.048164541504846,
+        "communicationClarity": 45.51017252237886,
+        "completeness": 47.860280717197725
+      }
+    ],
+    "strengths": [
+      "Good understanding of DevOps Engineer fundamentals",
+      "Clear communication style",
+      "Confidence in completing the interview"
+    ],
+    "improvements": [
+      "Include more specific examples and metrics",
+      "Practice explaining technical concepts more clearly",
+      "Prepare more detailed project stories"
+    ],
+    "recommendations": [
+      "Research common DevOps Engineer interview patterns",
+      "Practice the STAR method for behavioral questions",
+      "Prepare technical examples with measurable outcomes"
+    ],
+    "statistics": {
+      "totalQuestions": 3,
+      "averageResponseLength": 104,
+      "totalInterviewTime": "1m 15s",
+      "keywordsUsed": 9,
+      "expectedKeywords": 15,
+      "confidenceLevel": "Needs Improvement"
+    }
+  },
+  "timestamp": "2025-08-08T12:19:28.540Z",
+  "interviewDuration": 75,
+  "deviceInfo": {
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0",
+    "platform": "\"Windows\"",
+    "language": "en-US,en;q=0.9,en-IN;q=0.8,en-GB;q=0.7"
+  },
+  "id": "interview_1754655592738_qv5uxbhte",
+  "savedAt": "2025-08-08T12:19:52.738Z"
+}

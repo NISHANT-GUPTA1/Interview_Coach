@@ -1,0 +1,141 @@
+{
+  "userId": "user_1754420483690",
+  "role": "Cloud Architect",
+  "experience": "Entry Level",
+  "language": "en",
+  "answers": [
+    {
+      "questionId": "openrouter_tech_0_4750",
+      "questionText": "\"You have just started working as an Entry Level Cloud Architect at a company that is planning to migrate their data and applications to the cloud. The company's main concerns are data security and cost optimization. How would you approach designing a cloud architecture that addresses these concerns, while also ensuring high availability and scalability? Please describe the steps you would take, the services you would consider, and how you would ensure the architecture is secure, cost-effective, and meets the company's needs.\"?",
+      "answerText": "okay",
+      "category": "Technical",
+      "recordingDuration": 0,
+      "timestamp": "2025-08-08T13:16:11.530Z"
+    },
+    {
+      "questionId": "openrouter_mcq_0_2764",
+      "questionText": "In the context of cloud architecture, which of the following best describes the concept of \"serverless computing\"?",
+      "answerText": "c",
+      "category": "Multiple Choice",
+      "recordingDuration": 0,
+      "timestamp": "2025-08-08T13:16:19.491Z"
+    },
+    {
+      "questionId": "openrouter_bool_0_2495",
+      "questionText": "True or False: In Cloud Architecture, implementing a microservices design always results in improved performance and scalability, regardless of the application's nature.?",
+      "answerText": "true",
+      "category": "True/False",
+      "recordingDuration": 0,
+      "timestamp": "2025-08-08T13:16:28.394Z"
+    }
+  ],
+  "analysis": {
+    "overallScore": 50,
+    "breakdown": {
+      "technical": 47,
+      "communication": 48,
+      "completeness": 50,
+      "confidence": 55
+    },
+    "questionAnalysis": [
+      {
+        "questionId": "openrouter_tech_0_4750",
+        "questionText": "\"You have just started working as an Entry Level Cloud Architect at a company that is planning to migrate their data and applications to the cloud. The company's main concerns are data security and cost optimization. How would you approach designing a cloud architecture that addresses these concerns, while also ensuring high availability and scalability? Please describe the steps you would take, the services you would consider, and how you would ensure the architecture is secure, cost-effective, and meets the company's needs.\"?",
+        "answerText": "okay",
+        "score": 50,
+        "strengths": [],
+        "weaknesses": [
+          "Response too brief, needs more detail",
+          "Add more specific examples",
+          "Include more technical details",
+          "Add measurable outcomes"
+        ],
+        "suggestions": [
+          "Expand your answer with more detail",
+          "Include a specific example from your experience",
+          "Add numbers or metrics to quantify your achievements",
+          "Use technical terminology and methodologies"
+        ],
+        "expectedAnswer": "For this Technical question, ideal answers should include specific examples, metrics, and clear problem-solving approaches.",
+        "technicalAccuracy": 45.534176777193494,
+        "communicationClarity": 49.48712803834429,
+        "completeness": 51.8121168812249
+      },
+      {
+        "questionId": "openrouter_mcq_0_2764",
+        "questionText": "In the context of cloud architecture, which of the following best describes the concept of \"serverless computing\"?",
+        "answerText": "c",
+        "score": 50,
+        "strengths": [],
+        "weaknesses": [
+          "Response too brief, needs more detail",
+          "Add more specific examples",
+          "Add measurable outcomes"
+        ],
+        "suggestions": [
+          "Expand your answer with more detail",
+          "Include a specific example from your experience",
+          "Add numbers or metrics to quantify your achievements"
+        ],
+        "expectedAnswer": "For this Multiple Choice question, ideal answers should include specific examples, metrics, and clear problem-solving approaches.",
+        "technicalAccuracy": 48.941613102117216,
+        "communicationClarity": 50.532347295166815,
+        "completeness": 47.30723359781797
+      },
+      {
+        "questionId": "openrouter_bool_0_2495",
+        "questionText": "True or False: In Cloud Architecture, implementing a microservices design always results in improved performance and scalability, regardless of the application's nature.?",
+        "answerText": "true",
+        "score": 50,
+        "strengths": [],
+        "weaknesses": [
+          "Response too brief, needs more detail",
+          "Add more specific examples",
+          "Add measurable outcomes"
+        ],
+        "suggestions": [
+          "Expand your answer with more detail",
+          "Include a specific example from your experience",
+          "Add numbers or metrics to quantify your achievements"
+        ],
+        "expectedAnswer": "For this True/False question, ideal answers should include specific examples, metrics, and clear problem-solving approaches.",
+        "technicalAccuracy": 46.09148583027655,
+        "communicationClarity": 45.47013661315765,
+        "completeness": 49.94510580494607
+      }
+    ],
+    "strengths": [
+      "Completed the interview"
+    ],
+    "improvements": [
+      "Improve overall response quality and depth",
+      "Provide more detailed and comprehensive answers",
+      "Focus on improving performance in weaker areas",
+      "Include more specific examples from experience",
+      "Strengthen technical knowledge and terminology"
+    ],
+    "recommendations": [
+      "Focus on specific technical skills required for Cloud Architect",
+      "Conduct more mock interviews for practice",
+      "Work on providing more comprehensive explanations",
+      "Dedicate extra preparation time to weaker areas"
+    ],
+    "statistics": {
+      "totalQuestions": 3,
+      "averageResponseLength": 3,
+      "totalInterviewTime": "0m 21s",
+      "keywordsUsed": 9,
+      "expectedKeywords": 15,
+      "confidenceLevel": "Needs Improvement"
+    }
+  },
+  "timestamp": "2025-08-08T13:16:28.394Z",
+  "interviewDuration": 21,
+  "deviceInfo": {
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0",
+    "platform": "\"Windows\"",
+    "language": "en-US,en;q=0.9,en-IN;q=0.8,en-GB;q=0.7"
+  },
+  "id": "interview_1754659012943_lp8o8wlgt",
+  "savedAt": "2025-08-08T13:16:52.943Z"
+}

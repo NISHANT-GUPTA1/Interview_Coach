@@ -1011,9 +1011,26 @@ export default function WorkingInterviewPage() {
                       <Badge variant="outline">{currentQuestion.category}</Badge>
                       <span className="text-sm text-gray-500">Question {currentQuestionIndex + 1}</span>
                     </div>
-                    <p className="text-lg font-medium text-gray-900">
+                    <p className="text-lg font-medium text-gray-900 mb-3">
                       {currentQuestion.text}
                     </p>
+                    
+                    {/* Display MCQ options if available */}
+                    {currentQuestion.options && (
+                      <div className="mt-4 ml-4">
+                        <p className="font-medium text-sm text-gray-600 mb-2">Options:</p>
+                        <div className="space-y-2">
+                          {currentQuestion.options.map((option: string, optionIndex: number) => (
+                            <div key={optionIndex} className="flex items-start p-2 bg-white rounded border">
+                              <span className="font-medium text-blue-600 mr-3">
+                                {String.fromCharCode(65 + optionIndex)}.
+                              </span>
+                              <span className="text-gray-800">{option}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* AI Actions */}

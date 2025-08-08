@@ -1,0 +1,134 @@
+{
+  "userId": "user_1754420483690",
+  "role": "Full Stack Developer",
+  "experience": "2-3 years",
+  "language": "fr",
+  "answers": [
+    {
+      "questionId": "openrouter_tech_0_4460",
+      "questionText": "\"Imaginez que vous travaillez sur une application web e-commerce. Vous devez intégrer un système de paiement en ligne à cette application. Décrivez les étapes que vous suivriez pour cette intégration, en mentionnant spécifiquement comment vous géreriez la sécurité des transactions et la compatibilité avec les différentes plateformes de paiement en ligne.\"?",
+      "answerText": "Et avec les différentes plate ? Il me met. Le système.",
+      "category": "Technical",
+      "recordingDuration": 18,
+      "timestamp": "2025-08-08T13:47:16.288Z"
+    },
+    {
+      "questionId": "openrouter_mcq_0_5754",
+      "questionText": "Quelle est la bonne pratique pour gérer les erreurs dans une application web ?",
+      "answerText": "Afficher tous les détails de l'erreur à l'utilisateur pour faciliter le débogage",
+      "category": "Multiple Choice",
+      "recordingDuration": 8,
+      "timestamp": "2025-08-08T13:47:24.736Z"
+    },
+    {
+      "questionId": "openrouter_bool_0_7524",
+      "questionText": "True or False: Dans le développement logiciel, l'utilisation de Git permet un meilleur contrôle de version et facilite la collaboration entre les développeurs.?",
+      "answerText": "false, Dans le développement logiciel, l'utilisation de Git permet un meilleur contrôle de version et facilite la collaboration entre les développeurs.",
+      "category": "True/False",
+      "recordingDuration": 14,
+      "timestamp": "2025-08-08T13:47:38.223Z"
+    }
+  ],
+  "analysis": {
+    "overallScore": 45,
+    "breakdown": {
+      "technical": 40,
+      "communication": 50,
+      "completeness": 30,
+      "confidence": 60
+    },
+    "questionAnalysis": [
+      {
+        "questionId": "q1",
+        "questionText": "Imaginez que vous travaillez sur une application web e-commerce. Vous devez intégrer un système de paiement en ligne à cette application. Décrivez les étapes que vous suivriez pour cette intégration, en mentionnant spécifiquement comment vous géreriez la sécurité des transactions et la compatibilité avec les différentes plateformes de paiement en ligne.",
+        "answerText": "Et avec les différentes plate ? Il me met. Le système.",
+        "score": 10,
+        "strengths": [],
+        "weaknesses": [
+          "L'absence de réponse claire et structurée.",
+          "Incapacité à articuler un plan d'intégration.",
+          "Pas d'attention sur la sécurité ou la compatibilité."
+        ],
+        "suggestions": [
+          "Pratiquer des scénarios d'intégration de paiements en ligne.",
+          "Préparer un schéma des étapes clés pour une intégration sécurisée.",
+          "Étudier les normes de sécurité telles que PCI DSS."
+        ],
+        "expectedAnswer": "Pour intégrer un système de paiement en ligne, je commencerais par choisir une API de paiement reconnue. Ensuite, je mettrais en place un environnement de développement sécurisé, suivrais les directives API, testerais les transactions et m'assurerais de la conformité aux normes de sécurité. Enfin, je garantirais la compatibilité avec plusieurs plateformes en utilisant des bibliothèques adaptées.",
+        "technicalAccuracy": 5,
+        "communicationClarity": 5,
+        "completeness": 5
+      },
+      {
+        "questionId": "q2",
+        "questionText": "Quelle est la bonne pratique pour gérer les erreurs dans une application web ?",
+        "answerText": "Afficher tous les détails de l'erreur à l'utilisateur pour faciliter le débogage",
+        "score": 30,
+        "strengths": [],
+        "weaknesses": [
+          "Mauvaise pratique mentionnée.",
+          "Incompréhension des enjeux de sécurité liés à l'affichage des erreurs."
+        ],
+        "suggestions": [
+          "Comprendre les meilleures pratiques pour la gestion des erreurs.",
+          "Étudier comment enregistrer les erreurs sans les exposer aux utilisateurs."
+        ],
+        "expectedAnswer": "Il est préférable de ne pas afficher les détails techniques des erreurs aux utilisateurs. Au lieu de cela, on doit montrer un message générique et enregistrer les détails dans un journal pour le débogage.",
+        "technicalAccuracy": 20,
+        "communicationClarity": 50,
+        "completeness": 20
+      },
+      {
+        "questionId": "q3",
+        "questionText": "True or False: Dans le développement logiciel, l'utilisation de Git permet un meilleur contrôle de version et facilite la collaboration entre les développeurs.",
+        "answerText": "false, Dans le développement logiciel, l'utilisation de Git permet un meilleur contrôle de version et facilite la collaboration entre les développeurs.",
+        "score": 50,
+        "strengths": [
+          "Reconnaissance de l'importance de Git.",
+          "Compréhension partielle des fonctionnalités de Git."
+        ],
+        "weaknesses": [
+          "Réponse contradictoire.",
+          "Manque de clarté sur les avantages de Git."
+        ],
+        "suggestions": [
+          "Étudier les concepts de base de Git et son impact sur le développement collaboratif.",
+          "Préparer des exemples de flux de travail Git."
+        ],
+        "expectedAnswer": "True. Git permet un meilleur contrôle de version et facilite la collaboration entre les développeurs grâce à ses fonctionnalités de branchement et de fusion.",
+        "technicalAccuracy": 50,
+        "communicationClarity": 50,
+        "completeness": 50
+      }
+    ],
+    "strengths": [
+      "Le candidat a montré une certaine compréhension des outils de développement comme Git.",
+      "Le candidat a tenté de répondre aux questions malgré les difficultés."
+    ],
+    "improvements": [
+      "Nécessité d'approfondir les connaissances techniques sur l'intégration de systèmes de paiement.",
+      "Améliorer la compréhension des bonnes pratiques en matière de gestion des erreurs."
+    ],
+    "recommendations": [
+      "S'engager dans des projets pratiques pour renforcer les compétences techniques.",
+      "Participer à des cours ou des ateliers sur la sécurité des applications web."
+    ],
+    "statistics": {
+      "totalQuestions": 3,
+      "averageResponseLength": 25,
+      "totalInterviewTime": "1m 1s",
+      "keywordsUsed": 10,
+      "expectedKeywords": 35,
+      "confidenceLevel": "Poor"
+    }
+  },
+  "timestamp": "2025-08-08T13:47:38.223Z",
+  "interviewDuration": 61,
+  "deviceInfo": {
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0",
+    "platform": "\"Windows\"",
+    "language": "en-US,en;q=0.9,en-IN;q=0.8,en-GB;q=0.7"
+  },
+  "id": "interview_1754660877634_9n0670wss",
+  "savedAt": "2025-08-08T13:47:57.634Z"
+}

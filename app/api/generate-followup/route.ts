@@ -152,20 +152,23 @@ function generateContextualQuestion(
   }
   
   // Get role-specific strategies or default to Software Engineer
-  const roleStrategies = followUpStrategies[role as keyof typeof followUpStrategies] || followUpStrategies['Software Engineer']
+  const roleStrategies = (followUpStrategies as any)[role] || followUpStrategies['Software Engineer']
   
   // Check for keyword matches first
   for (const pattern of roleStrategies.patterns) {
-    if (pattern.keywords.some(keyword => answerLower.includes(keyword))) {
+    if (pattern.keywords.some((keyword: string) => answerLower.includes(keyword))) {
       return pattern.followUp
     }
   }
   
   // Use contextual questions based on question progression
   const questionTypes = ['introduction', 'experience', 'challenge', 'learning']
-  const questionType = questionTypes[Math.min(questionIndex, questionTypes.length - 1)] as keyof typeof roleStrategies.contextual
+  const currentIndex = Math.min(questionIndex, questionTypes.length - 1)
+  const questionType = questionTypes[currentIndex]
   
-  return roleStrategies.contextual[questionType] || generateGenericFollowUp(candidateLevel, questionIndex)
+  // Safely access contextual questions
+  const contextualQuestions = roleStrategies.contextual as any
+  return contextualQuestions[questionType] || generateGenericFollowUp(candidateLevel, questionIndex)
 }
 
 function generateTechnicalFollowUp(role: string, level: 'junior' | 'mid' | 'senior', index: number): string {
@@ -219,7 +222,16 @@ function generateGenericFollowUp(level: 'junior' | 'mid' | 'senior', index: numb
   const levelQuestions = genericQuestions[level]
   return levelQuestions[index % levelQuestions.length]
 }
-    },
+
+function generateSmartFollowUp(
+  role: string, 
+  answer: string, 
+  level: 'junior' | 'mid' | 'senior'
+): string {
+  const answerLower = answer.toLowerCase()
+
+  // Role-specific follow-up strategies
+  const followUpStrategies: Record<string, any> = {
     'Data Scientist': {
       patterns: [
         { keywords: ['model', 'machine learning', 'algorithm'], followUp: 'What evaluation metrics did you use to validate your model performance?' },
@@ -250,7 +262,7 @@ function generateGenericFollowUp(level: 'junior' | 'mid' | 'senior', index: numb
   }
 
   // Get role-specific strategies or use generic
-  const roleStrategy = followUpStrategies[role as keyof typeof followUpStrategies] || {
+  const roleStrategy = followUpStrategies[role] || {
     patterns: [],
     generic: [
       'Can you provide more specific details about that experience?',
@@ -262,7 +274,7 @@ function generateGenericFollowUp(level: 'junior' | 'mid' | 'senior', index: numb
 
   // Look for keyword matches in the answer
   for (const pattern of roleStrategy.patterns) {
-    if (pattern.keywords.some(keyword => answerLower.includes(keyword))) {
+    if (pattern.keywords.some((keyword: string) => answerLower.includes(keyword))) {
       return pattern.followUp
     }
   }

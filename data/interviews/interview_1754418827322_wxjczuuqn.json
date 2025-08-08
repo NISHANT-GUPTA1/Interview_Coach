@@ -1,0 +1,183 @@
+{
+  "userId": "user_1754242210910",
+  "role": "Software Engineer",
+  "experience": "Entry Level",
+  "language": "fr",
+  "answers": [
+    {
+      "questionId": "openrouter_tech_0_4046",
+      "questionText": "\"Vous êtes chargé de développer une fonctionnalité dans une application web qui permet aux utilisateurs de trier dynamiquement une liste d'articles par date, par prix ou par popularité. Comment aborderiez-vous ce problème? Quelles technologies et méthodologies utiliserez-vous pour assurer une mise en œuvre efficace et scalable?\"?",
+      "answerText": "Ou par popularité ? Comment aborderiez ?",
+      "category": "Technical",
+      "recordingDuration": 14,
+      "timestamp": "2025-08-05T18:32:36.417Z"
+    },
+    {
+      "questionId": "openrouter_mcq_0_2632",
+      "questionText": "Quel est le principe de base du langage de programmation orienté objet?",
+      "answerText": "python",
+      "category": "Multiple Choice",
+      "recordingDuration": 12,
+      "timestamp": "2025-08-05T18:32:48.449Z"
+    },
+    {
+      "questionId": "openrouter_bool_0_9637",
+      "questionText": "True or False: Dans le développement de logiciels, l'utilisation de tests unitaires est inutile si le code semble fonctionner correctement lors des tests manuels.?",
+      "answerText": "Toi ? Trop ?",
+      "category": "True/False",
+      "recordingDuration": 31,
+      "timestamp": "2025-08-05T18:33:20.304Z"
+    },
+    {
+      "questionId": "openrouter_bool_0_9637",
+      "questionText": "True or False: Dans le développement de logiciels, l'utilisation de tests unitaires est inutile si le code semble fonctionner correctement lors des tests manuels.?",
+      "answerText": "Toi ? Trop ?",
+      "category": "True/False",
+      "recordingDuration": 31,
+      "timestamp": "2025-08-05T18:33:20.832Z"
+    },
+    {
+      "questionId": "openrouter_bool_0_9637",
+      "questionText": "True or False: Dans le développement de logiciels, l'utilisation de tests unitaires est inutile si le code semble fonctionner correctement lors des tests manuels.?",
+      "answerText": "Toi ? Trop ?",
+      "category": "True/False",
+      "recordingDuration": 33,
+      "timestamp": "2025-08-05T18:33:22.424Z"
+    }
+  ],
+  "analysis": {
+    "overallScore": 45,
+    "breakdown": {
+      "technical": 40,
+      "communication": 50,
+      "completeness": 30,
+      "confidence": 60
+    },
+    "questionAnalysis": [
+      {
+        "questionId": "q1",
+        "questionText": "Vous êtes chargé de développer une fonctionnalité dans une application web qui permet aux utilisateurs de trier dynamiquement une liste d'articles par date, par prix ou par popularité. Comment aborderiez-vous ce problème? Quelles technologies et méthodologies utiliserez-vous pour assurer une mise en œuvre efficace et scalable?",
+        "answerText": "Ou par popularité ? Comment aborderiez ?",
+        "score": 30,
+        "strengths": [],
+        "weaknesses": [
+          "Lack of a structured approach to problem-solving",
+          "No mention of technologies or methodologies",
+          "Insufficient detail about dynamic sorting"
+        ],
+        "suggestions": [
+          "Start with an overview of how to collect user input for sorting options.",
+          "Mention technologies like JavaScript for front-end and frameworks/libraries (React, Angular) for building the application.",
+          "Discuss server-side sorting with a language like Python or Node.js."
+        ],
+        "expectedAnswer": "An ideal answer would describe the user interface for selecting sorting criteria, the use of JavaScript for dynamic updates, and possibly a back-end service for handling data sorting efficiently.",
+        "technicalAccuracy": 20,
+        "communicationClarity": 40,
+        "completeness": 20
+      },
+      {
+        "questionId": "q2",
+        "questionText": "Quel est le principe de base du langage de programmation orienté objet?",
+        "answerText": "python",
+        "score": 10,
+        "strengths": [],
+        "weaknesses": [
+          "Incorrect answer - does not address OOP principles directly",
+          "Lack of explanation or detail"
+        ],
+        "suggestions": [
+          "Provide a brief explanation of OOP principles such as encapsulation, inheritance, and polymorphism."
+        ],
+        "expectedAnswer": "The basic principle of object-oriented programming (OOP) includes concepts like encapsulation, inheritance, and polymorphism.",
+        "technicalAccuracy": 5,
+        "communicationClarity": 10,
+        "completeness": 5
+      },
+      {
+        "questionId": "q3",
+        "questionText": "True or False: Dans le développement de logiciels, l'utilisation de tests unitaires est inutile si le code semble fonctionner correctement lors des tests manuels.",
+        "answerText": "Toi ? Trop ?",
+        "score": 0,
+        "strengths": [],
+        "weaknesses": [
+          "No direct answer provided",
+          "Lack of understanding of the importance of unit testing"
+        ],
+        "suggestions": [
+          "Clearly state whether the statement is true or false and explain your reasoning."
+        ],
+        "expectedAnswer": "False - Unit tests are essential even if manual tests pass, as they help ensure code reliability during changes.",
+        "technicalAccuracy": 0,
+        "communicationClarity": 0,
+        "completeness": 0
+      },
+      {
+        "questionId": "q4",
+        "questionText": "True or False: Dans le développement de logiciels, l'utilisation de tests unitaires est inutile si le code semble fonctionner correctement lors des tests manuels.",
+        "answerText": "Toi ? Trop ?",
+        "score": 0,
+        "strengths": [],
+        "weaknesses": [
+          "Repeated answer from the previous question with no improvement",
+          "Lack of engagement with the question"
+        ],
+        "suggestions": [
+          "Provide a direct answer and justification."
+        ],
+        "expectedAnswer": "False - The importance of unit testing in ensuring code quality should be discussed.",
+        "technicalAccuracy": 0,
+        "communicationClarity": 0,
+        "completeness": 0
+      },
+      {
+        "questionId": "q5",
+        "questionText": "True or False: Dans le développement de logiciels, l'utilisation de tests unitaires est inutile si le code semble fonctionner correctement lors des tests manuels.",
+        "answerText": "Toi ? Trop ?",
+        "score": 0,
+        "strengths": [],
+        "weaknesses": [
+          "Repeated answer again, showing no understanding of the topic",
+          "Failure to engage in critical thinking regarding software testing"
+        ],
+        "suggestions": [
+          "Respond directly and explain the significance of unit tests."
+        ],
+        "expectedAnswer": "False - Highlighting the necessity of unit tests for long-term code maintenance.",
+        "technicalAccuracy": 0,
+        "communicationClarity": 0,
+        "completeness": 0
+      }
+    ],
+    "strengths": [
+      "Attempted to answer all questions",
+      "Engagement in the interview process"
+    ],
+    "improvements": [
+      "Enhance technical knowledge, particularly in OOP and testing methodologies",
+      "Practice structured and clear communication of ideas",
+      "Work on specific problem-solving techniques and frameworks."
+    ],
+    "recommendations": [
+      "Consider further study on software development principles, especially OOP and testing strategies",
+      "Engage in mock interviews to practice answering technical questions clearly",
+      "Review common software engineering questions and formulate structured responses."
+    ],
+    "statistics": {
+      "totalQuestions": 5,
+      "averageResponseLength": 15,
+      "totalInterviewTime": "1m 11s",
+      "keywordsUsed": 15,
+      "expectedKeywords": 35,
+      "confidenceLevel": "Low"
+    }
+  },
+  "timestamp": "2025-08-05T18:33:22.424Z",
+  "interviewDuration": 71,
+  "deviceInfo": {
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0",
+    "platform": "\"Windows\"",
+    "language": "en-US,en;q=0.9,en-IN;q=0.8,en-GB;q=0.7"
+  },
+  "id": "interview_1754418827322_wxjczuuqn",
+  "savedAt": "2025-08-05T18:33:47.322Z"
+}
