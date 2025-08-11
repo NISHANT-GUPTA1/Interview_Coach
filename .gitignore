@@ -41,6 +41,15 @@ __pycache__/
 venv/
 env/
 
+# SSL/TLS certificates and keys (SECURITY: Contains private keys)
+*.pem
+*.key
+*.crt
+*.pfx
+*.p12
+localhost+*
+mkcert.exe
+
 # vercel
 .vercel
 

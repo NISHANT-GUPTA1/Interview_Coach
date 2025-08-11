@@ -59,7 +59,7 @@ class OpenRouterQuestionGenerator:
             url = "https://openrouter.ai/api/v1/chat/completions"
             print(f"Making request to: {url}", file=sys.stderr)
             print(f"Using model: {self.model}", file=sys.stderr)
-            print(f"API Key (first 20 chars): {self.api_key[:20]}...", file=sys.stderr)
+            print("API Key: [REDACTED]", file=sys.stderr)
             
             response = requests.post(url, 
                                    headers=headers, 

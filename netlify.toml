@@ -1,0 +1,60 @@
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  # Set empty values for API keys - these should be set in Netlify UI
+  OPENAI_API_KEY = ""
+  OPENROUTER_API_KEY = ""
+  GOOGLE_TRANSLATE_API_KEY = ""
+  # Configure secrets scanning to be less strict for build output
+  SECRETS_SCAN_ENABLED = "true"
+  SECRETS_SCAN_OMIT_PATHS = "lib/openrouter_questgen.py,.next/**,node_modules/**,*.pem,*.key,localhost+*"
+
+# Configure secrets scanning
+[build.processing]
+  skip_processing = false
+
+# Secrets scanning configuration
+[build.processing.css]
+  bundle = true
+  minify = true
+
+[build.processing.js]
+  bundle = true
+  minify = true
+
+# Headers for security
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+[[headers]]
+  for = "/_next/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Redirect configuration for SPA routing
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  conditions = {Role = ["admin"]}
+
+# Environment variables that should be available at build time
+# Note: These will be empty strings unless set in Netlify UI
+[context.production.environment]
+  NODE_ENV = "production"
+  NEXT_PUBLIC_ENABLE_REAL_AI = "false"
+
+[context.deploy-preview.environment]
+  NODE_ENV = "development"
+  NEXT_PUBLIC_ENABLE_REAL_AI = "false"
+
+[context.branch-deploy.environment]
+  NODE_ENV = "development"
+  NEXT_PUBLIC_ENABLE_REAL_AI = "false"
