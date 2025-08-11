@@ -1,6 +1,6 @@
 [build]
   command = "npm run build"
-  publish = ".next"
+  publish = "out"
 
 [build.environment]
   # Set empty values for API keys - these should be set in Netlify UI
@@ -9,7 +9,7 @@
   GOOGLE_TRANSLATE_API_KEY = ""
   # Configure secrets scanning to be less strict for build output
   SECRETS_SCAN_ENABLED = "true"
-  SECRETS_SCAN_OMIT_PATHS = "lib/openrouter_questgen.py,.next/**,node_modules/**,*.pem,*.key,localhost+*"
+  SECRETS_SCAN_OMIT_PATHS = "lib/openrouter_questgen.py,out/**,node_modules/**,*.pem,*.key,localhost+*"
 
 # Configure secrets scanning
 [build.processing]
@@ -43,7 +43,6 @@
   from = "/*"
   to = "/index.html"
   status = 200
-  conditions = {Role = ["admin"]}
 
 # Environment variables that should be available at build time
 # Note: These will be empty strings unless set in Netlify UI
