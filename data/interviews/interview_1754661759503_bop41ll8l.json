@@ -1,0 +1,141 @@
+{
+  "userId": "user_1754420483690",
+  "role": "DevOps Engineer",
+  "experience": "Senior",
+  "language": "en",
+  "answers": [
+    {
+      "questionId": "openrouter_tech_0_6489",
+      "questionText": "\"You are working on a complex, multi-tier application that needs to scale rapidly to accommodate sudden increases in user traffic. Design and implement a solution that uses Kubernetes and Docker to manage the application's infrastructure. Your solution should include strategies for monitoring, logging, and optimizing resource usage. Additionally, describe how you would integrate this solution with a CI/CD pipeline to ensure that new code changes can be deployed seamlessly without downtime. Explain the steps you would take, the tools you would use, and any best practices you would follow.\"?",
+      "answerText": "okay i will but not now",
+      "category": "Technical",
+      "recordingDuration": 0,
+      "timestamp": "2025-08-08T14:01:59.980Z"
+    },
+    {
+      "questionId": "openrouter_mcq_0_2056",
+      "questionText": "In a DevOps context, which of the following tools is primarily used for infrastructure as code, allowing for the automation of the creation, management, and destruction of infrastructure resources in a repeatable and scalable manner?",
+      "answerText": "docker",
+      "category": "Multiple Choice",
+      "recordingDuration": 0,
+      "timestamp": "2025-08-08T14:02:07.515Z"
+    },
+    {
+      "questionId": "openrouter_bool_0_5257",
+      "questionText": "True or False: Immutable infrastructure is a DevOps best practice where infrastructure like servers, databases, and network devices are never modified after they're deployed; instead, new instances are created whenever changes are needed.?",
+      "answerText": "true",
+      "category": "True/False",
+      "recordingDuration": 0,
+      "timestamp": "2025-08-08T14:02:17.220Z"
+    }
+  ],
+  "analysis": {
+    "overallScore": 50,
+    "breakdown": {
+      "technical": 48,
+      "communication": 50,
+      "completeness": 51,
+      "confidence": 55
+    },
+    "questionAnalysis": [
+      {
+        "questionId": "openrouter_tech_0_6489",
+        "questionText": "\"You are working on a complex, multi-tier application that needs to scale rapidly to accommodate sudden increases in user traffic. Design and implement a solution that uses Kubernetes and Docker to manage the application's infrastructure. Your solution should include strategies for monitoring, logging, and optimizing resource usage. Additionally, describe how you would integrate this solution with a CI/CD pipeline to ensure that new code changes can be deployed seamlessly without downtime. Explain the steps you would take, the tools you would use, and any best practices you would follow.\"?",
+        "answerText": "okay i will but not now",
+        "score": 50,
+        "strengths": [],
+        "weaknesses": [
+          "Response too brief, needs more detail",
+          "Add more specific examples",
+          "Include more technical details",
+          "Add measurable outcomes"
+        ],
+        "suggestions": [
+          "Expand your answer with more detail",
+          "Include a specific example from your experience",
+          "Add numbers or metrics to quantify your achievements",
+          "Use technical terminology and methodologies"
+        ],
+        "expectedAnswer": "For this Technical question, ideal answers should include specific examples, metrics, and clear problem-solving approaches.",
+        "technicalAccuracy": 48.811099978650276,
+        "communicationClarity": 52.368040033861384,
+        "completeness": 49.741587212435746
+      },
+      {
+        "questionId": "openrouter_mcq_0_2056",
+        "questionText": "In a DevOps context, which of the following tools is primarily used for infrastructure as code, allowing for the automation of the creation, management, and destruction of infrastructure resources in a repeatable and scalable manner?",
+        "answerText": "docker",
+        "score": 50,
+        "strengths": [],
+        "weaknesses": [
+          "Response too brief, needs more detail",
+          "Add more specific examples",
+          "Add measurable outcomes"
+        ],
+        "suggestions": [
+          "Expand your answer with more detail",
+          "Include a specific example from your experience",
+          "Add numbers or metrics to quantify your achievements"
+        ],
+        "expectedAnswer": "For this Multiple Choice question, ideal answers should include specific examples, metrics, and clear problem-solving approaches.",
+        "technicalAccuracy": 49.19910750589218,
+        "communicationClarity": 46.20013600513723,
+        "completeness": 53.71405919464884
+      },
+      {
+        "questionId": "openrouter_bool_0_5257",
+        "questionText": "True or False: Immutable infrastructure is a DevOps best practice where infrastructure like servers, databases, and network devices are never modified after they're deployed; instead, new instances are created whenever changes are needed.?",
+        "answerText": "true",
+        "score": 50,
+        "strengths": [],
+        "weaknesses": [
+          "Response too brief, needs more detail",
+          "Add more specific examples",
+          "Add measurable outcomes"
+        ],
+        "suggestions": [
+          "Expand your answer with more detail",
+          "Include a specific example from your experience",
+          "Add numbers or metrics to quantify your achievements"
+        ],
+        "expectedAnswer": "For this True/False question, ideal answers should include specific examples, metrics, and clear problem-solving approaches.",
+        "technicalAccuracy": 45.15216321815531,
+        "communicationClarity": 52.084012523571666,
+        "completeness": 50.9683825749153
+      }
+    ],
+    "strengths": [
+      "Completed the interview"
+    ],
+    "improvements": [
+      "Improve overall response quality and depth",
+      "Provide more detailed and comprehensive answers",
+      "Focus on improving performance in weaker areas",
+      "Include more specific examples from experience",
+      "Strengthen technical knowledge and terminology"
+    ],
+    "recommendations": [
+      "Focus on specific technical skills required for DevOps Engineer",
+      "Conduct more mock interviews for practice",
+      "Work on providing more comprehensive explanations",
+      "Dedicate extra preparation time to weaker areas"
+    ],
+    "statistics": {
+      "totalQuestions": 3,
+      "averageResponseLength": 11,
+      "totalInterviewTime": "0m 31s",
+      "keywordsUsed": 9,
+      "expectedKeywords": 15,
+      "confidenceLevel": "Needs Improvement"
+    }
+  },
+  "timestamp": "2025-08-08T14:02:17.220Z",
+  "interviewDuration": 31,
+  "deviceInfo": {
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0",
+    "platform": "\"Windows\"",
+    "language": "en-US,en;q=0.9,en-IN;q=0.8,en-GB;q=0.7"
+  },
+  "id": "interview_1754661759503_bop41ll8l",
+  "savedAt": "2025-08-08T14:02:39.503Z"
+}

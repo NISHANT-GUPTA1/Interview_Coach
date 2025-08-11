@@ -1,0 +1,142 @@
+{
+  "userId": "user_1754242210910",
+  "role": "Software Engineer",
+  "experience": "2-3 years",
+  "language": "tr",
+  "answers": [
+    {
+      "questionId": "openrouter_tech_0_8966",
+      "questionText": "\"Siz bir yazılım mühendisi olarak, bir e-ticaret platformunda trafik artışına ve bu durumun uygulamamızın performansını etkilemesine karşı nasıl planlama yapardınız? Kodunuzu nasıl optimize eder ve test ederken ne adımlar atardınız? Bu durumda hangi teknolojileri ve teknikleri kullanmanız gerektiğini belirtin.\"?",
+      "answerText": "bir yazılım mühendisi olarak, bir e-ticaret platformunda trafik artışına ve bu durumun uygulamamızın performansını etkilemesine karşı nasıl planlama yapardınız? Kodunuzu nasıl optimize eder ve test ederken ne adımlar atardınız? Bu durumda hangi teknolojileri ve teknikleri kullanmanız gerektiğini belirtin",
+      "category": "Technical",
+      "recordingDuration": 0,
+      "timestamp": "2025-08-11T18:36:09.378Z"
+    },
+    {
+      "questionId": "openrouter_mcq_0_5405",
+      "questionText": "Bir yazılım projede kullanılan sürüm kontrol sistemleri, kodun güncel ve eski versiyonlarını yönetir. Aşağıdaki sürüm kontrol sistemlerinden hangisi decentralized ( dağıtık) bir sistemdir?",
+      "answerText": "Git",
+      "category": "Multiple Choice",
+      "recordingDuration": 0,
+      "timestamp": "2025-08-11T18:36:44.137Z"
+    },
+    {
+      "questionId": "openrouter_bool_0_6831",
+      "questionText": "True or False: Bir yazılım mühendisi, kodlamayı tamamladıktan sonra hata bulmak için sürekli test etmeli ve kodunun kalitesini artırmalıdır.?",
+      "answerText": "yes, it's true Bir yazılım mühendisi, kodlamayı tamamladıktan sonra hata bulmak için sürekli test etmeli ve kodunun kalitesini artırmalıdır",
+      "category": "True/False",
+      "recordingDuration": 0,
+      "timestamp": "2025-08-11T18:37:11.813Z"
+    }
+  ],
+  "analysis": {
+    "overallScore": 85,
+    "breakdown": {
+      "technical": 82,
+      "communication": 88,
+      "completeness": 80,
+      "confidence": 87
+    },
+    "questionAnalysis": [
+      {
+        "questionId": "q1",
+        "questionText": "As a software engineer, how would you plan for increased traffic on an e-commerce platform and how would this affect the performance of our application? How would you optimize your code and what steps would you take while testing? Which technologies and techniques would you need to mention?",
+        "answerText": "As a software engineer, I would plan for increased traffic on an e-commerce platform and how this would affect our application's performance. I would optimize my code and take steps while testing. I would mention which technologies and techniques I would need.",
+        "score": 85,
+        "strengths": [
+          "Identifies the need for planning around increased traffic",
+          "Recognizes the importance of code optimization",
+          "Shows awareness of testing procedures"
+        ],
+        "weaknesses": [
+          "Lacks specific strategies or methodologies for optimization",
+          "Fails to mention specific technologies or tools",
+          "The response is somewhat generic"
+        ],
+        "suggestions": [
+          "Provide concrete examples of optimization techniques (e.g., caching, load balancing)",
+          "Mention specific tools or technologies (e.g., AWS, Docker, etc.) that can be utilized",
+          "Structure the answer to include clear steps or a framework for addressing traffic issues"
+        ],
+        "expectedAnswer": "An ideal answer would discuss specific optimization techniques such as load balancing, caching, database optimization, and using CDN services. It should also mention technologies like AWS for scalability, load testing tools, and performance monitoring tools.",
+        "technicalAccuracy": 85,
+        "communicationClarity": 90,
+        "completeness": 80
+      },
+      {
+        "questionId": "q2",
+        "questionText": "Which of the following version control systems is decentralized?",
+        "answerText": "Git",
+        "score": 90,
+        "strengths": [
+          "Correct identification of Git as a decentralized system",
+          "Demonstrates knowledge of version control concepts"
+        ],
+        "weaknesses": [
+          "Could elaborate on the benefits of using Git over centralized systems"
+        ],
+        "suggestions": [
+          "Provide a brief explanation of how Git operates as a decentralized system",
+          "Mention other decentralized systems for comparison"
+        ],
+        "expectedAnswer": "The answer should confirm that Git is a decentralized version control system and provide a brief explanation of its functioning in comparison to centralized systems.",
+        "technicalAccuracy": 95,
+        "communicationClarity": 85,
+        "completeness": 85
+      },
+      {
+        "questionId": "q3",
+        "questionText": "True or False: A software engineer should continuously test after completing coding to find bugs and improve code quality.",
+        "answerText": "yes, it's true A software engineer should continuously test after completing coding to find bugs and improve code quality.",
+        "score": 90,
+        "strengths": [
+          "Affirms the importance of testing and maintaining code quality",
+          "Clear understanding of software development best practices"
+        ],
+        "weaknesses": [
+          "Could provide examples or methods for continuous testing"
+        ],
+        "suggestions": [
+          "Mention specific testing methodologies such as unit testing, integration testing, or automated testing",
+          "Discuss the importance of CI/CD pipelines in maintaining code quality"
+        ],
+        "expectedAnswer": "An ideal response should confirm the statement and include examples of testing practices to ensure code quality.",
+        "technicalAccuracy": 90,
+        "communicationClarity": 90,
+        "completeness": 80
+      }
+    ],
+    "strengths": [
+      "Demonstrates a solid understanding of version control and the importance of testing",
+      "Communicates well with clear and concise answers",
+      "Shows a good level of confidence throughout the interview"
+    ],
+    "improvements": [
+      "Focus on providing more detailed and specific answers, especially for technical questions",
+      "Practice structuring answers to include more examples and technologies",
+      "Work on providing a broader range of keywords in responses"
+    ],
+    "recommendations": [
+      "Continue to deepen technical knowledge, particularly in optimization techniques and technologies",
+      "Engage in mock interviews to improve response structure and detail",
+      "Stay updated on current technologies and best practices in software engineering"
+    ],
+    "statistics": {
+      "totalQuestions": 3,
+      "averageResponseLength": 150,
+      "totalInterviewTime": "1m 40s",
+      "keywordsUsed": 25,
+      "expectedKeywords": 35,
+      "confidenceLevel": "Good"
+    }
+  },
+  "timestamp": "2025-08-11T18:37:11.813Z",
+  "interviewDuration": 100,
+  "deviceInfo": {
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 Edg/139.0.0.0",
+    "platform": "\"Windows\"",
+    "language": "en-US,en;q=0.9,en-IN;q=0.8,en-GB;q=0.7"
+  },
+  "id": "interview_1754937458564_isl59snlg",
+  "savedAt": "2025-08-11T18:37:38.564Z"
+}
