@@ -1,0 +1,170 @@
+{
+  "userId": "user_1754242210910",
+  "role": "Software Engineer",
+  "experience": "5+ years",
+  "language": "en",
+  "answers": [
+    {
+      "questionId": "1",
+      "questionText": "Can you describe a complex project you led or played a significant role in as a Software Engineer, focusing on the technologies used, challenges faced, and how you resolved them?",
+      "answerText": "no i won't",
+      "category": "Problem Solving",
+      "recordingDuration": 0,
+      "timestamp": "2025-08-12T18:44:13.877Z"
+    },
+    {
+      "questionId": "2",
+      "questionText": "How do you ensure the quality of your code when working on large, complex systems? What practices do you follow to maintain code integrity, and how do you collaborate with your team to ensure everyone adheres to these standards?",
+      "answerText": "when it doesn't shows any kind of error and no debugging issues arives",
+      "category": "Teamwork",
+      "recordingDuration": 0,
+      "timestamp": "2025-08-12T18:44:39.746Z"
+    },
+    {
+      "questionId": "3",
+      "questionText": "You are presented with a poorly documented legacy codebase that needs to be refactored for performance improvements and to add new features. How would you approach this task, what steps would you take, and what tools or methodologies would you use to ensure a smooth transition?",
+      "answerText": "ohh i don't know",
+      "category": "Technical",
+      "recordingDuration": 0,
+      "timestamp": "2025-08-12T18:44:54.505Z"
+    },
+    {
+      "questionId": "3",
+      "questionText": "You are presented with a poorly documented legacy codebase that needs to be refactored for performance improvements and to add new features. How would you approach this task, what steps would you take, and what tools or methodologies would you use to ensure a smooth transition?",
+      "answerText": "ohh i don't know",
+      "category": "Technical",
+      "recordingDuration": 0,
+      "timestamp": "2025-08-12T18:44:55.963Z"
+    },
+    {
+      "questionId": "3",
+      "questionText": "You are presented with a poorly documented legacy codebase that needs to be refactored for performance improvements and to add new features. How would you approach this task, what steps would you take, and what tools or methodologies would you use to ensure a smooth transition?",
+      "answerText": "ohh i don't know",
+      "category": "Technical",
+      "recordingDuration": 0,
+      "timestamp": "2025-08-12T18:44:57.960Z"
+    }
+  ],
+  "analysis": {
+    "overallScore": 40,
+    "breakdown": {
+      "technical": 20,
+      "communication": 30,
+      "completeness": 25,
+      "confidence": 35
+    },
+    "questionAnalysis": [
+      {
+        "questionId": "q1",
+        "questionText": "Can you describe a complex project you led or played a significant role in as a Software Engineer, focusing on the technologies used, challenges faced, and how you resolved them?",
+        "answerText": "no i won't",
+        "score": 20,
+        "strengths": [],
+        "weaknesses": [
+          "Lack of engagement and willingness to discuss relevant experience"
+        ],
+        "suggestions": [
+          "Prepare examples of projects worked on, focusing on technologies, challenges, and resolutions"
+        ],
+        "expectedAnswer": "A detailed description of a project, including technologies used, challenges encountered, and how they were overcome",
+        "technicalAccuracy": 0,
+        "communicationClarity": 20,
+        "completeness": 20
+      },
+      {
+        "questionId": "q2",
+        "questionText": "How do you ensure the quality of your code when working on large, complex systems? What practices do you follow to maintain code integrity, and how do you collaborate with your team to ensure everyone adheres to these standards?",
+        "answerText": "when it doesn't shows any kind of error and no debugging issues arise",
+        "score": 25,
+        "strengths": [],
+        "weaknesses": [
+          "Lack of detail and understanding of code quality practices"
+        ],
+        "suggestions": [
+          "Review and prepare best practices for ensuring code quality, including testing, code reviews, and continuous integration"
+        ],
+        "expectedAnswer": "Mention of practices such as code reviews, unit testing, integration testing, and continuous integration",
+        "technicalAccuracy": 10,
+        "communicationClarity": 30,
+        "completeness": 20
+      },
+      {
+        "questionId": "q3",
+        "questionText": "You are presented with a poorly documented legacy codebase that needs to be refactored for performance improvements and to add new features. How would you approach this task, what steps would you take, and what tools or methodologies would you use to ensure a smooth transition?",
+        "answerText": "ohh i don't know",
+        "score": 30,
+        "strengths": [],
+        "weaknesses": [
+          "Lack of knowledge or unwillingness to discuss refactoring approaches"
+        ],
+        "suggestions": [
+          "Study refactoring techniques and tools, and be ready to discuss a phased approach, testing strategy, and version control"
+        ],
+        "expectedAnswer": "An approach that includes understanding the current codebase, planning a refactoring strategy, using version control, and applying a testing strategy",
+        "technicalAccuracy": 10,
+        "communicationClarity": 30,
+        "completeness": 25
+      },
+      {
+        "questionId": "q4",
+        "questionText": "You are presented with a poorly documented legacy codebase that needs to be refactored for performance improvements and to add new features. How would you approach this task, what steps would you take, and what tools or methodologies would you use to ensure a smooth transition?",
+        "answerText": "ohh i don't know",
+        "score": 30,
+        "strengths": [],
+        "weaknesses": [
+          "Repetitive answer indicates lack of preparation or knowledge"
+        ],
+        "suggestions": [
+          "Prepare answers for common technical scenarios, including how to approach legacy code refactoring"
+        ],
+        "expectedAnswer": "A structured approach to refactoring, including analysis, planning, implementation, and testing phases",
+        "technicalAccuracy": 10,
+        "communicationClarity": 30,
+        "completeness": 25
+      },
+      {
+        "questionId": "q5",
+        "questionText": "You are presented with a poorly documented legacy codebase that needs to be refactored for performance improvements and to add new features. How would you approach this task, what steps would you take, and what tools or methodologies would you use to ensure a smooth transition?",
+        "answerText": "ohh i don't know",
+        "score": 30,
+        "strengths": [],
+        "weaknesses": [
+          "Lack of specific strategies or tools mentioned for handling legacy code"
+        ],
+        "suggestions": [
+          "Familiarize with tools like refactoring plugins, static code analysis tools, and methodologies like test-driven development"
+        ],
+        "expectedAnswer": "A detailed plan including using static code analysis, refactoring tools, and implementing a test-driven development approach",
+        "technicalAccuracy": 10,
+        "communicationClarity": 30,
+        "completeness": 25
+      }
+    ],
+    "strengths": [
+      "None identified"
+    ],
+    "improvements": [
+      "Engagement, preparation, and detail in answers"
+    ],
+    "recommendations": [
+      "Review common interview questions, prepare concrete examples from past experience, and practice answering questions with detail and confidence"
+    ],
+    "statistics": {
+      "totalQuestions": 5,
+      "averageResponseLength": 10,
+      "totalInterviewTime": "0m 55s",
+      "keywordsUsed": 0,
+      "expectedKeywords": 20,
+      "confidenceLevel": "Low"
+    }
+  },
+  "timestamp": "2025-08-12T18:44:57.960Z",
+  "interviewDuration": 55,
+  "deviceInfo": {
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 Edg/139.0.0.0",
+    "platform": "\"Windows\"",
+    "language": "en-US,en;q=0.9,en-IN;q=0.8,en-GB;q=0.7"
+  },
+  "id": "interview_1755024328513_gwkzjd4s5",
+  "savedAt": "2025-08-12T18:45:28.514Z"
+}

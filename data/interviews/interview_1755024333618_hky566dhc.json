@@ -1,0 +1,173 @@
+{
+  "userId": "user_1754242210910",
+  "role": "Software Engineer",
+  "experience": "5+ years",
+  "language": "en",
+  "answers": [
+    {
+      "questionId": "1",
+      "questionText": "Can you describe a complex project you led or played a significant role in as a Software Engineer, focusing on the technologies used, challenges faced, and how you resolved them?",
+      "answerText": "no i won't",
+      "category": "Problem Solving",
+      "recordingDuration": 0,
+      "timestamp": "2025-08-12T18:44:13.877Z"
+    },
+    {
+      "questionId": "2",
+      "questionText": "How do you ensure the quality of your code when working on large, complex systems? What practices do you follow to maintain code integrity, and how do you collaborate with your team to ensure everyone adheres to these standards?",
+      "answerText": "when it doesn't shows any kind of error and no debugging issues arives",
+      "category": "Teamwork",
+      "recordingDuration": 0,
+      "timestamp": "2025-08-12T18:44:39.746Z"
+    },
+    {
+      "questionId": "3",
+      "questionText": "You are presented with a poorly documented legacy codebase that needs to be refactored for performance improvements and to add new features. How would you approach this task, what steps would you take, and what tools or methodologies would you use to ensure a smooth transition?",
+      "answerText": "ohh i don't know",
+      "category": "Technical",
+      "recordingDuration": 0,
+      "timestamp": "2025-08-12T18:44:54.505Z"
+    },
+    {
+      "questionId": "3",
+      "questionText": "You are presented with a poorly documented legacy codebase that needs to be refactored for performance improvements and to add new features. How would you approach this task, what steps would you take, and what tools or methodologies would you use to ensure a smooth transition?",
+      "answerText": "ohh i don't know",
+      "category": "Technical",
+      "recordingDuration": 0,
+      "timestamp": "2025-08-12T18:44:55.963Z"
+    },
+    {
+      "questionId": "3",
+      "questionText": "You are presented with a poorly documented legacy codebase that needs to be refactored for performance improvements and to add new features. How would you approach this task, what steps would you take, and what tools or methodologies would you use to ensure a smooth transition?",
+      "answerText": "ohh i don't know",
+      "category": "Technical",
+      "recordingDuration": 0,
+      "timestamp": "2025-08-12T18:44:57.960Z"
+    }
+  ],
+  "analysis": {
+    "overallScore": 20,
+    "breakdown": {
+      "technical": 10,
+      "communication": 25,
+      "completeness": 15,
+      "confidence": 10
+    },
+    "questionAnalysis": [
+      {
+        "questionId": "q1",
+        "questionText": "Can you describe a complex project you led or played a significant role in as a Software Engineer, focusing on the technologies used, challenges faced, and how you resolved them?",
+        "answerText": "no i won't",
+        "score": 5,
+        "strengths": [],
+        "weaknesses": [
+          "The candidate did not provide any information about a project, technologies used, challenges faced, or how they were resolved."
+        ],
+        "suggestions": [
+          "Prepare examples of projects that highlight leadership, technical skills, and problem-solving abilities."
+        ],
+        "expectedAnswer": "A detailed account of a complex project, including the role played, technologies used, challenges encountered, and solutions implemented.",
+        "technicalAccuracy": 0,
+        "communicationClarity": 5,
+        "completeness": 0
+      },
+      {
+        "questionId": "q2",
+        "questionText": "How do you ensure the quality of your code when working on large, complex systems? What practices do you follow to maintain code integrity, and how do you collaborate with your team to ensure everyone adheres to these standards?",
+        "answerText": "when it doesn't shows any kind of error and no debugging issues arise",
+        "score": 10,
+        "strengths": [],
+        "weaknesses": [
+          "The answer lacks detail about specific practices and methodologies used to ensure code quality and team collaboration."
+        ],
+        "suggestions": [
+          "Learn and articulate best practices for code quality assurance, such as code reviews, unit testing, and continuous integration."
+        ],
+        "expectedAnswer": "A detailed explanation of code quality practices, including code reviews, testing strategies, and collaboration techniques.",
+        "technicalAccuracy": 0,
+        "communicationClarity": 20,
+        "completeness": 5
+      },
+      {
+        "questionId": "q3",
+        "questionText": "You are presented with a poorly documented legacy codebase that needs to be refactored for performance improvements and to add new features. How would you approach this task, what steps would you take, and what tools or methodologies would you use to ensure a smooth transition?",
+        "answerText": "ohh i don't know",
+        "score": 0,
+        "strengths": [],
+        "weaknesses": [
+          "The answer indicates a lack of knowledge or understanding of refactoring and legacy code management."
+        ],
+        "suggestions": [
+          "Study methodologies for refactoring and managing legacy code, such as SOLID principles and design patterns."
+        ],
+        "expectedAnswer": "A detailed approach to refactoring, including analysis, planning, testing strategies, and tools for legacy code management.",
+        "technicalAccuracy": 0,
+        "communicationClarity": 0,
+        "completeness": 0
+      },
+      {
+        "questionId": "q4",
+        "questionText": "You are presented with a poorly documented legacy codebase that needs to be refactored for performance improvements and to add new features. How would you approach this task, what steps would you take, and what tools or methodologies would you use to ensure a smooth transition?",
+        "answerText": "ohh i don't know",
+        "score": 0,
+        "strengths": [],
+        "weaknesses": [
+          "The answer indicates a lack of knowledge or understanding of refactoring and legacy code management."
+        ],
+        "suggestions": [
+          "Study methodologies for refactoring and managing legacy code, such as SOLID principles and design patterns."
+        ],
+        "expectedAnswer": "A detailed approach to refactoring, including analysis, planning, testing strategies, and tools for legacy code management.",
+        "technicalAccuracy": 0,
+        "communicationClarity": 0,
+        "completeness": 0
+      },
+      {
+        "questionId": "q5",
+        "questionText": "You are presented with a poorly documented legacy codebase that needs to be refactored for performance improvements and to add new features. How would you approach this task, what steps would you take, and what tools or methodologies would you use to ensure a smooth transition?",
+        "answerText": "ohh i don't know",
+        "score": 0,
+        "strengths": [],
+        "weaknesses": [
+          "The answer indicates a lack of knowledge or understanding of refactoring and legacy code management."
+        ],
+        "suggestions": [
+          "Study methodologies for refactoring and managing legacy code, such as SOLID principles and design patterns."
+        ],
+        "expectedAnswer": "A detailed approach to refactoring, including analysis, planning, testing strategies, and tools for legacy code management.",
+        "technicalAccuracy": 0,
+        "communicationClarity": 0,
+        "completeness": 0
+      }
+    ],
+    "strengths": [],
+    "improvements": [
+      "The candidate should prepare examples of projects they have worked on to demonstrate their technical skills and problem-solving abilities.",
+      "The candidate should study and articulate best practices for code quality assurance.",
+      "The candidate should learn methodologies for refactoring and managing legacy code.",
+      "The candidate should improve their confidence in discussing technical topics."
+    ],
+    "recommendations": [
+      "Review common interview questions and practice answering them to build confidence and improve responses.",
+      "Seek mentorship or training on technical topics such as code quality practices, refactoring, and legacy code management.",
+      "Participate in coding challenges or small projects to apply and demonstrate technical skills."
+    ],
+    "statistics": {
+      "totalQuestions": 5,
+      "averageResponseLength": 32,
+      "totalInterviewTime": "0m 55s",
+      "keywordsUsed": 0,
+      "expectedKeywords": 35,
+      "confidenceLevel": "Low"
+    }
+  },
+  "timestamp": "2025-08-12T18:44:57.960Z",
+  "interviewDuration": 55,
+  "deviceInfo": {
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 Edg/139.0.0.0",
+    "platform": "\"Windows\"",
+    "language": "en-US,en;q=0.9,en-IN;q=0.8,en-GB;q=0.7"
+  },
+  "id": "interview_1755024333618_hky566dhc",
+  "savedAt": "2025-08-12T18:45:33.618Z"
+}
