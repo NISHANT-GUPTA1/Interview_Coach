@@ -2,6 +2,7 @@
 
 **Transform your interview skills with cutting-edge AI technology.** This enterprise-grade platform combines real-time speech recognition, multilingual support, and intelligent feedback to create the most comprehensive interview preparation experience available. From technical coding interviews to behavioral assessments, master every aspect of the interview process with personalized AI coaching.
 
+
 <div align="center">
 
 ![AI Interview Coach](public/placeholder-logo.png)
