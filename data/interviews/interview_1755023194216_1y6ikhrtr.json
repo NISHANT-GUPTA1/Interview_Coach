@@ -1,0 +1,118 @@
+{
+  "userId": "user_1754420483690",
+  "role": "Data Scientist",
+  "experience": "Senior",
+  "language": "ja",
+  "answers": [
+    {
+      "questionId": "1",
+      "questionText": "あなたがリーダーシップを発揮し、複雑なデータサイエンスプロジェクトをチームと共同で達成した経験について教えてください。特に、問題解決の具体的な手法や戦略について詳しく説明してください。",
+      "answerText": "never done",
+      "category": "Introduction",
+      "recordingDuration": 0,
+      "timestamp": "2025-08-12T18:25:43.672Z"
+    },
+    {
+      "questionId": "2",
+      "questionText": "特定のAIアルゴリズムを使ってどのようにデータセットを最適化し、ビジネス目標を達成しましたか？その過程で何が最大の課題であり、どのようにそれを克服しましたか？",
+      "answerText": "don't know",
+      "category": "Technical",
+      "recordingDuration": 0,
+      "timestamp": "2025-08-12T18:26:03.208Z"
+    },
+    {
+      "questionId": "3",
+      "questionText": "あなたが過去に取り組んだ最も困難なデータの問題は何でしたか？その解決策と、そのプロセスで学んだ最も重要な教訓は何でしたか？",
+      "answerText": "no",
+      "category": "Problem Solving",
+      "recordingDuration": 0,
+      "timestamp": "2025-08-12T18:26:12.647Z"
+    }
+  ],
+  "analysis": {
+    "overallScore": 30,
+    "breakdown": {
+      "technical": 20,
+      "communication": 35,
+      "completeness": 10,
+      "confidence": 25
+    },
+    "questionAnalysis": [
+      {
+        "questionId": "q1",
+        "questionText": "あなたがリーダーシップを発揮し、複雑なデータサイエンスプロジェクトをチームと共同で達成した経験について教えてください。特に、問題解決の具体的な手法や戦略について詳しく説明してください。",
+        "answerText": "never done",
+        "score": 10,
+        "strengths": [],
+        "weaknesses": [
+          "回答者が過去の経験について提供していない"
+        ],
+        "suggestions": [
+          "具体的なプロジェクト例を使用して、リーダーシップと問題解決スキルを示す"
+        ],
+        "expectedAnswer": "具体的なプロジェクトの詳細、使用したアプローチ、そしてチームと協力した方法について説明",
+        "technicalAccuracy": 10,
+        "communicationClarity": 15,
+        "completeness": 5
+      },
+      {
+        "questionId": "q2",
+        "questionText": "特定のAIアルゴリズムを使ってどのようにデータセットを最適化し、ビジネス目標を達成しましたか？その過程で何が最大の課題であり、どのようにそれを克服しましたか？",
+        "answerText": "don't know",
+        "score": 0,
+        "strengths": [],
+        "weaknesses": [
+          "テクニカルな質問に対する理解が示されていない"
+        ],
+        "suggestions": [
+          "AIアルゴリズムの使用、データ最適化の方法、そして課題への対処法についての具体的な例を提供する"
+        ],
+        "expectedAnswer": "特定のAIアルゴリズムの適用、その結果、そして課題解決法についての詳細",
+        "technicalAccuracy": 0,
+        "communicationClarity": 0,
+        "completeness": 0
+      },
+      {
+        "questionId": "q3",
+        "questionText": "あなたが過去に取り組んだ最も困難なデータの問題は何でしたか？その解決策と、そのプロセスで学んだ最も重要な教訓は何でしたか？",
+        "answerText": "no",
+        "score": 20,
+        "strengths": [],
+        "weaknesses": [
+          "質問の理解が示されず、経験や教訓が提供されていない"
+        ],
+        "suggestions": [
+          "経験と学びを示す具体的な問題について話す"
+        ],
+        "expectedAnswer": "困難なデータ問題の説明、その解決策、そして学んだ教訓",
+        "technicalAccuracy": 15,
+        "communicationClarity": 20,
+        "completeness": 25
+      }
+    ],
+    "strengths": [],
+    "improvements": [
+      "質問に対する理解と具体的な経験のシェア"
+    ],
+    "recommendations": [
+      "面接前の準備と過去のプロジェクトについての詳細な理解を深める"
+    ],
+    "statistics": {
+      "totalQuestions": 3,
+      "averageResponseLength": 5,
+      "totalInterviewTime": "0m 50s",
+      "keywordsUsed": 0,
+      "expectedKeywords": 30,
+      "confidenceLevel": "Low"
+    }
+  },
+  "timestamp": "2025-08-12T18:26:12.648Z",
+  "interviewDuration": 50,
+  "deviceInfo": {
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 Edg/139.0.0.0",
+    "platform": "\"Windows\"",
+    "language": "en-US,en;q=0.9,en-IN;q=0.8,en-GB;q=0.7"
+  },
+  "id": "interview_1755023194216_1y6ikhrtr",
+  "savedAt": "2025-08-12T18:26:34.217Z"
+}

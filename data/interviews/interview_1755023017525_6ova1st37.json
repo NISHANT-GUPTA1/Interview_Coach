@@ -1,0 +1,118 @@
+{
+  "userId": "user_1754420483690",
+  "role": "Software Engineer",
+  "experience": "2-3 years",
+  "language": "en",
+  "answers": [
+    {
+      "questionId": "1",
+      "questionText": "Can you describe a recent project where you had to debug a complex code issue? How did you approach the problem, and what was the outcome?",
+      "answerText": "no",
+      "category": "Problem Solving",
+      "recordingDuration": 0,
+      "timestamp": "2025-08-12T18:23:09.618Z"
+    },
+    {
+      "questionId": "2",
+      "questionText": "In your experience, what is the most effective way to maintain and improve the code quality in a project where multiple developers are contributing?",
+      "answerText": "mp",
+      "category": "Introduction",
+      "recordingDuration": 0,
+      "timestamp": "2025-08-12T18:23:13.042Z"
+    },
+    {
+      "questionId": "3",
+      "questionText": "You've been given a new feature to implement that requires integrating with an unfamiliar third-party API. How would you approach this task, and what steps would you take to ensure a successful integration?",
+      "answerText": "yes",
+      "category": "Problem Solving",
+      "recordingDuration": 0,
+      "timestamp": "2025-08-12T18:23:16.426Z"
+    }
+  ],
+  "analysis": {
+    "overallScore": 60,
+    "breakdown": {
+      "technical": 55,
+      "communication": 65,
+      "completeness": 50,
+      "confidence": 70
+    },
+    "questionAnalysis": [
+      {
+        "questionId": "q1",
+        "questionText": "Can you describe a recent project where you had to debug a complex code issue? How did you approach the problem, and what was the outcome?",
+        "answerText": "no",
+        "score": 45,
+        "strengths": [],
+        "weaknesses": [
+          "Failed to provide any details about a project or the debugging process."
+        ],
+        "suggestions": [
+          "Practice discussing specific scenarios where you faced challenges and how you overcame them."
+        ],
+        "expectedAnswer": "A detailed response outlining a specific project, the debugging steps taken, and the resolution.",
+        "technicalAccuracy": 0,
+        "communicationClarity": 0,
+        "completeness": 0
+      },
+      {
+        "questionId": "q2",
+        "questionText": "In your experience, what is the most effective way to maintain and improve the code quality in a project where multiple developers are contributing?",
+        "answerText": "mp",
+        "score": 50,
+        "strengths": [],
+        "weaknesses": [
+          "The answer provided does not make sense and lacks detail."
+        ],
+        "suggestions": [
+          "Prepare to discuss methodologies such as code reviews, coding standards, and version control practices that contribute to high-quality code."
+        ],
+        "expectedAnswer": "A response that includes strategies for code quality maintenance and improvement in collaborative environments.",
+        "technicalAccuracy": 0,
+        "communicationClarity": 0,
+        "completeness": 0
+      },
+      {
+        "questionId": "q3",
+        "questionText": "You've been given a new feature to implement that requires integrating with an unfamiliar third-party API. How would you approach this task, and what steps would you take to ensure a successful integration?",
+        "answerText": "yes",
+        "score": 65,
+        "strengths": [],
+        "weaknesses": [
+          "The answer provided does not address the question and lacks detail on how the candidate would approach integrating with a new API."
+        ],
+        "suggestions": [
+          "Review best practices for API integration, including reading documentation, testing, and collaboration with API providers or other developers."
+        ],
+        "expectedAnswer": "A detailed response that outlines a step-by-step approach to integrating with a new API, including research, testing, and implementation strategies.",
+        "technicalAccuracy": 0,
+        "communicationClarity": 0,
+        "completeness": 0
+      }
+    ],
+    "strengths": [],
+    "improvements": [
+      "The candidate needs to provide detailed, thoughtful responses that demonstrate technical knowledge and effective communication skills."
+    ],
+    "recommendations": [
+      "The candidate should prepare more thoroughly by reviewing common coding scenarios and ensure they can articulate their technical experiences and methodologies."
+    ],
+    "statistics": {
+      "totalQuestions": 3,
+      "averageResponseLength": 2,
+      "totalInterviewTime": "1m 16s",
+      "keywordsUsed": 0,
+      "expectedKeywords": 35,
+      "confidenceLevel": "Poor"
+    }
+  },
+  "timestamp": "2025-08-12T18:23:16.426Z",
+  "interviewDuration": 76,
+  "deviceInfo": {
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 Edg/139.0.0.0",
+    "platform": "\"Windows\"",
+    "language": "en-US,en;q=0.9,en-IN;q=0.8,en-GB;q=0.7"
+  },
+  "id": "interview_1755023017525_6ova1st37",
+  "savedAt": "2025-08-12T18:23:37.531Z"
+}

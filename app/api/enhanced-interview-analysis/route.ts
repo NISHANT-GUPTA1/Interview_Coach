@@ -28,20 +28,15 @@ export async function POST(req: NextRequest) {
       language 
     });
 
-    // Primary: Try OpenAI API
-    const openaiResult = await tryOpenAIAnalysis(body);
-    if (openaiResult.success) {
-      return NextResponse.json(openaiResult);
-    }
-
-    // Fallback 1: Try OpenRouter API
+    // Use OpenRouter API only (no OpenAI)
     const openrouterResult = await tryOpenRouterAnalysis(body);
     if (openrouterResult.success) {
+      console.log('✅ OpenRouter analysis succeeded');
       return NextResponse.json(openrouterResult);
     }
 
-    // Fallback 2: Advanced local analysis (still dynamic)
-    console.log('⚠️ Using advanced fallback analysis');
+    // Fallback: Advanced local analysis (still dynamic)
+    console.log('⚠️ OpenRouter failed, using advanced fallback analysis');
     const fallbackAnalysis = await createAdvancedAnalysis(body);
     
     return NextResponse.json({
@@ -123,6 +118,8 @@ async function tryOpenRouterAnalysis(data: AnalysisRequest) {
   try {
     const analysisPrompt = createAnalysisPrompt(data);
     
+    console.log('🔑 OpenRouter API Key available, attempting analysis...');
+    
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -132,11 +129,11 @@ async function tryOpenRouterAnalysis(data: AnalysisRequest) {
         'X-Title': 'AI Interview Coach'
       },
       body: JSON.stringify({
-        model: 'anthropic/claude-3.5-sonnet',
+        model: process.env.OPENROUTER_MODEL || 'qwen/qwen-2-72b-instruct', // Use cheaper model
         messages: [
           {
             role: 'system',
-            content: 'You are an expert technical interviewer and career coach. Analyze interviews comprehensively and provide actionable feedback.'
+            content: 'You are an expert technical interviewer and career coach. Analyze interviews comprehensively and provide actionable feedback in JSON format.'
           },
           {
             role: 'user',
@@ -149,6 +146,15 @@ async function tryOpenRouterAnalysis(data: AnalysisRequest) {
     });
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error('OpenRouter API error details:', errorText);
+      
+      if (response.status === 402) {
+        console.error('❌ OpenRouter API: Payment Required (402) - Insufficient credits or billing issue');
+      } else {
+        console.error(`❌ OpenRouter API error: ${response.status} - ${errorText}`);
+      }
+      
       throw new Error(`OpenRouter API error: ${response.status}`);
     }
 

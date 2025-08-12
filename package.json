@@ -9,7 +9,8 @@
     "dev-https-simple": "next dev --experimental-https --experimental-https-key ./localhost+2-key.pem --experimental-https-cert ./localhost+2.pem",
     "lint": "next lint",
     "start": "next start",
-    "start-https": "next start --experimental-https --experimental-https-key ./localhost+2-key.pem --experimental-https-cert ./localhost+2.pem"
+    "start-https": "next start --experimental-https --experimental-https-key ./localhost+2-key.pem --experimental-https-cert ./localhost+2.pem",
+    "test-apis": "node test-apis.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",

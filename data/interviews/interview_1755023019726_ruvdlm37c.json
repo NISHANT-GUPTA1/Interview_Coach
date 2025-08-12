@@ -1,0 +1,118 @@
+{
+  "userId": "user_1754420483690",
+  "role": "Software Engineer",
+  "experience": "2-3 years",
+  "language": "en",
+  "answers": [
+    {
+      "questionId": "1",
+      "questionText": "Can you describe a recent project where you had to debug a complex code issue? How did you approach the problem, and what was the outcome?",
+      "answerText": "no",
+      "category": "Problem Solving",
+      "recordingDuration": 0,
+      "timestamp": "2025-08-12T18:23:09.618Z"
+    },
+    {
+      "questionId": "2",
+      "questionText": "In your experience, what is the most effective way to maintain and improve the code quality in a project where multiple developers are contributing?",
+      "answerText": "mp",
+      "category": "Introduction",
+      "recordingDuration": 0,
+      "timestamp": "2025-08-12T18:23:13.042Z"
+    },
+    {
+      "questionId": "3",
+      "questionText": "You've been given a new feature to implement that requires integrating with an unfamiliar third-party API. How would you approach this task, and what steps would you take to ensure a successful integration?",
+      "answerText": "yes",
+      "category": "Problem Solving",
+      "recordingDuration": 0,
+      "timestamp": "2025-08-12T18:23:16.426Z"
+    }
+  ],
+  "analysis": {
+    "overallScore": 60,
+    "breakdown": {
+      "technical": 55,
+      "communication": 65,
+      "completeness": 50,
+      "confidence": 70
+    },
+    "questionAnalysis": [
+      {
+        "questionId": "q1",
+        "questionText": "Can you describe a recent project where you had to debug a complex code issue? How did you approach the problem, and what was the outcome?",
+        "answerText": "no",
+        "score": 30,
+        "strengths": [],
+        "weaknesses": [
+          "Failed to provide any details or insights regarding problem-solving abilities."
+        ],
+        "suggestions": [
+          "Prepare for next time by thinking of a specific scenario where you faced a complex debugging challenge and describe the steps you took to resolve it."
+        ],
+        "expectedAnswer": "A detailed narrative of a complex debugging scenario, including the identification of the issue, the debugging tools or methods used, and the outcome.",
+        "technicalAccuracy": 25,
+        "communicationClarity": 35,
+        "completeness": 20
+      },
+      {
+        "questionId": "q2",
+        "questionText": "In your experience, what is the most effective way to maintain and improve the code quality in a project where multiple developers are contributing?",
+        "answerText": "mp",
+        "score": 50,
+        "strengths": [],
+        "weaknesses": [
+          "The answer provided is not clear and does not address the question about maintaining code quality in a team setting."
+        ],
+        "suggestions": [
+          "Reflect on your experience and provide a clear answer regarding best practices for code quality, such as code reviews, coding standards, and continuous integration."
+        ],
+        "expectedAnswer": "An explanation of strategies for maintaining code quality in a collaborative environment, such as regular code reviews, adherence to coding standards, and the use of automated testing.",
+        "technicalAccuracy": 45,
+        "communicationClarity": 55,
+        "completeness": 50
+      },
+      {
+        "questionId": "q3",
+        "questionText": "You've been given a new feature to implement that requires integrating with an unfamiliar third-party API. How would you approach this task, and what steps would you take to ensure a successful integration?",
+        "answerText": "yes",
+        "score": 40,
+        "strengths": [],
+        "weaknesses": [
+          "The answer is too brief and does not outline a strategy for approaching the integration of a new API."
+        ],
+        "suggestions": [
+          "Prepare a structured approach for dealing with new APIs, including researching documentation, testing with sample data, and validating integration through unit tests."
+        ],
+        "expectedAnswer": "A step-by-step plan for integrating a new API, starting from documentation review, environment setup, testing, and integration into the existing codebase.",
+        "technicalAccuracy": 35,
+        "communicationClarity": 45,
+        "completeness": 40
+      }
+    ],
+    "strengths": [],
+    "improvements": [
+      "The candidate needs to improve on providing detailed and relevant answers to technical questions."
+    ],
+    "recommendations": [
+      "The candidate should prepare more detailed responses to common interview questions, focusing on specific examples from their experience."
+    ],
+    "statistics": {
+      "totalQuestions": 3,
+      "averageResponseLength": 3,
+      "totalInterviewTime": "1m 16s",
+      "keywordsUsed": 3,
+      "expectedKeywords": 20,
+      "confidenceLevel": "Low"
+    }
+  },
+  "timestamp": "2025-08-12T18:23:16.426Z",
+  "interviewDuration": 76,
+  "deviceInfo": {
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 Edg/139.0.0.0",
+    "platform": "\"Windows\"",
+    "language": "en-US,en;q=0.9,en-IN;q=0.8,en-GB;q=0.7"
+  },
+  "id": "interview_1755023019726_ruvdlm37c",
+  "savedAt": "2025-08-12T18:23:39.726Z"
+}

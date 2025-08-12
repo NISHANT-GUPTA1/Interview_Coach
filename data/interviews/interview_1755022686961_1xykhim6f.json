@@ -1,0 +1,138 @@
+{
+  "userId": "user_1754420483690",
+  "role": "Software Engineer",
+  "experience": "2-3 years",
+  "language": "en",
+  "answers": [
+    {
+      "questionId": "1",
+      "questionText": "Can you describe a project you worked on where you had to solve a complex technical issue? How did you approach the problem and what was the outcome?",
+      "answerText": "scmnjkana",
+      "category": "Problem Solving",
+      "recordingDuration": 2,
+      "timestamp": "2025-08-12T18:17:44.599Z"
+    },
+    {
+      "questionId": "2",
+      "questionText": "In your previous experience, how have you contributed to improving code quality and maintainability within your team's projects?",
+      "answerText": "How have you been children?don;t acaojicoa",
+      "category": "Introduction",
+      "recordingDuration": 10,
+      "timestamp": "2025-08-12T18:17:54.917Z"
+    },
+    {
+      "questionId": "3",
+      "questionText": "If given a new feature to implement with a tight deadline, how would you plan and prioritize your tasks to ensure successful delivery?",
+      "answerText": "caniocac",
+      "category": "Problem Solving",
+      "recordingDuration": 7,
+      "timestamp": "2025-08-12T18:18:01.742Z"
+    }
+  ],
+  "analysis": {
+    "overallScore": 50,
+    "breakdown": {
+      "technical": 50,
+      "communication": 53,
+      "completeness": 49,
+      "confidence": 55
+    },
+    "questionAnalysis": [
+      {
+        "questionId": "1",
+        "questionText": "Can you describe a project you worked on where you had to solve a complex technical issue? How did you approach the problem and what was the outcome?",
+        "answerText": "scmnjkana",
+        "score": 50,
+        "strengths": [],
+        "weaknesses": [
+          "Response too brief, needs more detail",
+          "Add more specific examples",
+          "Add measurable outcomes"
+        ],
+        "suggestions": [
+          "Expand your answer with more detail",
+          "Include a specific example from your experience",
+          "Add numbers or metrics to quantify your achievements"
+        ],
+        "expectedAnswer": "For this Problem Solving question, ideal answers should include specific examples, metrics, and clear problem-solving approaches.",
+        "technicalAccuracy": 49.3292265586077,
+        "communicationClarity": 54.52065491326013,
+        "completeness": 47.14624365615729
+      },
+      {
+        "questionId": "2",
+        "questionText": "In your previous experience, how have you contributed to improving code quality and maintainability within your team's projects?",
+        "answerText": "How have you been children?don;t acaojicoa",
+        "score": 50,
+        "strengths": [],
+        "weaknesses": [
+          "Response too brief, needs more detail",
+          "Add more specific examples",
+          "Add measurable outcomes"
+        ],
+        "suggestions": [
+          "Expand your answer with more detail",
+          "Include a specific example from your experience",
+          "Add numbers or metrics to quantify your achievements"
+        ],
+        "expectedAnswer": "For this Introduction question, ideal answers should include specific examples, metrics, and clear problem-solving approaches.",
+        "technicalAccuracy": 46.06512173106325,
+        "communicationClarity": 49.638691374380564,
+        "completeness": 49.395753280486325
+      },
+      {
+        "questionId": "3",
+        "questionText": "If given a new feature to implement with a tight deadline, how would you plan and prioritize your tasks to ensure successful delivery?",
+        "answerText": "caniocac",
+        "score": 50,
+        "strengths": [],
+        "weaknesses": [
+          "Response too brief, needs more detail",
+          "Add more specific examples",
+          "Add measurable outcomes"
+        ],
+        "suggestions": [
+          "Expand your answer with more detail",
+          "Include a specific example from your experience",
+          "Add numbers or metrics to quantify your achievements"
+        ],
+        "expectedAnswer": "For this Problem Solving question, ideal answers should include specific examples, metrics, and clear problem-solving approaches.",
+        "technicalAccuracy": 53.16302399473103,
+        "communicationClarity": 54.47601714592375,
+        "completeness": 51.62102883246384
+      }
+    ],
+    "strengths": [
+      "Completed the interview"
+    ],
+    "improvements": [
+      "Improve overall response quality and depth",
+      "Provide more detailed and comprehensive answers",
+      "Focus on improving performance in weaker areas",
+      "Include more specific examples from experience"
+    ],
+    "recommendations": [
+      "Focus on specific technical skills required for Software Engineer",
+      "Conduct more mock interviews for practice",
+      "Work on providing more comprehensive explanations",
+      "Dedicate extra preparation time to weaker areas"
+    ],
+    "statistics": {
+      "totalQuestions": 3,
+      "averageResponseLength": 20,
+      "totalInterviewTime": "0m 34s",
+      "keywordsUsed": 9,
+      "expectedKeywords": 15,
+      "confidenceLevel": "Needs Improvement"
+    }
+  },
+  "timestamp": "2025-08-12T18:18:01.742Z",
+  "interviewDuration": 34,
+  "deviceInfo": {
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 Edg/139.0.0.0",
+    "platform": "\"Windows\"",
+    "language": "en-US,en;q=0.9,en-IN;q=0.8,en-GB;q=0.7"
+  },
+  "id": "interview_1755022686961_1xykhim6f",
+  "savedAt": "2025-08-12T18:18:06.961Z"
+}

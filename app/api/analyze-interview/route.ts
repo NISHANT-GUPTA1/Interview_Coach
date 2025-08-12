@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { spawn } from 'child_process';
-import path from 'path';
 
 interface InterviewAnswer {
   questionId: string;
@@ -30,99 +28,44 @@ export async function POST(req: NextRequest) {
       language 
     });
 
-    // Prepare input data for Python AI analysis script
-    const inputData = JSON.stringify({ 
-      answers, 
-      role, 
-      experience, 
-      language, 
-      interviewDuration 
-    });
+    // Check for API keys
+    const openaiKey = process.env.OPENAI_API_KEY;
+    const openrouterKey = process.env.OPENROUTER_API_KEY;
+    
+    // Try AI analysis first
+    if (openaiKey && !openaiKey.includes('dummy')) {
+      try {
+        const analysis = await generateOpenAIAnalysis(answers, role, experience, language, openaiKey);
+        return NextResponse.json({
+          success: true,
+          analysis,
+          provider: 'OpenAI'
+        });
+      } catch (error) {
+        console.error('OpenAI analysis failed:', error);
+      }
+    }
 
-    return new Promise((resolve) => {
-      // Check if we should use OpenAI instead of OpenRouter
-      const useOpenAI = process.env.USE_OPENAI_INSTEAD === 'true';
-      
-      const pythonProcess = spawn('python', [
-        path.join(process.cwd(), 'lib', 'ai_interview_analyzer.py')
-      ], {
-        stdio: ['pipe', 'pipe', 'pipe'],
-        shell: true,
-        env: {
-          ...process.env,
-          // Pass the appropriate API configuration
-          ...(useOpenAI ? {
-            OPENAI_API_KEY: process.env.OPENAI_API_KEY,
-            USE_OPENAI_INSTEAD: 'true'
-          } : {
-            OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,
-            OPENROUTER_MODEL: process.env.OPENROUTER_MODEL,
-            OPENROUTER_BASE_URL: process.env.OPENROUTER_BASE_URL
-          })
-        }
-      });
+    if (openrouterKey && !openrouterKey.includes('dummy')) {
+      try {
+        const analysis = await generateOpenRouterAnalysis(answers, role, experience, language, openrouterKey);
+        return NextResponse.json({
+          success: true,
+          analysis,
+          provider: 'OpenRouter'
+        });
+      } catch (error) {
+        console.error('OpenRouter analysis failed:', error);
+      }
+    }
 
-      let outputData = '';
-      let errorData = '';
-
-      // Send input to Python script
-      pythonProcess.stdin?.write(inputData);
-      pythonProcess.stdin?.end();
-
-      pythonProcess.stdout?.on('data', (data) => {
-        outputData += data.toString();
-      });
-
-      pythonProcess.stderr?.on('data', (data) => {
-        const errorText = data.toString();
-        console.log('Python stderr:', errorText);
-        errorData += errorText;
-      });
-
-      pythonProcess.on('close', (code) => {
-        console.log(`Python process exited with code: ${code}`);
-        
-        if (code === 0 && outputData.trim()) {
-          try {
-            const analysisResult = JSON.parse(outputData.trim());
-            console.log('✅ AI Analysis successful');
-            
-            resolve(NextResponse.json({
-              success: true,
-              analysis: analysisResult
-            }));
-          } catch (parseError) {
-            console.error('❌ Error parsing AI analysis result:', parseError);
-            console.log('Raw output:', outputData);
-            
-            // Return fallback analysis
-            resolve(NextResponse.json({
-              success: false,
-              error: 'Failed to parse AI analysis',
-              fallback: generateFallbackAnalysis(answers, role, experience)
-            }));
-          }
-        } else {
-          console.error('❌ AI Analysis failed:', errorData);
-          
-          // Return fallback analysis
-          resolve(NextResponse.json({
-            success: false,
-            error: 'AI analysis process failed',
-            fallback: generateFallbackAnalysis(answers, role, experience)
-          }));
-        }
-      });
-
-      // Handle process errors
-      pythonProcess.on('error', (error) => {
-        console.error('❌ Python process error:', error);
-        resolve(NextResponse.json({
-          success: false,
-          error: 'Failed to start analysis process',
-          fallback: generateFallbackAnalysis(answers, role, experience)
-        }));
-      });
+    // Fallback to manual analysis
+    console.log('🔄 Using fallback analysis');
+    const fallbackAnalysis = generateFallbackAnalysis(answers, role, experience);
+    return NextResponse.json({
+      success: true,
+      analysis: fallbackAnalysis,
+      provider: 'Fallback'
     });
 
   } catch (error) {
@@ -132,6 +75,119 @@ export async function POST(req: NextRequest) {
       error: 'Internal server error',
       fallback: generateFallbackAnalysis([], 'Software Engineer', 'Entry Level')
     }, { status: 500 });
+  }
+}
+
+async function generateOpenAIAnalysis(
+  answers: InterviewAnswer[], 
+  role: string, 
+  experience: string, 
+  language: string,
+  apiKey: string
+) {
+  const prompt = `Analyze this interview performance for a ${role} position (${experience} level):
+
+${answers.map((a, i) => `Question ${i+1}: ${a.questionText}\nAnswer: ${a.answerText}\n`).join('\n')}
+
+Provide detailed analysis including:
+1. Overall score (0-100)
+2. Individual question scores
+3. Strengths and improvements
+4. Specific recommendations
+
+Respond in JSON format.`;
+
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'gpt-4',
+      messages: [
+        {
+          role: 'system',
+          content: `You are an expert interview coach. Analyze interview performance and provide constructive feedback.`
+        },
+        {
+          role: 'user',
+          content: prompt
+        }
+      ],
+      max_tokens: 2000,
+      temperature: 0.7,
+      response_format: { type: 'json_object' }
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`OpenAI API error: ${response.status}`);
+  }
+
+  const data = await response.json();
+  const content = data.choices[0].message.content;
+  return JSON.parse(content);
+}
+
+async function generateOpenRouterAnalysis(
+  answers: InterviewAnswer[], 
+  role: string, 
+  experience: string, 
+  language: string,
+  apiKey: string
+) {
+  const prompt = `Analyze this interview performance for a ${role} position (${experience} level):
+
+${answers.map((a, i) => `Question ${i+1}: ${a.questionText}\nAnswer: ${a.answerText}\n`).join('\n')}
+
+Provide detailed analysis including:
+1. Overall score (0-100)
+2. Individual question scores
+3. Strengths and improvements
+4. Specific recommendations
+
+Respond in JSON format.`;
+
+  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: process.env.OPENROUTER_MODEL || 'qwen/qwen-2-72b-instruct',
+      messages: [
+        {
+          role: 'system',
+          content: `You are an expert interview coach. Analyze interview performance and provide constructive feedback.`
+        },
+        {
+          role: 'user',
+          content: prompt
+        }
+      ],
+      max_tokens: 2000,
+      temperature: 0.7,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`OpenRouter API error: ${response.status}`);
+  }
+
+  const data = await response.json();
+  const content = data.choices[0].message.content;
+  
+  try {
+    return JSON.parse(content);
+  } catch (error) {
+    // If parsing fails, create structured response
+    return {
+      overallScore: 75,
+      analysis: content,
+      provider: 'OpenRouter'
+    };
   }
 }
 
