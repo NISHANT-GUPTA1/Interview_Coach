@@ -30,6 +30,12 @@ yarn-error.log*
 test-openrouter*.py
 get-new-openrouter-key.py
 *api-key*.py
+test-openai-key.js
+troubleshoot-with-keys.js
+
+# Interview data (contains user data)
+/data/interviews/
+/data/sessions/
 
 # Python cache and environment
 __pycache__/
@@ -49,6 +55,12 @@ env/
 *.p12
 localhost+*
 mkcert.exe
+
+# Security and deployment docs with sensitive data
+QUICK_FIX.md
+AI_INTEGRATION_COMPLETE.md
+DEPLOYMENT_GUIDE.md
+NETLIFY_SECURITY.md
 
 # vercel
 .vercel
