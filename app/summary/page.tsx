@@ -167,40 +167,78 @@ export default function SummaryPage() {
 
   const loadInterviewData = async () => {
     try {
-      // ONLY load actual interview data - no demo fallback
-      const storedData = localStorage.getItem('interviewData')
+      // First try to get interview ID from URL params
+      const interviewId = searchParams.get('interviewId');
+      if (interviewId) {
+        console.log('📊 Loading interview by ID:', interviewId);
+        await loadInterviewById(interviewId);
+        return;
+      }
+
+      // Then try localStorage for recent interview
+      const storedData = localStorage.getItem('interviewData');
       if (storedData) {
-        const interviewData = JSON.parse(storedData)
-        console.log('📊 Loading real interview data:', interviewData)
+        const interviewData = JSON.parse(storedData);
+        console.log('📊 Loading interview from localStorage:', interviewData);
         
         // Validate we have actual interview answers
         if (interviewData.answers && interviewData.answers.length > 0) {
-          await analyzeInterview(interviewData)
+          await analyzeInterview(interviewData);
         } else {
-          setError('No interview answers found. Please complete an interview first.')
-          setIsLoading(false)
+          setError('No interview answers found. Please complete an interview first.');
+          setIsLoading(false);
         }
       } else {
         // Try URL params as backup
-        const answersParam = searchParams.get('answers')
+        const answersParam = searchParams.get('answers');
         if (answersParam) {
-          const interviewData = JSON.parse(decodeURIComponent(answersParam))
+          const interviewData = JSON.parse(decodeURIComponent(answersParam));
           if (interviewData.answers && interviewData.answers.length > 0) {
-            await analyzeInterview(interviewData)
+            await analyzeInterview(interviewData);
           } else {
-            setError('No valid interview data found.')
-            setIsLoading(false)
+            setError('No valid interview data found.');
+            setIsLoading(false);
           }
         } else {
           // No interview data available
-          setError('No interview data found. Please complete an interview first.')
-          setIsLoading(false)
+          setError('No interview data found. Please complete an interview first.');
+          setIsLoading(false);
         }
       }
     } catch (err) {
-      console.error('❌ Error loading interview data:', err)
-      setError('Failed to load interview data. Please try again.')
-      setIsLoading(false)
+      console.error('❌ Error loading interview data:', err);
+      setError('Failed to load interview data. Please try again.');
+      setIsLoading(false);
+    }
+  }
+
+  const loadInterviewById = async (interviewId: string) => {
+    try {
+      const response = await fetch(`/api/interview-database?action=get&interviewId=${interviewId}`);
+      const result = await response.json();
+
+      if (result.success && result.interview) {
+        const interview = result.interview;
+        console.log('✅ Interview loaded from database:', interview.language || 'en');
+        
+        // If analysis already exists, use it
+        if (interview.analysis) {
+          setAnalysis(interview.analysis);
+          setIsLoading(false);
+          console.log('✅ Using existing analysis from database');
+        } else {
+          // Analyze the interview
+          await analyzeInterview(interview);
+        }
+      } else {
+        console.error('❌ Interview not found in database:', result.error);
+        setError(result.error || 'Interview not found');
+        setIsLoading(false);
+      }
+    } catch (error) {
+      console.error('❌ Failed to load interview from database:', error);
+      setError('Failed to load interview data from database');
+      setIsLoading(false);
     }
   }
 
@@ -229,6 +267,7 @@ export default function SummaryPage() {
       }
 
       // Try enhanced AI analysis first
+      console.log('🚀 Attempting enhanced multilingual analysis...');
       const response = await fetch('/api/enhanced-interview-analysis', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -243,21 +282,41 @@ export default function SummaryPage() {
       console.log('✅ Enhanced AI Analysis result:', result)
 
       if (result.success && result.analysis) {
-        // Use enhanced AI analysis
-        setAnalysis(result.analysis)
-        console.log(`✅ Using ${result.source} AI analysis based on actual interview`)
+        // Validate that the analysis is in the correct language
+        const analysisText = JSON.stringify(result.analysis);
+        let isCorrectLanguage = true;
         
-        // Save analysis to database
-        await saveAnalysisToDatabase(interviewData, result.analysis)
+        if (language === 'hi') {
+          isCorrectLanguage = analysisText.includes('स') || analysisText.includes('प्र') || analysisText.includes('अ');
+          if (!isCorrectLanguage) {
+            console.warn('⚠️ Analysis not in Hindi, trying fallback...');
+          }
+        } else if (language === 'es') {
+          isCorrectLanguage = analysisText.includes('ción') || analysisText.includes('ente') || analysisText.includes('análisis');
+          if (!isCorrectLanguage) {
+            console.warn('⚠️ Analysis not in Spanish, trying fallback...');
+          }
+        }
+        
+        if (isCorrectLanguage) {
+          // Use enhanced AI analysis
+          setAnalysis(result.analysis)
+          console.log(`✅ Using ${result.source} AI analysis in ${language} language`)
+          
+          // Save analysis to database
+          await saveAnalysisToDatabase(interviewData, result.analysis)
+        } else {
+          throw new Error('Analysis language mismatch')
+        }
       } else {
         throw new Error('Enhanced analysis failed')
       }
     } catch (err) {
       console.error('❌ Analysis error:', err)
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred'
-      setError(`AI analysis failed: ${errorMessage}`)
+      console.log(`🔄 Falling back to local analysis for language: ${interviewData.language}`)
       
-      // Create basic analysis from real data as last resort
+      // Create language-specific basic analysis as last resort
       const basicAnalysis = await createDynamicAnalysis(interviewData)
       setAnalysis(basicAnalysis)
     } finally {

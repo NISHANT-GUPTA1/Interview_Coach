@@ -55,11 +55,12 @@ export class MultilanguageSpeechService {
     'as': 'as-IN',    // Assamese
     'ur': 'ur-PK',    // Urdu
     'ne': 'ne-NP',    // Nepali
-    'si': 'si-LK'     // Sinhala
+    'si': 'si-LK',    // Sinhala
+    'my': 'my-MM'     // Burmese/Myanmar
   };
 
   // Indian languages list for special handling
-  private indianLanguages = ['hi', 'bn', 'te', 'ta', 'mr', 'gu', 'kn', 'ml', 'pa', 'or', 'as', 'ur', 'ne', 'si'];
+  private indianLanguages = ['hi', 'bn', 'te', 'ta', 'mr', 'gu', 'kn', 'ml', 'pa', 'or', 'as', 'ur', 'ne', 'si', 'my'];
 
   constructor() {
     if (typeof window !== 'undefined') {
@@ -427,29 +428,30 @@ export class MultilanguageSpeechService {
 
         // Wait for voices and select best one
         const voices = await this.waitForVoices();
+        console.log(`🔍 Available voices for ${lang}:`, voices.length);
+        
+        // Debug: Log some available voices for debugging
+        if (voices.length > 0) {
+          const relevantVoices = voices.filter(v => 
+            v.lang.includes(lang) || 
+            v.lang.startsWith(lang.split('-')[0]) || 
+            v.name.toLowerCase().includes(lang)
+          );
+          console.log(`🎯 Relevant voices for ${lang}:`, relevantVoices.map(v => `${v.name} (${v.lang})`));
+        }
+        
         const preferredVoice = this.findBestVoice(voices, lang);
         
         if (preferredVoice) {
           utterance.voice = preferredVoice;
-          console.log(`🗣️ Speaking in ${lang} using voice: ${preferredVoice.name}`);
+          console.log(`🗣️ Speaking in ${lang} using voice: ${preferredVoice.name} (${preferredVoice.lang})`);
         } else {
-          console.log(`🗣️ Speaking in ${lang} using default voice (no specific voice found)`);
+          console.warn(`⚠️ No specific voice found for ${lang}, using default voice`);
+          console.log(`🔍 All available voices:`, voices.map(v => `${v.name} (${v.lang})`).slice(0, 10));
         }
 
         utterance.onstart = () => {
           console.log(`🎙️ Started speaking in ${lang}`);
-        };
-
-        utterance.onend = () => {
-          console.log(`✅ Speech synthesis completed for ${lang}`);
-          if (onComplete) onComplete();
-          resolve();
-        };
-
-        utterance.onerror = (error) => {
-          console.error(`❌ Speech synthesis error for ${lang}:`, error);
-          if (onComplete) onComplete(); // Still call completion to avoid hanging UI
-          reject(error);
         };
 
         // Ensure speech synthesis is ready
@@ -460,15 +462,30 @@ export class MultilanguageSpeechService {
         // Start speaking
         this.synthesis.speak(utterance);
         
-        // Add a timeout to prevent hanging
-        setTimeout(() => {
+        // Add a timeout to prevent hanging - increased for longer questions
+        const timeoutId = setTimeout(() => {
           if (this.synthesis && this.synthesis.speaking) {
-            console.log('⏰ Speech synthesis timeout, cancelling...');
+            console.log('⏰ Speech synthesis timeout after 60 seconds, cancelling...');
             this.synthesis.cancel();
             if (onComplete) onComplete();
             reject('Speech synthesis timeout');
           }
-        }, 10000); // 10 second timeout (reduced from 30)
+        }, 60000); // 60 second timeout for longer questions
+        
+        // Clear timeout when speech ends normally
+        utterance.onend = () => {
+          clearTimeout(timeoutId);
+          console.log(`✅ Speech synthesis completed for ${lang}`);
+          if (onComplete) onComplete();
+          resolve();
+        };
+
+        utterance.onerror = (error) => {
+          clearTimeout(timeoutId);
+          console.error(`❌ Speech synthesis error for ${lang}:`, error);
+          if (onComplete) onComplete(); // Still call completion to avoid hanging UI
+          reject(error);
+        };
         
       } catch (error) {
         console.error('Failed to speak:', error);
@@ -550,19 +567,51 @@ export class MultilanguageSpeechService {
     if (this.indianLanguages.includes(languageCode)) {
       console.log(`🇮🇳 Finding voice for Indian language: ${languageCode} -> ${targetLang}`);
       
-      // Priority for Indian languages
+      // Special voice patterns for specific languages
+      const languageSpecificPatterns: { [key: string]: string[] } = {
+        'pa': ['punjabi', 'pa-', 'pa_'],
+        'hi': ['hindi', 'hi-', 'hi_'],
+        'bn': ['bengali', 'bangla', 'bn-', 'bn_'],
+        'ta': ['tamil', 'ta-', 'ta_'],
+        'te': ['telugu', 'te-', 'te_'],
+        'kn': ['kannada', 'kn-', 'kn_'],
+        'ml': ['malayalam', 'ml-', 'ml_'],
+        'ur': ['urdu', 'ur-', 'ur_'],
+        'ne': ['nepali', 'ne-', 'ne_'],
+        'gu': ['gujarati', 'gu-', 'gu_'],
+        'mr': ['marathi', 'mr-', 'mr_']
+      };
+      
+      const patterns = languageSpecificPatterns[languageCode] || [];
+      
+      // Priority for Indian languages with specific pattern matching
       const indianVoicePriorities = [
-        (v: SpeechSynthesisVoice) => v.lang === targetLang && (v.name.toLowerCase().includes('indian') || v.name.toLowerCase().includes('hindi') || v.name.toLowerCase().includes('bengali')),
-        (v: SpeechSynthesisVoice) => v.lang === targetLang && v.name.toLowerCase().includes('google'),
-        (v: SpeechSynthesisVoice) => v.lang === targetLang && v.name.toLowerCase().includes('microsoft'),
+        // 1. Exact language match with specific language name
+        (v: SpeechSynthesisVoice) => v.lang === targetLang && patterns.some(pattern => 
+          v.name.toLowerCase().includes(pattern.toLowerCase())),
+        // 2. Exact language match with Indian-specific keywords
+        (v: SpeechSynthesisVoice) => v.lang === targetLang && (
+          v.name.toLowerCase().includes('indian') || 
+          v.name.toLowerCase().includes('india') || 
+          v.name.toLowerCase().includes('भारत')),
+        // 3. Exact language match with quality indicators
+        (v: SpeechSynthesisVoice) => v.lang === targetLang && (
+          v.name.toLowerCase().includes('google') || 
+          v.name.toLowerCase().includes('microsoft') || 
+          v.name.toLowerCase().includes('neural')),
+        // 4. Any exact language match
         (v: SpeechSynthesisVoice) => v.lang === targetLang,
+        // 5. Language prefix match
         (v: SpeechSynthesisVoice) => v.lang.startsWith(langPrefix),
+        // 6. Fallback to any voice with language pattern in name
+        (v: SpeechSynthesisVoice) => patterns.some(pattern => 
+          v.name.toLowerCase().includes(pattern.toLowerCase()))
       ];
 
       for (const priority of indianVoicePriorities) {
         const voice = voices.find(priority);
         if (voice) {
-          console.log(`✅ Selected Indian voice: ${voice.name} (${voice.lang})`);
+          console.log(`✅ Selected Indian voice: ${voice.name} (${voice.lang}) for ${languageCode}`);
           return voice;
         }
       }

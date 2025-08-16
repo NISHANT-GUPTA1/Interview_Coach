@@ -60,11 +60,19 @@ class InterviewDatabase {
     const filePath = path.join(this.dataDir, `${interviewId}.json`);
     
     if (!fs.existsSync(filePath)) {
+      console.log(`❌ Interview file not found: ${interviewId}`);
       return null;
     }
 
-    const data = fs.readFileSync(filePath, 'utf8');
-    return JSON.parse(data);
+    try {
+      const data = fs.readFileSync(filePath, 'utf8');
+      const interview = JSON.parse(data);
+      console.log(`✅ Interview found: ${interviewId}, Language: ${interview.language || 'en'}`);
+      return interview;
+    } catch (error) {
+      console.error(`❌ Error reading interview ${interviewId}:`, error);
+      return null;
+    }
   }
 
   async updateInterviewAnalysis(interviewId: string, analysis: any): Promise<boolean> {
@@ -90,13 +98,18 @@ class InterviewDatabase {
 
     for (const file of files) {
       if (file.endsWith('.json')) {
-        const data = JSON.parse(fs.readFileSync(path.join(this.dataDir, file), 'utf8'));
-        if (data.userId === userId) {
-          interviews.push(data);
+        try {
+          const data = JSON.parse(fs.readFileSync(path.join(this.dataDir, file), 'utf8'));
+          if (data.userId === userId) {
+            interviews.push(data);
+          }
+        } catch (error) {
+          console.warn(`⚠️ Skipping corrupted interview file: ${file}`, error);
         }
       }
     }
 
+    console.log(`✅ Found ${interviews.length} interviews for user ${userId}`);
     return interviews.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
   }
 

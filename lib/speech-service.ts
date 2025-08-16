@@ -249,63 +249,130 @@ export class SpeechService {
       utterance.pitch = 1.0
       utterance.volume = 0.9
 
-      // Set language
-      const ttsLang = (this.ttsVoiceMap as any)[language] || (this.languageMap as any)[language] || 'en-US'
+      // Enhanced language mapping with fallbacks
+      const ttsLang = this.getTTSLanguage(language)
       utterance.lang = ttsLang
+
+      console.log(`🗣️ Attempting to speak in ${language} (${ttsLang}): "${text.substring(0, 50)}..."`)
 
       // Find the best voice for the language
       const voices = this.synthesis.getVoices()
+      console.log(`📢 Available voices for ${ttsLang}:`, voices.filter(v => v.lang.toLowerCase().startsWith(ttsLang.split('-')[0])).map(v => v.name))
+      
       const preferredVoice = this.findBestVoice(voices, language)
       
       if (preferredVoice) {
         utterance.voice = preferredVoice
-        console.log('Using voice:', preferredVoice.name, 'for language:', preferredVoice.lang)
+        console.log('✅ Using voice:', preferredVoice.name, 'for language:', preferredVoice.lang)
       } else {
-        console.log('Using default voice for language:', ttsLang)
+        console.log('⚠️ No specific voice found, using default for language:', ttsLang)
+        // For regional languages, try to find any voice that matches the base language
+        const baseLanguage = ttsLang.split('-')[0]
+        const fallbackVoice = voices.find(v => v.lang.toLowerCase().startsWith(baseLanguage))
+        if (fallbackVoice) {
+          utterance.voice = fallbackVoice
+          console.log('🔄 Using fallback voice:', fallbackVoice.name, 'for', fallbackVoice.lang)
+        }
       }
 
       utterance.onend = () => {
-        console.log('Speech synthesis completed')
+        console.log('✅ Speech synthesis completed for', language)
         resolve()
       }
 
       utterance.onerror = (error) => {
-        console.error('Speech synthesis error:', error)
+        console.error('❌ Speech synthesis error for', language, ':', error)
         reject(error)
+      }
+
+      utterance.onstart = () => {
+        console.log('🎙️ Started speaking in', language, ':', ttsLang)
       }
 
       try {
         this.synthesis.speak(utterance)
       } catch (error) {
-        console.error('Failed to speak:', error)
+        console.error('❌ Failed to speak:', error)
         reject(error)
       }
     })
   }
 
-  // Find the best voice for a given language
-  private findBestVoice(voices: SpeechSynthesisVoice[], language: string): SpeechSynthesisVoice | null {
-    const targetLang = (this.ttsVoiceMap as any)[language] || (this.languageMap as any)[language] || 'en-US'
+  // Get appropriate TTS language code
+  private getTTSLanguage(language: string): string {
+    const ttsLang = this.ttsVoiceMap[language] || this.languageMap[language] || 'en-US'
     
-    // Priority order: Google > Microsoft > Neural > Default
-    const priorities = ['google', 'microsoft', 'neural', 'default']
-    
-    for (const priority of priorities) {
-      const voice = voices.find(v => {
-        const voiceLang = v.lang.toLowerCase()
-        const voiceName = v.name.toLowerCase()
-        return voiceLang.startsWith(targetLang.toLowerCase().split('-')[0]) && 
-               voiceName.includes(priority)
-      })
-      
-      if (voice) return voice
+    // Special handling for regional languages
+    const regionalMappings: { [key: string]: string } = {
+      'pa': 'pa-IN', // Punjabi
+      'ta': 'ta-IN', // Tamil  
+      'te': 'te-IN', // Telugu
+      'kn': 'kn-IN', // Kannada
+      'ml': 'ml-IN', // Malayalam
+      'hi': 'hi-IN', // Hindi
+      'bn': 'bn-IN', // Bengali
+      'gu': 'gu-IN', // Gujarati
+      'mr': 'mr-IN', // Marathi
+      'or': 'or-IN', // Odia
+      'as': 'as-IN', // Assamese
+      'ur': 'ur-PK'  // Urdu
     }
     
-    // Fallback to any voice that matches the language
-    return voices.find(v => {
+    return regionalMappings[language] || ttsLang
+  }
+
+  // Find the best voice for a given language
+  private findBestVoice(voices: SpeechSynthesisVoice[], language: string): SpeechSynthesisVoice | null {
+    const targetLang = this.getTTSLanguage(language)
+    const baseLanguage = targetLang.split('-')[0]
+    
+    console.log(`🔍 Searching for voice: ${language} → ${targetLang} (base: ${baseLanguage})`)
+    
+    // Filter voices that match the language
+    const matchingVoices = voices.filter(v => {
       const voiceLang = v.lang.toLowerCase()
-      return voiceLang.startsWith(targetLang.toLowerCase().split('-')[0])
-    }) || null
+      const targetLangLower = targetLang.toLowerCase()
+      return voiceLang === targetLangLower || voiceLang.startsWith(baseLanguage.toLowerCase())
+    })
+    
+    console.log(`📋 Matching voices found: ${matchingVoices.length}`, matchingVoices.map(v => `${v.name} (${v.lang})`))
+    
+    if (matchingVoices.length === 0) {
+      console.log(`❌ No voices found for ${targetLang}, checking base language ${baseLanguage}`)
+      return null
+    }
+    
+    // Priority order for voice selection
+    const priorities = [
+      'google', 'microsoft', 'apple', 'neural', 'premium', 'enhanced', 'natural', 'wavenet'
+    ]
+    
+    // Try to find voice by priority
+    for (const priority of priorities) {
+      const priorityVoice = matchingVoices.find(v => 
+        v.name.toLowerCase().includes(priority.toLowerCase())
+      )
+      if (priorityVoice) {
+        console.log(`✅ Found ${priority} voice:`, priorityVoice.name)
+        return priorityVoice
+      }
+    }
+    
+    // For regional languages, prefer female voices as they're often clearer
+    const femaleVoice = matchingVoices.find(v => {
+      const name = v.name.toLowerCase()
+      return name.includes('female') || name.includes('woman') || 
+             name.includes('asha') || name.includes('kiran') || name.includes('priya')
+    })
+    
+    if (femaleVoice) {
+      console.log('✅ Using female voice for regional language:', femaleVoice.name)
+      return femaleVoice
+    }
+    
+    // Return the first available voice
+    console.log('✅ Using first available voice:', matchingVoices[0].name)
+    return matchingVoices[0]
   }
 
   // Wait for voices to be loaded
@@ -318,18 +385,23 @@ export class SpeechService {
 
       const voices = this.synthesis.getVoices()
       if (voices.length > 0) {
+        console.log(`🎙️ Voices already loaded: ${voices.length} available`)
+        console.log('📋 Regional voices:', voices.filter(v => ['hi', 'pa', 'ta', 'te', 'kn', 'ml', 'bn', 'gu', 'mr'].some(lang => v.lang.toLowerCase().startsWith(lang))).map(v => `${v.name} (${v.lang})`))
         resolve()
         return
       }
 
+      console.log('⏳ Waiting for voices to load...')
       const timeout = setTimeout(() => {
-        console.log('Voice loading timeout')
+        console.log('⚠️ Voice loading timeout - proceeding with available voices')
         resolve()
-      }, 3000)
+      }, 5000) // Increased timeout for better voice loading
 
       this.synthesis.addEventListener('voiceschanged', () => {
         clearTimeout(timeout)
-        console.log('Voices loaded:', this.synthesis!.getVoices().length)
+        const loadedVoices = this.synthesis!.getVoices()
+        console.log(`✅ Voices loaded: ${loadedVoices.length} available`)
+        console.log('🌍 Regional voices:', loadedVoices.filter(v => ['hi', 'pa', 'ta', 'te', 'kn', 'ml', 'bn', 'gu', 'mr'].some(lang => v.lang.toLowerCase().startsWith(lang))).map(v => `${v.name} (${v.lang})`))
         resolve()
       }, { once: true })
     })

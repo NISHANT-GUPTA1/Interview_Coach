@@ -1,0 +1,523 @@
+import { NextRequest, NextResponse } from 'next/server';
+
+// Helper function to categorize questions
+function getQuestionCategory(questionText: string, index: number): string {
+  const text = questionText.toLowerCase();
+  
+  if (text.includes('yourself') || text.includes('background') || text.includes('experience')) {
+    return 'Introduction';
+  } else if (text.includes('challenge') || text.includes('problem') || text.includes('difficult')) {
+    return 'Problem Solving';
+  } else if (text.includes('skill') || text.includes('strength') || text.includes('weakness')) {
+    return 'Skills & Abilities';
+  } else if (text.includes('team') || text.includes('collaborate') || text.includes('leadership')) {
+    return 'Teamwork';
+  } else if (text.includes('learn') || text.includes('technology') || text.includes('update')) {
+    return 'Learning & Growth';
+  } else if (text.includes('future') || text.includes('goals') || text.includes('career')) {
+    return 'Career Goals';
+  } else if (text.includes('technical') || text.includes('code') || text.includes('algorithm')) {
+    return 'Technical';
+  } else {
+    // Assign categories based on question order
+    const categories = ['Introduction', 'Technical', 'Problem Solving', 'Behavioral', 'Career Goals'];
+    return categories[index % categories.length];
+  }
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const { role = 'Software Engineer', experience = '2-3 years', count = 5, language = 'en' } = body;
+
+    console.log('🤖 AI Question Generation API called:', { role, experience, count, language });
+
+    // Check for OpenRouter API key - MANDATORY for real-time generation
+    const openrouterKey = process.env.OPENROUTER_API_KEY;
+    
+    console.log('🔑 OpenRouter API Key:', openrouterKey ? `${openrouterKey.substring(0, 7)}...${openrouterKey.substring(openrouterKey.length - 4)}` : 'None');
+    
+    if (!openrouterKey || openrouterKey.includes('dummy')) {
+      console.error('❌ NO VALID OPENROUTER API KEY - Cannot generate real-time questions');
+      return NextResponse.json({
+        success: false,
+        error: 'OpenRouter API key required for real-time question generation',
+        message: "CRITICAL: Configure OpenRouter API key for AI-generated questions. No fallback questions will be provided.",
+        questions: [],
+        real: false
+      }, { status: 400 });
+    }
+
+    // ALWAYS use OpenRouter API for real-time generation - NO FALLBACKS
+    try {
+      console.log('🚀 Using OpenRouter API for REAL-TIME question generation...');
+      const rawQuestions = await generateOpenRouterQuestions(role, experience, language, count, openrouterKey);
+      
+      if (!rawQuestions || rawQuestions.length === 0) {
+        throw new Error('OpenRouter returned empty questions array');
+      }
+      
+      console.log('✅ OpenRouter API succeeded, generated', rawQuestions.length, 'REAL-TIME questions');
+      console.log('📋 Generated questions preview:', rawQuestions.slice(0, 2));
+      
+      // Convert strings to proper question objects
+      const questions = rawQuestions.map((questionText: string, index: number) => ({
+        id: index + 1,
+        text: questionText,
+        category: getQuestionCategory(questionText, index),
+        generated: 'real-time',
+        timestamp: new Date().toISOString()
+      }));
+      
+      console.log('🔄 Formatted', questions.length, 'real-time questions for', language);
+      
+      return NextResponse.json({
+        success: true,
+        questions,
+        real: true,
+        provider: 'OpenRouter',
+        language: language,
+        generated: 'real-time',
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('❌ OpenRouter API failed:', error);
+      
+      // NO FALLBACK - Return error instead
+      return NextResponse.json({
+        success: false,
+        error: 'Real-time question generation failed',
+        message: 'OpenRouter API failed. Please check API key and try again.',
+        details: error instanceof Error ? error.message : 'Unknown error',
+        questions: [],
+        real: false
+      }, { status: 500 });
+    }
+
+  } catch (error) {
+    console.error('❌ API error:', error);
+    return NextResponse.json({
+      success: false,
+      error: 'Failed to generate AI questions',
+      details: error instanceof Error ? error.message : 'Unknown error',
+      questions: [],
+      real: false
+    }, { status: 500 });
+  }
+}
+
+async function generateOpenAIQuestions(
+  role: string, 
+  experience: string, 
+  language: string, 
+  count: number,
+  apiKey: string
+): Promise<string[]> {
+  const prompt = `Generate ${count} professional interview questions for a ${role} position with ${experience} experience level.
+
+Requirements:
+- Questions should be appropriate for ${experience} experience level
+- Mix of technical, behavioral, and problem-solving questions
+- Professional and realistic
+- Return as JSON object with "questions" array
+
+Example format:
+{
+  "questions": [
+    "Question 1 here",
+    "Question 2 here"
+  ]
+}`;
+
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: process.env.OPENAI_MODEL || 'gpt-3.5-turbo',
+      messages: [
+        {
+          role: 'system',
+          content: `You are an expert interview coach. Generate professional interview questions in ${language} for ${role} positions. Return a JSON object with a "questions" array.`
+        },
+        {
+          role: 'user',
+          content: prompt
+        }
+      ],
+      max_tokens: 1500,
+      temperature: 0.8,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('OpenAI API error details:', errorText);
+    throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
+  }
+
+  const data = await response.json();
+  const content = data.choices[0].message.content;
+  
+  try {
+    const parsed = JSON.parse(content);
+    
+    // Extract questions from various possible response formats
+    let questions = [];
+    if (Array.isArray(parsed)) {
+      questions = parsed;
+    } else if (parsed.questions && Array.isArray(parsed.questions)) {
+      questions = parsed.questions;
+    } else if (parsed.interview_questions && Array.isArray(parsed.interview_questions)) {
+      questions = parsed.interview_questions;
+    } else {
+      // If no array found, try to extract from text
+      throw new Error('No valid questions array found in response');
+    }
+
+    return questions.filter((q: any) => typeof q === 'string' && q.trim().length > 10).slice(0, count);
+  } catch (parseError) {
+    console.error('Failed to parse OpenAI response:', parseError);
+    // Fallback: try to extract questions from plain text
+    const lines = content.split('\n')
+      .filter((line: string) => line.trim().length > 10 && (line.includes('?') || line.match(/^\d+\./)))
+      .map((line: string) => line.replace(/^\d+\.\s*/, '').trim())
+      .slice(0, count);
+    
+    if (lines.length > 0) {
+      return lines;
+    }
+    
+    throw new Error('Could not extract questions from OpenAI response');
+  }
+}
+
+async function generateOpenRouterQuestions(
+  role: string, 
+  experience: string, 
+  language: string, 
+  count: number,
+  apiKey: string
+): Promise<string[]> {
+  try {
+    console.log('🌐 OpenRouter Real-time Generation for:', { role, experience, language, count });
+    
+    // Enhanced language-specific prompts for AI generation
+    const languagePrompts = {
+      'hi': `Generate ${count} professional interview questions in Hindi (हिंदी) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Hindi script. Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'ta': `Generate ${count} professional interview questions in Tamil (தமிழ்) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Tamil script (தமிழ் எழுத்துக்கள் மட்டும்). Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'te': `Generate ${count} professional interview questions in Telugu (తెలుగు) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Telugu script (తెలుగు లిపి మాత్రమే). Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'kn': `Generate ${count} professional interview questions in Kannada (ಕನ್ನಡ) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Kannada script (ಕನ್ನಡ ಲಿಪಿ ಮಾತ್ರ). Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'ml': `Generate ${count} professional interview questions in Malayalam (മലയാളം) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Malayalam script (മലയാളം ലിപി മാത്രം). Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'mr': `Generate ${count} professional interview questions in Marathi (मराठी) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Marathi script (मराठी लिपी फक्त). Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'gu': `Generate ${count} professional interview questions in Gujarati (ગુજરાતી) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Gujarati script (ગુજરાતી લિપિ જ). Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'pa': `Generate ${count} professional interview questions in Punjabi (ਪੰਜਾਬੀ) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Punjabi script (ਪੰਜਾਬੀ ਲਿਪੀ ਹੀ). Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'bn': `Generate ${count} professional interview questions in Bengali (বাংলা) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Bengali script (বাংলা লিপি শুধুমাত্র). Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'ur': `Generate ${count} professional interview questions in Urdu (اردو) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Urdu script (صرف اردو رسم الخط). Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'sa': `Generate ${count} professional interview questions in Sanskrit (संस्कृत) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Sanskrit script (संस्कृत लिपि केवल). Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'or': `Generate ${count} professional interview questions in Odia (ଓଡ଼ିଆ) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Odia script (ଓଡ଼ିଆ ଲିପି ମାତ୍र). Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'as': `Generate ${count} professional interview questions in Assamese (অসমীয়া) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Assamese script (অসমীয়া লিপি কেৱল). Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'default': `Generate ${count} professional technical interview questions for a ${role} position with ${experience} experience. Focus on practical skills, problem-solving abilities, and relevant technical knowledge. Each question should be clear, specific, and designed to assess the candidate's expertise in their field. Format: Return only the questions, one per line.`
+    };
+    
+    const systemPrompt = languagePrompts[language as keyof typeof languagePrompts] || languagePrompts.default;
+    
+    console.log('📝 AI Prompt for', language, ':', systemPrompt.substring(0, 100) + '...');
+    
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://ai-interview-coach.vercel.app',
+        'X-Title': 'AI Interview Coach - Question Generator'
+      },
+      body: JSON.stringify({
+        model: 'microsoft/wizardlm-2-8x22b', // Multi-lingual support
+        messages: [
+          {
+            role: 'system',
+            content: `You are an expert technical interview question generator. You MUST generate questions ONLY in the requested language script. Never mix languages or use English unless specifically requested. Be precise and professional.`
+          },
+          {
+            role: 'user',
+            content: systemPrompt
+          }
+        ],
+        temperature: 0.8,
+        max_tokens: 1500,
+        top_p: 0.9
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ OpenRouter API error:', response.status, errorText);
+      throw new Error(`OpenRouter API failed: ${response.status} - ${errorText}`);
+    }
+
+    const data = await response.json();
+    console.log('📊 OpenRouter API response data available');
+
+    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+      console.error('❌ Invalid OpenRouter response structure:', data);
+      throw new Error('Invalid response from OpenRouter API');
+    }
+
+    const content = data.choices[0].message.content;
+    console.log('📋 Raw AI generated content length:', content.length);
+    
+    // Parse questions from response
+    const questions = content
+      .split('\n')
+      .filter((line: string) => line.trim())
+      .map((line: string) => line.replace(/^\d+\.\s*/, '').trim())
+      .filter((question: string) => question.length > 10);
+    
+    console.log('✅ Parsed', questions.length, 'AI-generated questions for', language);
+    console.log('🔍 Sample questions:', questions.slice(0, 2));
+    
+    if (questions.length === 0) {
+      throw new Error('Failed to parse questions from AI response');
+    }
+    
+    return questions.slice(0, count);
+    
+  } catch (error) {
+    console.error('❌ OpenRouter question generation failed:', error);
+    throw error;
+  }
+}
+
+// Remove fallback function - force real-time generation only
+function generateFallbackQuestions(role: string, language: string, count: number): string[] {
+  // REMOVED: This function now returns empty to force real-time generation
+  console.error('🚫 Fallback questions removed - use OpenRouter API only');
+  return [];
+}
+      max_tokens: 1500,
+      temperature: 0.8,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`OpenRouter API error: ${response.status}`);
+  }
+
+  const data = await response.json();
+  const content = data.choices[0].message.content;
+  
+  try {
+    const parsed = JSON.parse(content);
+    let questions = [];
+    if (Array.isArray(parsed)) {
+      questions = parsed;
+    } else if (parsed.questions && Array.isArray(parsed.questions)) {
+      questions = parsed.questions;
+    }
+    
+    // Validate language consistency
+    const validQuestions = questions.filter((q: any) => {
+      if (typeof q !== 'string' || q.trim().length <= 10) return false;
+      
+      // Language validation
+      if (language === 'Hindi') {
+        return /[\u0900-\u097F]/.test(q); // Devanagari script
+      } else if (language === 'Tamil') {
+        return /[\u0B80-\u0BFF]/.test(q); // Tamil script
+      } else if (language === 'Telugu') {
+        return /[\u0C00-\u0C7F]/.test(q); // Telugu script
+      } else if (language === 'Kannada') {
+        return /[\u0C80-\u0CFF]/.test(q); // Kannada script
+      } else if (language === 'Malayalam') {
+        return /[\u0D00-\u0D7F]/.test(q); // Malayalam script
+      } else if (language === 'Bengali') {
+        return /[\u0980-\u09FF]/.test(q); // Bengali script
+      } else if (language === 'Gujarati') {
+        return /[\u0A80-\u0AFF]/.test(q); // Gujarati script
+      } else if (language === 'Punjabi') {
+        return /[\u0A00-\u0A7F]/.test(q); // Gurmukhi script
+      }
+      
+      return true; // For other languages, accept as is
+    });
+    
+    if (validQuestions.length === 0) {
+      console.warn(`⚠️ No valid questions in ${language}, falling back`);
+      throw new Error(`No valid questions generated in ${language}`);
+    }
+    
+    return validQuestions.slice(0, count);
+  } catch (error) {
+    console.warn(`⚠️ OpenRouter parsing failed for ${language}:`, error);
+    // If JSON parsing fails, try to extract questions from text
+    const lines = content.split('\n').filter((line: string) => line.trim().length > 10);
+    return lines.slice(0, count);
+  }
+}
+
+function generateFallbackQuestions(role: string, language: string, count: number): string[] {
+  const questionBank: { [key: string]: { [key: string]: string[] } } = {
+    "Software Engineer": {
+      "English": [
+        "Tell me about yourself and your experience as a software engineer.",
+        "Describe a challenging technical problem you solved recently and walk me through your approach.",
+        "How do you ensure code quality and maintainability in your projects?",
+        "What's your experience with version control systems and collaborative development?",
+        "How do you stay updated with new technologies and programming trends?",
+        "Describe a time when you had to debug a complex issue. What was your process?",
+        "How do you approach system design and scalability challenges?",
+        "What testing strategies do you use to ensure your code is reliable?"
+      ],
+      "Hindi": [
+        "अपने बारे में और सॉफ्टवेयर इंजीनियर के रूप में अपने अनुभव के बारे में बताएं।",
+        "हाल ही में आपने जो चुनौतीपूर्ण तकनीकी समस्या हल की है उसका वर्णन करें।",
+        "आप अपने प्रोजेक्ट्स में कोड की गुणवत्ता कैसे सुनिश्चित करते हैं?",
+        "वर्जन कंट्रोल सिस्टम के साथ आपका क्या अनुभव है?",
+        "आप नई तकनीकों के साथ कैसे अपडेट रहते हैं?",
+        "जटिल समस्याओं को डिबग करने की आपकी प्रक्रिया क्या है?",
+        "सिस्टम डिज़ाइन और स्केलेबिलिटी चुनौतियों से आप कैसे निपटते हैं?",
+        "विश्वसनीय कोड के लिए आप कौन सी टेस्टिंग रणनीतियों का उपयोग करते हैं?"
+      ],
+      "Tamil": [
+        "உங்களைப் பற்றியும் மென்பொருள் பொறியாளராக உங்கள் அனுபவத்தைப் பற்றியும் கூறுங்கள்.",
+        "சமீபத்தில் நீங்கள் தீர்த்த சவாலான தொழில்நுட்ப சிக்கலை விவரித்து உங்கள் அணுகுமுறையை விளக்குங்கள்.",
+        "உங்கள் திட்டங்களில் குறியீட்டின் தரத்தையும் பராமரிப்பையும் எவ்வாறு உறுதி செய்கிறீர்கள்?",
+        "பதிப்பு கட்டுப்பாட்டு அமைப்புகள் மற்றும் கூட்டு வளர்ச்சியில் உங்கள் அனுபவம் என்ன?",
+        "புதிய தொழில்நுட்பங்கள் மற்றும் நிரலாக்க போக்குகளுடன் நீங்கள் எவ்வாறு புதுப்பித்த நிலையில் இருக்கிறீர்கள்?",
+        "சிக்கலான சிக்கலைத் தீர்க்க வேண்டிய நேரத்தை விவரிக்கவும். உங்கள் செயல்முறை என்ன?",
+        "கணினி வடிவமைப்பு மற்றும் அளவிடுதல் சவால்களை நீங்கள் எவ்வாறு அணுகுகிறீர்கள்?",
+        "உங்கள் குறியீடு நம்பகமானதாக இருப்பதை உறுதி செய்ய எந்த சோதனை உத்திகளைப் பயன்படுத்துகிறீர்கள்?"
+      ],
+      "Telugu": [
+        "మీ గురించి మరియు సాఫ్ట్‌వేర్ ఇంజనీర్‌గా మీ అనుభవం గురించి చెప్పండి.",
+        "ఇటీవల మీరు పరిష్కరించిన సవాలుతో కూడిన సాంకేతిక సమస్యను వివరించండి మరియు మీ విధానాన్ని వివరించండి.",
+        "మీ ప్రాజెక్ట్‌లలో కోడ్ నాణ్యత మరియు నిర్వహణను ఎలా నిర్ధారిస్తారు?",
+        "వెర్షన్ కంట్రోల్ సిస్టమ్‌లు మరియు సహకార అభివృద్ధితో మీ అనుభవం ఏమిటి?",
+        "కొత్త సాంకేతిక పరిజ్ఞానాలు మరియు ప్రోగ్రామింగ్ ట్రెండ్‌లతో మీరు ఎలా అప్‌డేట్‌గా ఉంటారు?",
+        "సంక్లిష్టమైన సమస్యను డీబగ్ చేయాల్సిన సమయాన్ని వివరించండి. మీ ప్రక్రియ ఏమిటి?",
+        "సిస్టమ్ డిజైన్ మరియు స్కేలబిలిటీ సవాళ్లను మీరు ఎలా చేరుకుంటారు?",
+        "మీ కోడ్ నమ్మకమైనదిగా ఉండటానికి మీరు ఏ పరీక్ష వ్యూహాలను ఉపయోగిస్తారు?"
+      ],
+      "Kannada": [
+        "ನಿಮ್ಮ ಬಗ್ಗೆ ಮತ್ತು ಸಾಫ್ಟ್‌ವೇರ್ ಇಂಜಿನಿಯರ್ ಆಗಿ ನಿಮ್ಮ ಅನುಭವದ ಬಗ್ಗೆ ತಿಳಿಸಿ.",
+        "ಇತ್ತೀಚೆಗೆ ನೀವು ಪರಿಹರಿಸಿದ ಸವಾಲಿನ ತಾಂತ್ರಿಕ ಸಮಸ್ಯೆಯನ್ನು ವಿವರಿಸಿ ಮತ್ತು ನಿಮ್ಮ ವಿಧಾನವನ್ನು ವಿವರಿಸಿ.",
+        "ನಿಮ್ಮ ಪ್ರಾಜೆಕ್ಟ್‌ಗಳಲ್ಲಿ ಕೋಡ್ ಗುಣಮಟ್ಟ ಮತ್ತು ನಿರ್ವಹಣೆಯನ್ನು ಹೇಗೆ ಖಚಿತಪಡಿಸುತ್ತೀರಿ?",
+        "ಆವೃತ್ತಿ ನಿಯಂತ್ರಣ ವ್ಯವಸ್ಥೆಗಳು ಮತ್ತು ಸಹಕಾರಿ ಅಭಿವೃದ್ಧಿಯೊಂದಿಗೆ ನಿಮ್ಮ ಅನುಭವ ಏನು?",
+        "ಹೊಸ ತಂತ್ರಜ್ಞಾನಗಳು ಮತ್ತು ಪ್ರೋಗ್ರಾಮಿಂಗ್ ಪ್ರವೃತ್ತಿಗಳೊಂದಿಗೆ ನೀವು ಹೇಗೆ ನವೀಕರಿಸಿಕೊಳ್ಳುತ್ತೀರಿ?",
+        "ಸಂಕೀರ್ಣವಾದ ಸಮಸ್ಯೆಯನ್ನು ಡಿಬಗ್ ಮಾಡಬೇಕಾದ ಸಮಯವನ್ನು ವಿವರಿಸಿ. ನಿಮ್ಮ ಪ್ರಕ್ರಿಯೆ ಏನು?",
+        "ಸಿಸ್ಟಂ ವಿನ್ಯಾಸ ಮತ್ತು ಸ್ಕೇಲೆಬಿಲಿಟಿ ಸವಾಲುಗಳನ್ನು ನೀವು ಹೇಗೆ ಸಮೀಪಿಸುತ್ತೀರಿ?",
+        "ನಿಮ್ಮ ಕೋಡ್ ವಿಶ್ವಾಸಾರ್ಹವಾಗಿದೆ ಎಂದು ಖಚಿತಪಡಿಸಿಕೊಳ್ಳಲು ನೀವು ಯಾವ ಪರೀಕ್ಷಾ ತಂತ್ರಗಳನ್ನು ಬಳಸುತ್ತೀರಿ?"
+      ],
+      "Malayalam": [
+        "നിങ്ങളെക്കുറിച്ചും സോഫ്റ്റ്‌വെയർ എഞ്ചിനീയറായുള്ള നിങ്ങളുടെ അനുഭവത്തെക്കുറിച്ചും പറയുക.",
+        "അടുത്തിടെ നിങ്ങൾ പരിഹരിച്ച വെല്ലുവിളി നിറഞ്ഞ സാങ്കേതിക പ്രശ്നം വിവരിക്കുകയും നിങ്ങളുടെ സമീപനം വിശദീകരിക്കുകയും ചെയ്യുക.",
+        "നിങ്ങളുടെ പ്രോജക്റ്റുകളിൽ കോഡ് ഗുണനിലവാരവും പരിപാലനവും എങ്ങനെ ഉറപ്പാക്കുന്നു?",
+        "വേർഷൻ കൺട്രോൾ സിസ്റ്റങ്ങളും സഹകരണ വികസനവുമായുള്ള നിങ്ങളുടെ അനുഭവം എന്താണ്?",
+        "പുതിയ സാങ്കേതികവിദ്യകളും പ്രോഗ്രാമിംഗ് ട്രെൻഡുകളും ഉപയോഗിച്ച് നിങ്ങൾ എങ്ങനെ അപ്‌ഡേറ്റ് ആയി നിലകൊള്ളുന്നു?",
+        "സങ്കീർണ്ണമായ ഒരു പ്രശ്നം ഡിബഗ് ചെയ്യേണ്ടി വന്ന സമയം വിവരിക്കുക. നിങ്ങളുടെ പ്രക്രിയ എന്തായിരുന്നു?",
+        "സിസ്റ്റം ഡിസൈനും സ്കേലബിലിറ്റി വെല്ലുവിളികളും നിങ്ങൾ എങ്ങനെ സമീപിക്കുന്നു?",
+        "നിങ്ങളുടെ കോഡ് വിശ്വസനീയമാണെന്ന് ഉറപ്പാക്കാൻ നിങ്ങൾ ഏത് ടെസ്റ്റിംഗ് തന്ത്രങ്ങൾ ഉപയോഗിക്കുന്നു?"
+      ],
+      "Marathi": [
+        "तुमच्याबद्दल आणि सॉफ्टवेअर इंजिनीयर म्हणून तुमच्या अनुभवाबद्दल सांगा.",
+        "अलीकडे तुम्ही सोडवलेली आव्हानात्मक तांत्रिक समस्या वर्णन करा आणि तुमचा दृष्टिकोन स्पष्ट करा.",
+        "तुम्ही तुमच्या प्रकल्पांमध्ये कोड गुणवत्ता आणि देखभाल कशी सुनिश्चित करता?",
+        "आवृत्ती नियंत्रण प्रणाली आणि सहयोगी विकासासह तुमचा काय अनुभव आहे?",
+        "नवीन तंत्रज्ञान आणि प्रोग्रामिंग ट्रेंडसह तुम्ही कसे अद्यतनित राहता?",
+        "जटिल समस्या डीबग करावी लागलेल्या वेळेचे वर्णन करा. तुमची प्रक्रिया काय होती?",
+        "सिस्टम डिझाइन आणि स्केलेबिलिटी आव्हानांकडे तुम्ही कसे जाता?",
+        "तुमचा कोड विश्वासार्ह आहे याची खात्री करण्यासाठी तुम्ही कोणत्या चाचणी धोरणांचा वापर करता?"
+      ],
+      "Gujarati": [
+        "તમારા વિશે અને સોફ્ટવેર એન્જિનિયર તરીકે તમારા અનુભવ વિશે કહો.",
+        "હાલમાં તમે ઉકેલેલી પડકારજનક તકનીકી સમસ્યાનું વર્ણન કરો અને તમારો અભિગમ સમજાવો.",
+        "તમે તમારા પ્રોજેક્ટ્સમાં કોડ ગુણવત્તા અને જાળવણી કેવી રીતે સુનિશ્ચિત કરો છો?",
+        "વર્ઝન કંટ્રોલ સિસ્ટમ્સ અને સહયોગી વિકાસ સાથે તમારો શું અનુભવ છે?",
+        "તમે નવી ટેકનોલોજીઓ અને પ્રોગ્રામિંગ ટ્રેન્ડ્સ સાથે કેવી રીતે અપડેટ રહો છો?",
+        "જટિલ સમસ્યાને ડીબગ કરવાનો સમય વર્ણવો. તમારી પ્રક્રિયા શું હતી?",
+        "સિસ્ટમ ડિઝાઇન અને સ્કેલેબિલિટી પડકારોનો તમે કેવી રીતે સંપર્ક કરો છો?",
+        "તમારો કોડ વિશ્વસનીય છે તેની ખાતરી કરવા માટે તમે કયા પરીક્ષણ વ્યૂહરચનાઓનો ઉપયોગ કરો છો?"
+      ],
+      "Punjabi": [
+        "ਆਪਣੇ ਬਾਰੇ ਅਤੇ ਸਾਫਟਵੇਅਰ ਇੰਜੀਨੀਅਰ ਵਜੋਂ ਆਪਣੇ ਅਨੁਭਵ ਬਾਰੇ ਦੱਸੋ।",
+        "ਹਾਲ ਹੀ ਵਿੱਚ ਤੁਸੀਂ ਹੱਲ ਕੀਤੀ ਮੁਸ਼ਕਿਲ ਤਕਨੀਕੀ ਸਮੱਸਿਆ ਦਾ ਵਰਣਨ ਕਰੋ ਅਤੇ ਆਪਣੇ ਤਰੀਕੇ ਦੱਸੋ।",
+        "ਤੁਸੀਂ ਆਪਣੇ ਪ੍ਰੋਜੈਕਟਾਂ ਵਿੱਚ ਕੋਡ ਦੀ ਗੁਣਵੱਤਾ ਅਤੇ ਰੱਖ-ਰਖਾਅ ਕਿਵੇਂ ਯਕੀਨੀ ਬਣਾਉਂਦੇ ਹੋ?",
+        "ਵਰਜ਼ਨ ਕੰਟਰੋਲ ਸਿਸਟਮਾਂ ਅਤੇ ਸਹਿਯੋਗੀ ਵਿਕਾਸ ਨਾਲ ਤੁਹਾਡਾ ਕੀ ਅਨੁਭਵ ਹੈ?",
+        "ਤੁਸੀਂ ਨਵੀਆਂ ਤਕਨੀਕਾਂ ਅਤੇ ਪ੍ਰੋਗਰਾਮਿੰਗ ਰੁਝਾਨਾਂ ਨਾਲ ਕਿਵੇਂ ਅਪਡੇਟ ਰਹਿੰਦੇ ਹੋ?",
+        "ਕੋਈ ਗੁੰਝਲਦਾਰ ਸਮੱਸਿਆ ਡੀਬੱਗ ਕਰਨ ਦੇ ਸਮੇਂ ਦਾ ਵਰਣਨ ਕਰੋ। ਤੁਹਾਡੀ ਪ੍ਰਕਿਰਿਆ ਕੀ ਸੀ?",
+        "ਤੁਸੀਂ ਸਿਸਟਮ ਡਿਜ਼ਾਇਨ ਅਤੇ ਸਕੇਲੇਬਿਲਿਟੀ ਚੁਣੌਤੀਆਂ ਨਾਲ ਕਿਵੇਂ ਨਜਿੱਠਦੇ ਹੋ?",
+        "ਤੁਸੀਂ ਆਪਣੇ ਕੋਡ ਨੂੰ ਭਰੋਸੇਮੰਦ ਬਣਾਉਣ ਲਈ ਕਿਹੜੀਆਂ ਟੈਸਟਿੰਗ ਰਣਨੀਤੀਆਂ ਦੀ ਵਰਤੋਂ ਕਰਦੇ ਹੋ?"
+      ],
+      "Bengali": [
+        "আপনার সম্পর্কে এবং সফটওয়্যার ইঞ্জিনিয়ার হিসেবে আপনার অভিজ্ঞতার কথা বলুন।",
+        "সম্প্রতি আপনি যে চ্যালেঞ্জিং প্রযুক্তিগত সমস্যা সমাধান করেছেন তার বর্ণনা দিন এবং আপনার পদ্ধতি ব্যাখ্যা করুন।",
+        "আপনি আপনার প্রকল্পগুলিতে কোডের গুণমান এবং রক্ষণাবেক্ষণ কীভাবে নিশ্চিত করেন?",
+        "ভার্সন কন্ট্রোল সিস্টেম এবং সহযোগিতামূলক উন্নয়নের সাথে আপনার কী অভিজ্ঞতা?",
+        "আপনি নতুন প্রযুক্তি এবং প্রোগ্রামিং ট্রেন্ডের সাথে কীভাবে আপডেট থাকেন?",
+        "এমন একটি সময়ের বর্ণনা দিন যখন আপনাকে একটি জটিল সমস্যা ডিবাগ করতে হয়েছিল। আপনার প্রক্রিয়া কী ছিল?",
+        "সিস্টেম ডিজাইন এবং স্কেলেবিলিটি চ্যালেঞ্জগুলি আপনি কীভাবে মোকাবেলা করেন?",
+        "আপনার কোড নির্ভরযোগ্য তা নিশ্চিত করতে আপনি কী পরীক্ষার কৌশল ব্যবহার করেন?"
+      ],
+      "Urdu": [
+        "اپنے بارے میں اور سافٹ ویئر انجینئر کے طور پر اپنے تجربے کے بارے میں بتائیں۔",
+        "حال ہی میں آپ نے جو مشکل تکنیکی مسئلہ حل کیا ہے اس کی وضاحت کریں اور اپنے طریقہ کار کو بیان کریں۔",
+        "آپ اپنے پروجیکٹس میں کوڈ کی کوالٹی اور برقراری کو کیسے یقینی بناتے ہیں؟",
+        "ورژن کنٹرول سسٹمز اور تعاونی ترقی کے ساتھ آپ کا کیا تجربہ ہے؟",
+        "آپ نئی ٹیکنالوجیز اور پروگرامنگ ٹرینڈز کے ساتھ کیسے اپ ڈیٹ رہتے ہیں؟",
+        "ایک پیچیدہ مسئلے کو ڈیبگ کرنے کے وقت کی وضاحت کریں۔ آپ کا عمل کیا تھا؟",
+        "آپ سسٹم ڈیزائن اور اسکیلیبلٹی کے چیلنجز سے کیسے نمٹتے ہیں؟",
+        "آپ اپنے کوڈ کو قابل اعتماد بنانے کے لیے کون سی ٹیسٹنگ حکمت عملیاں استعمال کرتے ہیں؟"
+      ]
+    },
+    "Frontend Developer": {
+      "English": [
+        "What's your experience with modern JavaScript frameworks and which do you prefer?",
+        "How do you approach responsive web design and ensure cross-browser compatibility?",
+        "Describe a complex UI component you built and the challenges you faced.",
+        "How do you optimize web application performance and user experience?",
+        "What's your process for collaborating with designers and backend developers?",
+        "How do you handle state management in large frontend applications?",
+        "What testing strategies do you use for frontend applications?",
+        "How do you ensure accessibility in your web applications?"
+      ],
+      "Hindi": [
+        "आधुनिक जावास्क्रिप्ट फ्रेमवर्क के साथ आपका क्या अनुभव है?",
+        "रिस्पॉन्सिव वेब डिज़ाइन और क्रॉस-ब्राउज़र संगतता कैसे सुनिश्चित करते हैं?",
+        "आपने जो जटिल UI कंपोनेंट बनाया है उसका वर्णन करें।",
+        "वेब एप्लिकेशन प्रदर्शन को कैसे अनुकूलित करते हैं?",
+        "डिज़ाइनर और बैकएंड डेवलपर्स के साथ सहयोग की प्रक्रिया क्या है?",
+        "बड़े फ्रंटएंड एप्लिकेशन में स्टेट मैनेजमेंट कैसे करते हैं?",
+        "फ्रंटएंड एप्लिकेशन के लिए आप कौन सी टेस्टिंग रणनीतियां उपयोग करते हैं?",
+        "वेब एप्लिकेशन में एक्सेसिबिलिटी कैसे सुनिश्चित करते हैं?"
+      ]
+    }
+  };
+
+  const roleQuestions = questionBank[role] || questionBank["Software Engineer"];
+  
+  // Enhanced language fallback logic
+  let languageQuestions = roleQuestions[language];
+  
+  if (!languageQuestions) {
+    console.log(`⚠️ No questions found for language: ${language}, falling back to English`);
+    languageQuestions = roleQuestions["English"];
+  }
+  
+  return languageQuestions.slice(0, Math.min(count, languageQuestions.length));
+}

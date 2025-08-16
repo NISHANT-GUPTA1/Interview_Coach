@@ -46,6 +46,37 @@ Interview Question: "${question}"
 Candidate's Response: "${transcript}"
 ${keywordContext}${emotionContext}
 
+CRITICAL LANGUAGE REQUIREMENT: Provide the entire response in ${language} language only. Do not mix languages.
+
+${language === 'hi' ? `
+कृपया हिंदी में विशिष्ट, कार्यशील फीडबैक प्रदान करें जो:
+
+1. उनके उत्तर में विशिष्ट शक्तियों को स्वीकार करे
+2. ठोस सुझावों के साथ सुधार के क्षेत्रों की पहचान करे
+3. उनके द्वारा उल्लिखित तकनीकी अवधारणाओं या कीवर्ड का संदर्भ दे
+4. यदि भावना डेटा उपलब्ध है तो उनके आत्मविश्वास और जुड़ाव के स्तर पर विचार करे
+5. बेहतर साक्षात्कार प्रदर्शन के लिए व्यावहारिक सलाह दे
+6. प्रोत्साहनजनक लेकिन ईमानदार स्वर बनाए रखे
+7. हिंदी भाषियों के लिए सांस्कृतिक रूप से उपयुक्त हो
+
+फीडबैक संक्षिप्त (2-3 वाक्य) लेकिन अर्थपूर्ण रखें। सामग्री और वितरण दोनों पहलुओं पर ध्यान दें।
+
+केवल हिंदी भाषा में जवाब दें।
+` : language === 'es' ? `
+Proporcione comentarios específicos y procesables en español que:
+
+1. Reconozca las fortalezas específicas en su respuesta
+2. Identifique áreas de mejora con sugerencias concretas
+3. Haga referencia a conceptos técnicos o palabras clave que mencionaron
+4. Considere su nivel de confianza y compromiso si hay datos de emoción disponibles
+5. Dé consejos prácticos para un mejor desempeño en entrevistas
+6. Mantenga un tono alentador pero honesto
+7. Sea culturalmente apropiado para hablantes de español
+
+Mantenga los comentarios concisos (2-3 oraciones) pero significativos. Enfóquese en aspectos tanto de contenido como de presentación.
+
+Responda únicamente en idioma español.
+` : `
 Please provide specific, actionable feedback in ${language} that:
 
 1. Acknowledges specific strengths in their response
@@ -58,7 +89,8 @@ Please provide specific, actionable feedback in ${language} that:
 
 Keep the feedback concise (2-3 sentences) but meaningful. Focus on both content and delivery aspects.
 
-Respond only in ${language} language.`
+Respond only in ${language} language.
+`}`
 
     console.log("🚀 Calling OpenAI GPT-4 for real feedback generation...")
 

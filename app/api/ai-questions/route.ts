@@ -1,30 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// Helper function to categorize questions
-function getQuestionCategory(questionText: string, index: number): string {
-  const text = questionText.toLowerCase();
-  
-  if (text.includes('yourself') || text.includes('background') || text.includes('experience')) {
-    return 'Introduction';
-  } else if (text.includes('challenge') || text.includes('problem') || text.includes('difficult')) {
-    return 'Problem Solving';
-  } else if (text.includes('skill') || text.includes('strength') || text.includes('weakness')) {
-    return 'Skills & Abilities';
-  } else if (text.includes('team') || text.includes('collaborate') || text.includes('leadership')) {
-    return 'Teamwork';
-  } else if (text.includes('learn') || text.includes('technology') || text.includes('update')) {
-    return 'Learning & Growth';
-  } else if (text.includes('future') || text.includes('goals') || text.includes('career')) {
-    return 'Career Goals';
-  } else if (text.includes('technical') || text.includes('code') || text.includes('algorithm')) {
-    return 'Technical';
-  } else {
-    // Assign categories based on question order
-    const categories = ['Introduction', 'Technical', 'Problem Solving', 'Behavioral', 'Career Goals'];
-    return categories[index % categories.length];
-  }
-}
-
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -32,159 +7,77 @@ export async function POST(req: NextRequest) {
 
     console.log('🤖 AI Question Generation API called:', { role, experience, count, language });
 
-    // Check for OpenRouter API key only
+    // Check for OpenRouter API key - MANDATORY for real-time generation
     const openrouterKey = process.env.OPENROUTER_API_KEY;
     
     console.log('🔑 OpenRouter API Key:', openrouterKey ? `${openrouterKey.substring(0, 7)}...${openrouterKey.substring(openrouterKey.length - 4)}` : 'None');
     
     if (!openrouterKey || openrouterKey.includes('dummy')) {
-      console.log('⚠️ No valid OpenRouter API key found, using fallback questions');
+      console.error('❌ NO VALID OPENROUTER API KEY - Cannot generate real-time questions');
       return NextResponse.json({
-        success: true,
-        questions: generateFallbackQuestions(role, language, count),
-        real: false,
-        message: "Using fallback questions. Configure OpenRouter API key for AI-generated questions."
-      });
+        success: false,
+        error: 'OpenRouter API key required for real-time question generation',
+        message: "CRITICAL: Configure OpenRouter API key for AI-generated questions. No fallback questions will be provided.",
+        questions: [],
+        real: false
+      }, { status: 400 });
     }
 
-    // Use OpenRouter API directly (no OpenAI)
+    // ALWAYS use OpenRouter API for real-time generation - NO FALLBACKS
     try {
-      console.log('🚀 Using OpenRouter API for question generation...');
+      console.log('🚀 Using OpenRouter API for REAL-TIME question generation...');
       const rawQuestions = await generateOpenRouterQuestions(role, experience, language, count, openrouterKey);
-      console.log('✅ OpenRouter API succeeded, generated', rawQuestions.length, 'questions');
-      console.log('📋 Raw questions:', rawQuestions);
+      
+      if (!rawQuestions || rawQuestions.length === 0) {
+        throw new Error('OpenRouter returned empty questions array');
+      }
+      
+      console.log('✅ OpenRouter API succeeded, generated', rawQuestions.length, 'REAL-TIME questions');
+      console.log('📋 Generated questions preview:', rawQuestions.slice(0, 2));
       
       // Convert strings to proper question objects
       const questions = rawQuestions.map((questionText: string, index: number) => ({
         id: index + 1,
         text: questionText,
-        category: getQuestionCategory(questionText, index)
+        category: getQuestionCategory(questionText, index),
+        generated: 'real-time',
+        timestamp: new Date().toISOString()
       }));
       
-      console.log('🔄 Formatted questions:', questions);
+      console.log('🔄 Formatted', questions.length, 'real-time questions for', language);
       
       return NextResponse.json({
         success: true,
         questions,
         real: true,
-        provider: 'OpenRouter'
+        provider: 'OpenRouter',
+        language: language,
+        generated: 'real-time',
+        timestamp: new Date().toISOString()
       });
     } catch (error) {
       console.error('❌ OpenRouter API failed:', error);
-      // Fall back to manual questions
+      
+      // NO FALLBACK - Return error instead
+      return NextResponse.json({
+        success: false,
+        error: 'Real-time question generation failed',
+        message: 'OpenRouter API failed. Please check API key and try again.',
+        details: error instanceof Error ? error.message : 'Unknown error',
+        questions: [],
+        real: false
+      }, { status: 500 });
     }
 
-    // Fallback to manual questions
-    console.log('🔄 All AI services failed, using fallback questions');
-    const fallbackQuestions = generateFallbackQuestions(role, language, count);
-    const questions = fallbackQuestions.map((questionText: string, index: number) => ({
-      id: index + 1,
-      text: questionText,
-      category: getQuestionCategory(questionText, index)
-    }));
-    
-    return NextResponse.json({
-      success: true,
-      questions,
-      real: false,
-      message: "AI services unavailable. Using fallback questions."
-    });
-
   } catch (error) {
-    console.error('API error:', error);
+    console.error('❌ API error:', error);
     return NextResponse.json({
       success: false,
       error: 'Failed to generate AI questions',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      details: error instanceof Error ? error.message : 'Unknown error',
+      questions: [],
+      real: false
     }, { status: 500 });
-  }
-}
-
-async function generateOpenAIQuestions(
-  role: string, 
-  experience: string, 
-  language: string, 
-  count: number,
-  apiKey: string
-): Promise<string[]> {
-  const prompt = `Generate ${count} professional interview questions for a ${role} position with ${experience} experience level.
-
-Requirements:
-- Questions should be appropriate for ${experience} experience level
-- Mix of technical, behavioral, and problem-solving questions
-- Professional and realistic
-- Return as JSON object with "questions" array
-
-Example format:
-{
-  "questions": [
-    "Question 1 here",
-    "Question 2 here"
-  ]
-}`;
-
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: process.env.OPENAI_MODEL || 'gpt-3.5-turbo',
-      messages: [
-        {
-          role: 'system',
-          content: `You are an expert interview coach. Generate professional interview questions in ${language} for ${role} positions. Return a JSON object with a "questions" array.`
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ],
-      max_tokens: 1500,
-      temperature: 0.8,
-    }),
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error('OpenAI API error details:', errorText);
-    throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
-  }
-
-  const data = await response.json();
-  const content = data.choices[0].message.content;
-  
-  try {
-    const parsed = JSON.parse(content);
-    
-    // Extract questions from various possible response formats
-    let questions = [];
-    if (Array.isArray(parsed)) {
-      questions = parsed;
-    } else if (parsed.questions && Array.isArray(parsed.questions)) {
-      questions = parsed.questions;
-    } else if (parsed.interview_questions && Array.isArray(parsed.interview_questions)) {
-      questions = parsed.interview_questions;
-    } else {
-      // If no array found, try to extract from text
-      throw new Error('No valid questions array found in response');
-    }
-
-    return questions.filter((q: any) => typeof q === 'string' && q.trim().length > 10).slice(0, count);
-  } catch (parseError) {
-    console.error('Failed to parse OpenAI response:', parseError);
-    // Fallback: try to extract questions from plain text
-    const lines = content.split('\n')
-      .filter((line: string) => line.trim().length > 10 && (line.includes('?') || line.match(/^\d+\./)))
-      .map((line: string) => line.replace(/^\d+\.\s*/, '').trim())
-      .slice(0, count);
-    
-    if (lines.length > 0) {
-      return lines;
-    }
-    
-    throw new Error('Could not extract questions from OpenAI response');
   }
 }
 
@@ -195,112 +88,169 @@ async function generateOpenRouterQuestions(
   count: number,
   apiKey: string
 ): Promise<string[]> {
-  const prompt = `Generate ${count} professional interview questions for a ${role} position (${experience} experience level) in ${language} language.
-
-Requirements:
-- Questions should be appropriate for ${experience} experience level
-- Mix of technical, behavioral, and problem-solving questions
-- Written in ${language} language
-- Professional and realistic
-
-Return only a JSON array of questions as strings.`;
-
-  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: process.env.OPENROUTER_MODEL || 'qwen/qwen-2-72b-instruct',
-      messages: [
-        {
-          role: 'system',
-          content: `You are an expert interview coach. Generate professional interview questions in ${language} for ${role} positions.`
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ],
-      max_tokens: 1500,
-      temperature: 0.8,
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`OpenRouter API error: ${response.status}`);
-  }
-
-  const data = await response.json();
-  const content = data.choices[0].message.content;
-  
   try {
-    const parsed = JSON.parse(content);
-    let questions = [];
-    if (Array.isArray(parsed)) {
-      questions = parsed;
-    } else if (parsed.questions && Array.isArray(parsed.questions)) {
-      questions = parsed.questions;
+    console.log('🌐 OpenRouter Real-time Generation for:', { role, experience, language, count });
+    
+    // Enhanced language-specific prompts for AI generation
+    const languagePrompts = {
+      'hi': `Generate ${count} professional interview questions in Hindi (हिंदी) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Hindi script. Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'ta': `Generate ${count} professional interview questions in Tamil (தமிழ்) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Tamil script (தமிழ் எழுத்துக்கள் மட்டும்). Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'te': `Generate ${count} professional interview questions in Telugu (తెలుగు) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Telugu script (తెలుగు లిపి మాత్రమే). Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'kn': `Generate ${count} professional interview questions in Kannada (ಕನ್ನಡ) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Kannada script (ಕನ್ನಡ ಲಿಪಿ ಮಾತ್ರ). Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'ml': `Generate ${count} professional interview questions in Malayalam (മലയാളം) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Malayalam script (മലയാളം ലിപി മാത്രം). Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'mr': `Generate ${count} professional interview questions in Marathi (मराठी) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Marathi script (मराठी लिपी फक्त). Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'gu': `Generate ${count} professional interview questions in Gujarati (ગુજરાતી) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Gujarati script (ગુજરાતી લિપિ જ). Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'pa': `Generate ${count} professional interview questions in Punjabi (ਪੰਜਾਬੀ) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Punjabi script (ਪੰਜਾਬੀ ਲਿਪੀ ਹੀ). Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'bn': `Generate ${count} professional interview questions in Bengali (বাংলা) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Bengali script (বাংলা লিপি শুধুমাত্র). Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'ur': `Generate ${count} professional interview questions in Urdu (اردو) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Urdu script (صرف اردو رسم الخط). Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'sa': `Generate ${count} professional interview questions in Sanskrit (संस्कृत) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Sanskrit script (संस्कृत लिपि केवल). Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'or': `Generate ${count} professional interview questions in Odia (ଓଡ଼ିଆ) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Odia script (ଓଡ଼ିଆ ଲିପି ମାତ୍र). Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'as': `Generate ${count} professional interview questions in Assamese (অসমীয়া) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Assamese script (অসমীয়া লিপি কেৱল). Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'ne': `Generate ${count} professional interview questions in Nepali (नेपाली) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Nepali script (नेपाली लिपी मात्र). Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'si': `Generate ${count} professional interview questions in Sinhala (සිංහල) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Sinhala script (සිංහල අකුරු පමණක්). Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'my': `Generate ${count} professional interview questions in Burmese (မြန်မာ) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Burmese script (မြန်မာအက္ခရာများသာ). Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'ar': `Generate ${count} professional interview questions in Arabic (العربية) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Arabic script (النص العربي فقط). Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'es': `Generate ${count} professional interview questions in Spanish (Español) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Spanish. Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'fr': `Generate ${count} professional interview questions in French (Français) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in French. Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'de': `Generate ${count} professional interview questions in German (Deutsch) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in German. Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'it': `Generate ${count} professional interview questions in Italian (Italiano) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Italian. Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'pt': `Generate ${count} professional interview questions in Portuguese (Português) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Portuguese. Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'ru': `Generate ${count} professional interview questions in Russian (Русский) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Russian script (кириллица только). Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'zh': `Generate ${count} professional interview questions in Chinese (中文) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Chinese characters (中文字符只). Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'ja': `Generate ${count} professional interview questions in Japanese (日本語) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Japanese script (日本語文字のみ). Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'ko': `Generate ${count} professional interview questions in Korean (한국어) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Korean script (한글만). Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'th': `Generate ${count} professional interview questions in Thai (ไทย) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Thai script (ตัวอักษรไทยเท่านั้น). Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'vi': `Generate ${count} professional interview questions in Vietnamese (Tiếng Việt) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Vietnamese. Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'id': `Generate ${count} professional interview questions in Indonesian (Bahasa Indonesia) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Indonesian. Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'ms': `Generate ${count} professional interview questions in Malay (Bahasa Melayu) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Malay. Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'tl': `Generate ${count} professional interview questions in Filipino/Tagalog (Filipino) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Filipino. Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'tr': `Generate ${count} professional interview questions in Turkish (Türkçe) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Turkish. Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'pl': `Generate ${count} professional interview questions in Polish (Polski) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Polish. Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'nl': `Generate ${count} professional interview questions in Dutch (Nederlands) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Dutch. Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'sv': `Generate ${count} professional interview questions in Swedish (Svenska) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Swedish. Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'no': `Generate ${count} professional interview questions in Norwegian (Norsk) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Norwegian. Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'da': `Generate ${count} professional interview questions in Danish (Dansk) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Danish. Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'fi': `Generate ${count} professional interview questions in Finnish (Suomi) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Finnish. Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
+      
+      'default': `Generate ${count} professional technical interview questions for a ${role} position with ${experience} experience. Focus on practical skills, problem-solving abilities, and relevant technical knowledge. Each question should be clear, specific, and designed to assess the candidate's expertise in their field. Format: Return only the questions, one per line.`
+    };
+    
+    const systemPrompt = languagePrompts[language as keyof typeof languagePrompts] || languagePrompts.default;
+    
+    console.log('📝 AI Prompt for', language, ':', systemPrompt.substring(0, 100) + '...');
+    
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://ai-interview-coach.vercel.app',
+        'X-Title': 'AI Interview Coach - Question Generator'
+      },
+      body: JSON.stringify({
+        model: 'microsoft/wizardlm-2-8x22b', // Multi-lingual support
+        messages: [
+          {
+            role: 'system',
+            content: `You are an expert technical interview question generator. You MUST generate questions ONLY in the requested language script. Never mix languages or use English unless specifically requested. Be precise and professional.`
+          },
+          {
+            role: 'user',
+            content: systemPrompt
+          }
+        ],
+        temperature: 0.8,
+        max_tokens: 1500,
+        top_p: 0.9
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ OpenRouter API error:', response.status, errorText);
+      throw new Error(`OpenRouter API failed: ${response.status} - ${errorText}`);
     }
-    return questions.filter((q: any) => typeof q === 'string' && q.trim().length > 10).slice(0, count);
+
+    const data = await response.json();
+    console.log('📊 OpenRouter API response data available');
+
+    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+      console.error('❌ Invalid OpenRouter response structure:', data);
+      throw new Error('Invalid response from OpenRouter API');
+    }
+
+    const content = data.choices[0].message.content;
+    console.log('📋 Raw AI generated content length:', content.length);
+    
+    // Parse questions from response
+    const questions = content
+      .split('\n')
+      .filter((line: string) => line.trim())
+      .map((line: string) => line.replace(/^\d+\.\s*/, '').trim())
+      .filter((question: string) => question.length > 10);
+    
+    console.log('✅ Parsed', questions.length, 'AI-generated questions for', language);
+    console.log('🔍 Sample questions:', questions.slice(0, 2));
+    
+    if (questions.length === 0) {
+      throw new Error('Failed to parse questions from AI response');
+    }
+    
+    return questions.slice(0, count);
+    
   } catch (error) {
-    // If JSON parsing fails, try to extract questions from text
-    const lines = content.split('\n').filter((line: string) => line.trim().length > 10);
-    return lines.slice(0, count);
+    console.error('❌ OpenRouter question generation failed:', error);
+    throw error;
   }
 }
 
-function generateFallbackQuestions(role: string, language: string, count: number): string[] {
-  const questionBank: { [key: string]: { [key: string]: string[] } } = {
-    "Software Engineer": {
-      "English": [
-        "Tell me about yourself and your experience as a software engineer.",
-        "Describe a challenging technical problem you solved recently and walk me through your approach.",
-        "How do you ensure code quality and maintainability in your projects?",
-        "What's your experience with version control systems and collaborative development?",
-        "How do you stay updated with new technologies and programming trends?",
-        "Describe a time when you had to debug a complex issue. What was your process?",
-        "How do you approach system design and scalability challenges?",
-        "What testing strategies do you use to ensure your code is reliable?"
-      ],
-      "Hindi": [
-        "अपने बारे में और सॉफ्टवेयर इंजीनियर के रूप में अपने अनुभव के बारे में बताएं।",
-        "हाल ही में आपने जो चुनौतीपूर्ण तकनीकी समस्या हल की है उसका वर्णन करें।",
-        "आप अपने प्रोजेक्ट्स में कोड की गुणवत्ता कैसे सुनिश्चित करते हैं?",
-        "वर्जन कंट्रोल सिस्टम के साथ आपका क्या अनुभव है?",
-        "आप नई तकनीकों के साथ कैसे अपडेट रहते हैं?",
-        "जटिल समस्याओं को डिबग करने की आपकी प्रक्रिया क्या है?",
-        "सिस्टम डिज़ाइन और स्केलेबिलिटी चुनौतियों से आप कैसे निपटते हैं?",
-        "विश्वसनीय कोड के लिए आप कौन सी टेस्टिंग रणनीतियों का उपयोग करते हैं?"
-      ]
-    },
-    "Frontend Developer": {
-      "English": [
-        "What's your experience with modern JavaScript frameworks and which do you prefer?",
-        "How do you approach responsive web design and ensure cross-browser compatibility?",
-        "Describe a complex UI component you built and the challenges you faced.",
-        "How do you optimize web application performance and user experience?",
-        "What's your process for collaborating with designers and backend developers?",
-        "How do you handle state management in large frontend applications?",
-        "What testing strategies do you use for frontend applications?",
-        "How do you ensure accessibility in your web applications?"
-      ],
-      "Hindi": [
-        "आधुनिक जावास्क्रिप्ट फ्रेमवर्क के साथ आपका क्या अनुभव है?",
-        "रिस्पॉन्सिव वेब डिज़ाइन और क्रॉस-ब्राउज़र संगतता कैसे सुनिश्चित करते हैं?",
-        "आपने जो जटिल UI कंपोनेंट बनाया है उसका वर्णन करें।",
-        "वेब एप्लिकेशन प्रदर्शन को कैसे अनुकूलित करते हैं?",
-        "डिज़ाइनर और बैकएंड डेवलपर्स के साथ सहयोग की प्रक्रिया क्या है?",
-        "बड़े फ्रंटएंड एप्लिकेशन में स्टेट मैनेजमेंट कैसे करते हैं?",
-        "फ्रंटएंड एप्लिकेशन के लिए आप कौन सी टेस्टिंग रणनीतियां उपयोग करते हैं?",
-        "वेब एप्लिकेशन में एक्सेसिबिलिटी कैसे सुनिश्चित करते हैं?"
-      ]
-    }
-  };
-
-  const roleQuestions = questionBank[role] || questionBank["Software Engineer"];
-  const languageQuestions = roleQuestions[language] || roleQuestions["English"];
+function getQuestionCategory(questionText: string, index: number): string {
+  const lowerText = questionText.toLowerCase();
   
-  return languageQuestions.slice(0, Math.min(count, languageQuestions.length));
+  if (lowerText.includes('code') || lowerText.includes('program') || lowerText.includes('algorithm') || lowerText.includes('debug')) {
+    return 'Coding';
+  } else if (lowerText.includes('team') || lowerText.includes('project') || lowerText.includes('challenge') || lowerText.includes('experience')) {
+    return 'Behavioral';
+  } else if (lowerText.includes('design') || lowerText.includes('architecture') || lowerText.includes('system')) {
+    return 'System Design';
+  } else {
+    return ['Technical', 'Problem Solving', 'Conceptual'][index % 3];
+  }
 }

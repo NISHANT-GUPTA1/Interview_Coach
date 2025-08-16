@@ -114,26 +114,14 @@ export default function WorkingInterviewPage() {
     'id': 'id-ID',
     'ms': 'ms-MY',
     'tl': 'tl-PH',
-    'sw': 'sw-KE',
-    'am': 'am-ET',
     'tr': 'tr-TR',
     'pl': 'pl-PL',
-    'cs': 'cs-CZ',
-    'hu': 'hu-HU',
-    'ro': 'ro-RO',
-    'bg': 'bg-BG',
-    'hr': 'hr-HR',
-    'sk': 'sk-SK',
-    'sl': 'sl-SI',
-    'et': 'et-EE',
-    'lv': 'lv-LV',
-    'lt': 'lt-LT',
-    'fi': 'fi-FI',
-    'da': 'da-DK',
-    'no': 'no-NO',
+    'nl': 'nl-NL',
     'sv': 'sv-SE',
-    'is': 'is-IS',
-    'nl': 'nl-NL'
+    'no': 'no-NO',
+    'da': 'da-DK',
+    'fi': 'fi-FI',
+    'sa': 'sa-IN'
   }
 
   // Language display names
@@ -282,104 +270,216 @@ export default function WorkingInterviewPage() {
 
   // Simple test speech function
   const testSpeech = async () => {
-    if ('speechSynthesis' in window) {
+    if (typeof window !== 'undefined') {
+      console.log('🧪 Testing speech synthesis for language:', selectedLanguage)
+      
+      // Language-specific test text
+      const testTexts: { [key: string]: string } = {
+        'pa': 'ਇਹ ਇੱਕ ਪੰਜਾਬੀ ਟੈਸਟ ਹੈ',
+        'hi': 'यह एक हिंदी टेस्ट है',
+        'ur': 'یہ ایک اردو ٹیسٹ ہے',
+        'ne': 'यो एक नेपाली परीक्षण हो',
+        'bn': 'এটি একটি বাংলা পরীক্ষা',
+        'ta': 'இது ஒரு தமிழ் சோதனை',
+        'te': 'ఇది ఒక తెలుగు పరీక్ష',
+        'kn': 'ಇದು ಒಂದು ಕನ್ನಡ ಪರೀಕ್ಷೆ',
+        'ml': 'ഇത് ഒരു മലയാളം പരീക്ഷയാണ്',
+        'gu': 'આ એક ગુજરાતી પરીક્ષણ છે',
+        'mr': 'हे एक मराठी चाचणी आहे',
+        'ar': 'هذا اختبار باللغة العربية',
+        'zh': '这是一个中文测试',
+        'ja': 'これは日本語のテストです',
+        'ko': '이것은 한국어 테스트입니다',
+        'th': 'นี่คือการทดสอบภาษาไทย',
+        'vi': 'Đây là một bài kiểm tra tiếng Việt',
+        'id': 'Ini adalah tes bahasa Indonesia',
+        'ms': 'Ini adalah ujian bahasa Melayu',
+        'tl': 'Ito ay isang pagsusulit sa Filipino',
+        'tr': 'Bu bir Türkçe testidir',
+        'ru': 'Это тест на русском языке',
+        'es': 'Esta es una prueba en español',
+        'fr': 'Ceci est un test en français',
+        'de': 'Dies ist ein Test auf Deutsch',
+        'it': 'Questo è un test in italiano',
+        'pt': 'Este é um teste em português',
+        'pl': 'To jest test w języku polskim',
+        'nl': 'Dit is een test in het Nederlands',
+        'sv': 'Detta är ett test på svenska',
+        'no': 'Dette er en test på norsk',
+        'da': 'Dette er en test på dansk',
+        'fi': 'Tämä on testi suomeksi',
+        'en': 'This is an English test'
+      }
+      
+      const testText = testTexts[selectedLanguage] || 'This is a test'
+      
       try {
-        // Cancel any ongoing speech
-        window.speechSynthesis.cancel()
-        
-        const utterance = new SpeechSynthesisUtterance("Hello, this is a test.")
-        utterance.rate = 0.8
-        utterance.pitch = 1.0
-        utterance.volume = 0.9
-        
-        utterance.onstart = () => console.log('🎤 Test speech started')
-        utterance.onend = () => console.log('🎤 Test speech ended')
-        utterance.onerror = (error) => console.error('🎤 Test speech error:', error)
-        
-        window.speechSynthesis.speak(utterance)
+        console.log(`🎙️ Testing with text: "${testText}" in language: ${selectedLanguage}`)
+        await multiLanguageSpeechService.speak(testText, selectedLanguage)
+        console.log('✅ Speech test completed successfully')
       } catch (error) {
-        console.error('Test speech failed:', error)
+        console.error('❌ Speech test failed:', error)
+        
+        // Fallback to basic speech synthesis
+        if ('speechSynthesis' in window) {
+          console.log('🔄 Falling back to basic speech synthesis')
+          window.speechSynthesis.cancel()
+          
+          const utterance = new SpeechSynthesisUtterance(testText)
+          const speechLang = languageMap[selectedLanguage as keyof typeof languageMap] || 'en-US'
+          utterance.lang = speechLang
+          utterance.rate = 0.8
+          utterance.pitch = 1.0
+          utterance.volume = 0.9
+          
+          utterance.onstart = () => console.log('🎤 Fallback speech started')
+          utterance.onend = () => console.log('🎤 Fallback speech ended')
+          utterance.onerror = (error) => console.error('🎤 Fallback speech error:', error)
+          
+          window.speechSynthesis.speak(utterance)
+        }
       }
     }
   }
 
   // Speak question using enhanced browser speech synthesis
   const speakQuestionAI = async (questionText: string) => {
-    console.log('🗣️ Starting speakQuestionAI with text:', questionText)
+    console.log('🗣️ Starting speakQuestionAI with text:', questionText.substring(0, 50) + '...')
+    console.log('🌍 Speaking in language:', selectedLanguage)
     
     // Don't start if already speaking
     if (aiAvatarSpeaking) {
-      console.log('🎤 Already speaking, skipping...')
-      return
+      console.log('🎤 Already speaking, cancelling previous speech and starting new...')
+      // Cancel any ongoing speech from both services
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel()
+      }
+      // Give a moment for cleanup
+      await new Promise(resolve => setTimeout(resolve, 200))
     }
     
     setAiAvatarSpeaking(true)
     
     try {
-      // Use reliable browser speech synthesis directly
-      if ('speechSynthesis' in window) {
-        // Cancel any ongoing speech first
-        window.speechSynthesis.cancel()
-        
-        // Wait a moment for cancel to complete
-        await new Promise(resolve => setTimeout(resolve, 100))
-        
-        const utterance = new SpeechSynthesisUtterance(questionText)
-        const speechLang = languageMap[selectedLanguage as keyof typeof languageMap] || 'en-US'
-        utterance.lang = speechLang
-        utterance.rate = 0.9
-        utterance.pitch = 1.0
-        utterance.volume = 0.9
-        
-        // Find the best voice
-        const voices = window.speechSynthesis.getVoices()
-        const voice = voices.find(v => v.lang.startsWith(speechLang.split('-')[0])) || 
-                    voices.find(v => v.lang.startsWith('en')) ||
-                    voices[0] // fallback to first available voice
-        if (voice) {
-          utterance.voice = voice
-          console.log('🎤 Using voice:', voice.name)
-        }
-        
-        // Set up event handlers
-        utterance.onstart = () => {
-          console.log('🎤 Speech started')
-          setAiAvatarSpeaking(true)
-        }
-        
-        utterance.onend = () => {
-          console.log('🎤 Speech completed successfully')
+      // Use enhanced multilingual speech service for better regional language support
+      console.log('🎙️ Using multiLanguageSpeechService for TTS')
+      
+      await multiLanguageSpeechService.speak(
+        questionText, 
+        selectedLanguage, 
+        () => {
+          console.log('✅ Speech completed via multiLanguageSpeechService')
           setAiAvatarSpeaking(false)
         }
+      )
+      
+    } catch (error) {
+      console.error('❌ Enhanced speech failed, falling back to browser TTS:', error)
+      
+      // Only fallback if the error is a timeout or service unavailable
+      const isTimeoutError = error === 'Speech synthesis timeout'
+      const isServiceUnavailable = !multiLanguageSpeechService.isReady()
+      
+      if (isTimeoutError || isServiceUnavailable) {
+        console.log('🔄 Using browser speech synthesis as fallback')
         
-        utterance.onerror = (error) => {
-          console.error('🎤 Speech error:', error)
+        // Fallback to browser speech synthesis with enhanced voice selection
+        try {
+          if ('speechSynthesis' in window) {
+            // Cancel any ongoing speech first
+            window.speechSynthesis.cancel()
+            
+            // Wait a moment for cancel to complete
+            await new Promise(resolve => setTimeout(resolve, 100))
+            
+            const utterance = new SpeechSynthesisUtterance(questionText)
+            const speechLang = languageMap[selectedLanguage as keyof typeof languageMap] || 'en-US'
+            utterance.lang = speechLang
+            
+            // Enhanced settings for regional languages
+            if (['hi', 'ta', 'te', 'kn', 'ml', 'pa', 'bn', 'gu', 'mr', 'or', 'as', 'ur', 'ne', 'si'].includes(selectedLanguage)) {
+              utterance.rate = 0.7  // Slower for clarity
+              utterance.pitch = 1.1  // Slightly higher pitch
+              utterance.volume = 1.0  // Full volume
+              console.log(`🇮🇳 Configured for regional language: ${selectedLanguage}`)
+            } else {
+              utterance.rate = 0.9
+              utterance.pitch = 1.0
+              utterance.volume = 0.9
+            }
+            
+            // Enhanced voice finding algorithm
+            const voices = window.speechSynthesis.getVoices()
+            console.log(`🔍 Looking for ${speechLang} voice among ${voices.length} available voices`)
+            
+            // Priority voice selection
+            let selectedVoice = null
+            
+            // 1. Exact language match with priority brands
+            const priorityBrands = ['google', 'microsoft', 'apple']
+            for (const brand of priorityBrands) {
+              selectedVoice = voices.find(v => 
+                v.lang.toLowerCase() === speechLang.toLowerCase() && 
+                v.name.toLowerCase().includes(brand)
+              )
+              if (selectedVoice) break
+            }
+            
+            // 2. Exact language match (any voice)
+            if (!selectedVoice) {
+              selectedVoice = voices.find(v => v.lang.toLowerCase() === speechLang.toLowerCase())
+            }
+            
+            // 3. Base language match (e.g., 'pa' for 'pa-IN')
+            if (!selectedVoice) {
+              const baseLanguage = speechLang.split('-')[0]
+              selectedVoice = voices.find(v => v.lang.toLowerCase().startsWith(baseLanguage.toLowerCase()))
+            }
+            
+            // 4. Fallback to English
+            if (!selectedVoice) {
+              selectedVoice = voices.find(v => v.lang.startsWith('en')) || voices[0]
+            }
+            
+            if (selectedVoice) {
+              utterance.voice = selectedVoice
+              console.log(`✅ Selected voice: ${selectedVoice.name} (${selectedVoice.lang}) for ${selectedLanguage}`)
+            } else {
+              console.log(`⚠️ No suitable voice found for ${selectedLanguage}, using default`)
+            }
+            
+            // Set up event handlers and start speaking
+            utterance.onstart = () => {
+              console.log(`🎤 Fallback speech started for ${selectedLanguage}`)
+              setAiAvatarSpeaking(true)
+            }
+            
+            utterance.onend = () => {
+              console.log(`✅ Fallback speech completed successfully for ${selectedLanguage}`)
+              setAiAvatarSpeaking(false)
+            }
+            
+            utterance.onerror = (error) => {
+              console.error(`❌ Fallback speech error for ${selectedLanguage}:`, error)
+              setAiAvatarSpeaking(false)
+            }
+            
+            // Start speaking
+            window.speechSynthesis.speak(utterance)
+            
+          } else {
+            console.log('🎤 Speech synthesis not supported in this browser')
+            setAiAvatarSpeaking(false)
+          }
+        } catch (fallbackError) {
+          console.error('❌ Fallback speech synthesis error:', fallbackError)
           setAiAvatarSpeaking(false)
         }
-        
-        // Start speaking
-        window.speechSynthesis.speak(utterance)
-        
-        // Return a promise that resolves when speech ends
-        return new Promise<void>((resolve) => {
-          utterance.onend = () => {
-            console.log('🎤 Speech completed successfully')
-            setAiAvatarSpeaking(false)
-            resolve()
-          }
-          utterance.onerror = () => {
-            console.log('🎤 Speech error, but continuing...')
-            setAiAvatarSpeaking(false)
-            resolve()
-          }
-        })
       } else {
-        console.log('🎤 Speech synthesis not supported in this browser')
+        // For non-timeout errors, just log and stop
+        console.error('❌ Speech synthesis failed:', error)
         setAiAvatarSpeaking(false)
       }
-    } catch (error) {
-      console.error('Speech synthesis error:', error)
-      setAiAvatarSpeaking(false)
     }
   }
 
@@ -1016,11 +1116,11 @@ export default function WorkingInterviewPage() {
                     </p>
                     
                     {/* Display MCQ options if available */}
-                    {currentQuestion.options && (
+                    {(currentQuestion as any).options && (
                       <div className="mt-4 ml-4">
                         <p className="font-medium text-sm text-gray-600 mb-2">Options:</p>
                         <div className="space-y-2">
-                          {currentQuestion.options.map((option: string, optionIndex: number) => (
+                          {(currentQuestion as any).options.map((option: string, optionIndex: number) => (
                             <div key={optionIndex} className="flex items-start p-2 bg-white rounded border">
                               <span className="font-medium text-blue-600 mr-3">
                                 {String.fromCharCode(65 + optionIndex)}.

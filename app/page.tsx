@@ -8,13 +8,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Progress } from "@/components/ui/progress"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Brain, Camera, Mic, FileText, BarChart3, Zap, Star, Users, Trophy, TrendingUp, ArrowRight, CheckCircle, Search, Globe } from "lucide-react"
+import { Brain, Camera, Mic, FileText, BarChart3, Zap, Star, Users, Trophy, TrendingUp, ArrowRight, CheckCircle, Search, Globe, User, LogIn } from "lucide-react"
 import Link from "next/link"
 import { SUPPORTED_LANGUAGES, getLanguagesByCategory, searchLanguages, type Language } from "@/lib/language-service"
 import { useTranslationContext, TranslatedText } from "@/contexts/TranslationContext"
+import { useAuth } from "@/contexts/SupabaseAuthContext"
 
 export default function HomePage() {
   const { language, setLanguage, t } = useTranslationContext()
+  const { user, loading: authLoading } = useAuth()
   const [selectedRole, setSelectedRole] = useState("Software Engineer")
   const [selectedExperience, setSelectedExperience] = useState("2-3 years")
   const [selectedCount, setSelectedCount] = useState(5)
@@ -119,8 +121,48 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+      {/* Navigation */}
+      <nav className="fixed top-0 w-full bg-white/90 backdrop-blur-md border-b border-gray-200 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center">
+              <Brain className="h-8 w-8 text-blue-600 mr-2" />
+              <span className="text-xl font-bold text-gray-900">AI Interview Coach</span>
+            </div>
+            
+            <div className="flex items-center space-x-4">
+              {authLoading ? (
+                <div className="animate-pulse bg-gray-200 h-8 w-16 rounded"></div>
+              ) : user ? (
+                <div className="flex items-center space-x-3">
+                  <span className="text-sm text-gray-600">Welcome, {user.email}</span>
+                  <Link href="/profile">
+                    <Button variant="outline" size="sm">
+                      <User className="h-4 w-4 mr-2" />
+                      Profile
+                    </Button>
+                  </Link>
+                </div>
+              ) : (
+                <div className="flex items-center space-x-2">
+                  <Link href="/login">
+                    <Button variant="outline" size="sm">
+                      <LogIn className="h-4 w-4 mr-2" />
+                      Sign In
+                    </Button>
+                  </Link>
+                  <Link href="/signup">
+                    <Button size="sm">Sign Up</Button>
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </nav>
+
       {/* Hero Section */}
-      <section className="relative overflow-hidden">
+      <section className="relative overflow-hidden pt-20">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10" />
         <div className="relative max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
           <div className="text-center">
@@ -152,6 +194,24 @@ export default function HomePage() {
                 )
               })}
             </div>
+
+            {/* Quick Action for Authenticated Users */}
+            {user && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8 max-w-md mx-auto">
+                <h3 className="font-semibold text-blue-900 mb-2">Welcome back!</h3>
+                <p className="text-blue-700 text-sm mb-4">Continue your interview practice or view your progress</p>
+                <div className="flex space-x-2">
+                  <Link href="/profile">
+                    <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+                      View Dashboard
+                    </Button>
+                  </Link>
+                  <Link href="/working-interview">
+                    <Button variant="outline" size="sm">Quick Interview</Button>
+                  </Link>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -197,6 +257,13 @@ export default function HomePage() {
             <p className="text-lg text-gray-600">
               Customize your practice session in 4 simple steps
             </p>
+            {!user && (
+              <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4 max-w-md mx-auto">
+                <p className="text-yellow-800 text-sm">
+                  💡 <Link href="/signup" className="font-medium underline">Create an account</Link> to save your progress and track improvement over time!
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Progress Bar */}
@@ -451,27 +518,45 @@ export default function HomePage() {
 
           {/* Start Button */}
           <div className="mt-8 text-center">
-            <Button 
-              size="lg" 
-              className={`px-8 py-3 text-lg ${
-                isReady 
-                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700' 
-                  : 'bg-gray-300 cursor-not-allowed'
-              }`}
-              disabled={!isReady}
-              onClick={handleStartInterview}
-            >
-              {isReady ? (
-                <>
-                  <TranslatedText text="Start AI Interview" /> <ArrowRight className="ml-2 h-5 w-5" />
-                </>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button 
+                size="lg" 
+                className={`px-8 py-3 text-lg ${
+                  isReady 
+                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700' 
+                    : 'bg-gray-300 cursor-not-allowed'
+                }`}
+                disabled={!isReady}
+                onClick={handleStartInterview}
+              >
+                {isReady ? (
+                  <>
+                    <TranslatedText text="Start AI Interview" /> <ArrowRight className="ml-2 h-5 w-5" />
+                  </>
+                ) : (
+                  <TranslatedText text="Complete Setup to Continue" />
+                )}
+              </Button>
+              
+              {user ? (
+                <Link href="/profile">
+                  <Button variant="outline" size="lg" className="px-8 py-3 text-lg">
+                    <BarChart3 className="mr-2 h-5 w-5" />
+                    <TranslatedText text="View Dashboard" />
+                  </Button>
+                </Link>
               ) : (
-                <TranslatedText text="Complete Setup to Continue" />
+                <Link href="/signup">
+                  <Button variant="outline" size="lg" className="px-8 py-3 text-lg">
+                    <User className="mr-2 h-5 w-5" />
+                    <TranslatedText text="Create Account" />
+                  </Button>
+                </Link>
               )}
-            </Button>
+            </div>
             {isReady && (
               <p className="mt-2 text-sm text-gray-600">
-                👤 {selectedRole} • 📈 {selectedExperience} • � {selectedCount} questions • 🌍 {SUPPORTED_LANGUAGES.find(l => l.code === selectedLanguage)?.name || selectedLanguage}
+                👤 {selectedRole} • 📈 {selectedExperience} • 🔢 {selectedCount} questions • 🌍 {SUPPORTED_LANGUAGES.find(l => l.code === selectedLanguage)?.name || selectedLanguage}
               </p>
             )}
           </div>
