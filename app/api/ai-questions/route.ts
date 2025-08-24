@@ -155,6 +155,8 @@ async function generateOpenRouterQuestions(
       
       'tl': `Generate ${count} professional interview questions in Filipino/Tagalog (Filipino) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Filipino. Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
       
+      'en': `Generate ${count} professional technical interview questions IN ENGLISH ONLY for a ${role} position with ${experience} experience. Focus on practical skills, problem-solving abilities, and relevant technical knowledge. Each question should be clear, specific, and designed to assess the candidate's expertise in their field. IMPORTANT: Use ONLY English language, no other languages. Format: Return only the questions, one per line.`,
+      
       'tr': `Generate ${count} professional interview questions in Turkish (Türkçe) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Turkish. Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
       
       'pl': `Generate ${count} professional interview questions in Polish (Polski) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Polish. Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
@@ -169,7 +171,7 @@ async function generateOpenRouterQuestions(
       
       'fi': `Generate ${count} professional interview questions in Finnish (Suomi) for a ${role} position with ${experience} experience. Questions must be technical, relevant, and completely in Finnish. Each question should test skills, problem-solving, and expertise. Format: Return only the questions, one per line.`,
       
-      'default': `Generate ${count} professional technical interview questions for a ${role} position with ${experience} experience. Focus on practical skills, problem-solving abilities, and relevant technical knowledge. Each question should be clear, specific, and designed to assess the candidate's expertise in their field. Format: Return only the questions, one per line.`
+      'default': `Generate ${count} professional technical interview questions IN ENGLISH ONLY for a ${role} position with ${experience} experience. Focus on practical skills, problem-solving abilities, and relevant technical knowledge. Each question should be clear, specific, and designed to assess the candidate's expertise in their field. IMPORTANT: Use ONLY English language. Format: Return only the questions, one per line.`
     };
     
     const systemPrompt = languagePrompts[language as keyof typeof languagePrompts] || languagePrompts.default;
@@ -185,11 +187,11 @@ async function generateOpenRouterQuestions(
         'X-Title': 'AI Interview Coach - Question Generator'
       },
       body: JSON.stringify({
-        model: 'microsoft/wizardlm-2-8x22b', // Multi-lingual support
+        model: process.env.OPENROUTER_MODEL || 'qwen/qwen-2-72b-instruct', // Use environment variable
         messages: [
           {
             role: 'system',
-            content: `You are an expert technical interview question generator. You MUST generate questions ONLY in the requested language script. Never mix languages or use English unless specifically requested. Be precise and professional.`
+            content: `You are an expert technical interview question generator. You MUST generate questions ONLY in the requested language. If English is requested, use ONLY English. If Chinese is requested, use ONLY Chinese. Never mix languages. Never translate between languages in the same response. Be precise and professional. STRICT LANGUAGE COMPLIANCE REQUIRED.`
           },
           {
             role: 'user',

@@ -1,13 +1,12 @@
 import { debounce } from 'lodash';
 
-// Use any for the event types to avoid TypeScript errors
 export interface SpeechServiceConfig {
   language?: string;
   continuous?: boolean;
   interimResults?: boolean;
   maxAlternatives?: number;
-  onResult?: (event: any) => void;
-  onError?: (event: any) => void;
+  onResult?: (event: SpeechRecognitionEvent) => void;
+  onError?: (event: SpeechRecognitionEvent) => void;
   onEnd?: () => void;
   onStart?: () => void;
 }
@@ -18,29 +17,7 @@ export interface SpeechServiceConfig {
  * protection against "recognition has already started" errors
  */
 export class MultilingualSpeechService {
-  // Add isReady method that was missing
-  public isReady(): boolean {
-    // Check if speech recognition is supported in this browser
-    return typeof window !== 'undefined' && 
-           ('SpeechRecognition' in window || 
-            'webkitSpeechRecognition' in window ||
-            'mozSpeechRecognition' in window || 
-            'msSpeechRecognition' in window);
-  }
-  
-  // Add the setLanguage method that was missing
-  public setLanguage(language: string): boolean {
-    try {
-      this.language = language;
-      console.log(`🌍 Speech recognition language set to ${language}`);
-      return true;
-    } catch (error) {
-      console.error('❌ Error setting language:', error);
-      return false;
-    }
-  }
-  // Use any type to avoid TypeScript errors
-  private recognition: any = null;
+  private recognition: SpeechRecognition | null = null;
   private isRecognitionActive = false;
   private language: string;
   private continuous: boolean;
@@ -63,8 +40,7 @@ export class MultilingualSpeechService {
   
   // Safe access to SpeechRecognition constructor across browsers
   private static getSpeechRecognitionConstructor(): any {
-    // Use type assertion to bypass TypeScript errors
-    return (window as any).SpeechRecognition || 
+    return window.SpeechRecognition || 
            (window as any).webkitSpeechRecognition ||
            (window as any).mozSpeechRecognition ||
            (window as any).msSpeechRecognition;
@@ -89,21 +65,14 @@ export class MultilingualSpeechService {
   /**
    * Start speech recognition with error handling
    * Creates a fresh recognition instance each time to avoid "already started" errors
-   * 
-   * @param onResultCallback Function to handle speech recognition results
-   * @param onErrorCallback Function to handle speech recognition errors
    */
-  public startRecognition(
-    onResultCallback?: (text: string, isFinal: boolean) => void, 
-    onErrorCallback?: (error: string) => void
-  ): boolean {
+  public startRecognition(): boolean {
     try {
       console.log('🎤 Starting speech recognition...');
       
       // Check for browser support
       if (!MultilingualSpeechService.speechRecognitionSupported()) {
         console.error('❌ Speech recognition not supported in this browser');
-        if (onErrorCallback) onErrorCallback('Speech recognition not supported in this browser');
         return false;
       }
       
@@ -123,44 +92,13 @@ export class MultilingualSpeechService {
       this.recognition.interimResults = this.interimResults;
       this.recognition.maxAlternatives = this.maxAlternatives;
       
-      // Set up event handlers for transcription
-      this.recognition.onresult = (event: any) => {
-        try {
-          // Process all results, looking for the current result index
-          for (let i = event.resultIndex; i < event.results.length; i++) {
-            const result = event.results[i];
-            if (result) {
-              const transcript = result[0]?.transcript || '';
-              const isFinal = result.isFinal;
-              
-              console.log(`🎤 Speech recognition result[${i}]:`, { 
-                transcript: transcript.substring(0, 50) + (transcript.length > 50 ? '...' : ''),
-                isFinal 
-              });
-              
-              // Send result to callback
-              if (onResultCallback && transcript) {
-                onResultCallback(transcript, isFinal);
-              }
-            }
-          }
-          
-          // Also call the general handler if provided
-          if (this.onResult) this.onResult(event);
-        } catch (resultError) {
-          console.error('❌ Error processing recognition result:', resultError);
-        }
+      // Set up event handlers
+      this.recognition.onresult = (event) => {
+        if (this.onResult) this.onResult(event);
       };
       
-      this.recognition.onerror = (event: any) => {
+      this.recognition.onerror = (event) => {
         console.error('🔊 Speech recognition error:', event);
-        
-        // Send error to callback
-        if (onErrorCallback) {
-          onErrorCallback(event.error || 'Unknown speech recognition error');
-        }
-        
-        // Also call the general handler if provided
         if (this.onError) this.onError(event);
         
         // Handle auto-restart for certain errors
@@ -297,56 +235,4 @@ export class MultilingualSpeechService {
       this.restartRecognition();
     }
   }
-  
-  /**
-   * Speak text using the browser's speech synthesis API
-   */
-  public speak(text: string, language?: string, onFinish?: () => void): Promise<boolean> {
-    return new Promise((resolve) => {
-      try {
-        if (typeof window === 'undefined') {
-          console.log('❌ Speech synthesis unavailable (server-side)');
-          resolve(false);
-          return;
-        }
-
-        if (!window.speechSynthesis) {
-          console.log('❌ Speech synthesis not supported in this browser');
-          resolve(false);
-          return;
-        }
-
-        const utterance = new SpeechSynthesisUtterance(text);
-        
-        // Use provided language or fallback to instance language
-        utterance.lang = language || this.language;
-        
-        // Handle finish event
-        utterance.onend = () => {
-          console.log('✅ Speech synthesis completed');
-          if (onFinish) onFinish();
-          resolve(true);
-        };
-        
-        // Handle errors
-        utterance.onerror = (event) => {
-          console.error('❌ Speech synthesis error:', event);
-          if (onFinish) onFinish();
-          resolve(false);
-        };
-        
-        // Speak the text
-        console.log(`🗣️ Speaking text in ${utterance.lang}:`, text.substring(0, 50) + '...');
-        window.speechSynthesis.speak(utterance);
-        
-      } catch (error) {
-        console.error('❌ Error in speak method:', error);
-        if (onFinish) onFinish();
-        resolve(false);
-      }
-    });
-  }
 }
-
-// Create and export a singleton instance of the service
-export const multiLanguageSpeechService = new MultilingualSpeechService();

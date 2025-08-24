@@ -57,7 +57,8 @@ export const createSupabaseServerClient = async () => {
     } as any
   }
   const { cookies } = await import('next/headers')
-  return createServerComponentClient({ cookies })
+  const cookieStore = await cookies()
+  return createServerComponentClient({ cookies: () => cookieStore })
 }
 
 // For API routes (only use in API routes)
@@ -74,10 +75,17 @@ export const createSupabaseRouteClient = async () => {
         insert: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
         update: () => ({ eq: () => Promise.resolve({ error: { message: 'Supabase not configured' } }) }),
       }),
+      storage: {
+        from: () => ({
+          upload: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
+          getPublicUrl: () => ({ data: { publicUrl: '' } }),
+        }),
+      },
     } as any
   }
   const { cookies } = await import('next/headers')
-  return createRouteHandlerClient({ cookies })
+  const cookieStore = await cookies()
+  return createRouteHandlerClient({ cookies: () => cookieStore })
 }
 
 // Basic client for non-authenticated operations (with fallback)

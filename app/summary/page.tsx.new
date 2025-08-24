@@ -29,24 +29,6 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 
-// Language names mapping for proper API analysis requests
-const languageNames = {
-  en: "English",
-  hi: "Hindi",
-  es: "Spanish",
-  fr: "French",
-  de: "German",
-  ta: "Tamil",
-  te: "Telugu",
-  pa: "Punjabi",
-  bn: "Bengali",
-  mr: "Marathi",
-  gu: "Gujarati",
-  kn: "Kannada",
-  ml: "Malayalam",
-  or: "Odia"
-}
-
 // Translation dictionaries for UI labels
 const UI_TRANSLATIONS = {
   en: {
@@ -166,20 +148,6 @@ interface AnalysisData {
     expectedKeywords: number;
     confidenceLevel: string;
   };
-  metadata?: {
-    version?: string;
-    analysisTimestamp?: string;
-    isRealTimeAnalysis?: boolean;
-    provider?: string;
-    processingTime?: number;
-    userAgent?: string;
-    analysisTool?: string;
-    interviewType?: string;
-    questions?: number;
-    language?: string;
-    role?: string;
-    experience?: string;
-  };
 }
 
 export default function SummaryPage() {
@@ -293,154 +261,75 @@ export default function SummaryPage() {
       const answers = interviewData.answers || [];
       const role = interviewData.role || 'Software Engineer';
       const experience = interviewData.experience || '2-3 years';
-      const interviewDuration = interviewData.interviewDuration || 600;
 
       console.log(`🌍 Analysis Language: ${language}`);
       console.log(`📝 Analyzing ${answers.length} actual answers`);
-      console.log(`⏱️ Interview Duration: ${interviewDuration} seconds`);
 
-      // Enhanced analysis request with more detailed instructions
+      // Create analysis request with actual interview data
       const analysisRequest = {
+        ...interviewData,
         language,
         role,
         experience,
         answers,
-        interviewDuration,
         isRealTime: true, // Flag to ensure real-time analysis is used
         useOpenRouter: true, // Explicitly request OpenRouter API
         forceRealTime: true, // New flag to never use fallback
-        analysisInstructions: `Analyze this ${role} interview thoroughly in ${language} language. Candidate experience: ${experience}. 
-        Provide detailed feedback on each answer focusing on technical accuracy, communication clarity, and completeness. 
-        Include specific strengths, areas for improvement, and actionable recommendations. 
-        Provide overall score and meaningful statistics. 
-        All analysis must be in ${languageNames[language as keyof typeof languageNames] || language} language.`
+        analysisInstructions: `Analyze this interview in ${language} language. Provide feedback in the same language the candidate used.`
       };
 
-      // Always use real-time AI analysis with OpenRouter API with multiple retries
+      // Always use real-time AI analysis with OpenRouter API
       console.log('🚀 Starting REAL-TIME AI analysis using OpenRouter...');
-      
-      // Function to attempt analysis with retry logic
-      const attemptAnalysis = async (retryCount = 0): Promise<any> => {
-        try {
-          const response = await fetch('/api/enhanced-interview-analysis', {
-            method: 'POST',
-            headers: { 
-              'Content-Type': 'application/json',
-              'X-Use-OpenRouter': 'true', // Additional header to prioritize OpenRouter
-              'X-Real-Time-Analysis': 'true', // Mark as real-time request
-              'X-Force-Real-Time': 'true', // Never use fallback
-              'X-Priority': 'high', // Add high priority flag
-              'X-Request-ID': `interview-${Date.now()}` // Add unique request ID
-            },
-            body: JSON.stringify(analysisRequest)
-          });
+      const response = await fetch('/api/enhanced-interview-analysis', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-Use-OpenRouter': 'true', // Additional header to prioritize OpenRouter
+          'X-Real-Time-Analysis': 'true', // Mark as real-time request
+          'X-Force-Real-Time': 'true' // Never use fallback
+        },
+        body: JSON.stringify(analysisRequest)
+      });
 
-          if (!response.ok) {
-            throw new Error(`API request failed with status: ${response.status}`);
-          }
+      if (!response.ok) {
+        throw new Error(`Real-time analysis failed with status: ${response.status}`);
+      }
 
-          const result = await response.json();
-          return result;
-        } catch (error) {
-          console.error(`❌ Analysis attempt ${retryCount + 1} failed:`, error);
-          if (retryCount < 2) { // Maximum 3 attempts (0, 1, 2)
-            console.log(`🔄 Retrying analysis... (attempt ${retryCount + 2})`);
-            return new Promise(resolve => {
-              // Exponential backoff: 2s, 4s, 8s...
-              const delay = Math.pow(2, retryCount + 1) * 1000;
-              setTimeout(() => resolve(attemptAnalysis(retryCount + 1)), delay);
-            });
-          } else {
-            throw error;
-          }
-        }
-      };
-
-      // Attempt analysis with retry logic
-      const result = await attemptAnalysis();
+      const result = await response.json();
       console.log('✅ Enhanced AI Analysis result:', result);
 
       if (result.success && result.analysis) {
-        // Validate that the analysis is complete and has all required fields
-        const requiredFields = ['overallScore', 'strengths', 'improvements', 'questionAnalysis'];
-        const missingFields = requiredFields.filter(field => !result.analysis[field]);
-        
-        if (missingFields.length > 0) {
-          console.warn(`⚠️ Analysis is missing required fields: ${missingFields.join(', ')}`);
-          throw new Error(`Incomplete analysis data: missing ${missingFields.join(', ')}`);
-        }
-        
-        // Validate language
+        // Validate that the analysis is in the correct language
         const analysisText = JSON.stringify(result.analysis);
         let isCorrectLanguage = true;
         
-        // Language-specific validation
         if (language === 'hi') {
           isCorrectLanguage = analysisText.includes('स') || analysisText.includes('प्र') || analysisText.includes('अ');
+          if (!isCorrectLanguage) {
+            console.warn('⚠️ Analysis not in Hindi, trying again...');
+            throw new Error('Analysis language mismatch - Hindi expected');
+          }
         } else if (language === 'es') {
           isCorrectLanguage = analysisText.includes('ción') || analysisText.includes('ente') || analysisText.includes('análisis');
-        } else if (language === 'fr') {
-          isCorrectLanguage = analysisText.includes('é') || analysisText.includes('è') || analysisText.includes('à');
-        } else if (language === 'de') {
-          isCorrectLanguage = analysisText.includes('ä') || analysisText.includes('ü') || analysisText.includes('ß');
-        } else if (language === 'ta') {
-          isCorrectLanguage = analysisText.includes('ம்') || analysisText.includes('ன்') || analysisText.includes('க');
-        } else if (language === 'te') {
-          isCorrectLanguage = analysisText.includes('ు') || analysisText.includes('్') || analysisText.includes('న');
-        } else if (language === 'pa') {
-          isCorrectLanguage = analysisText.includes('ਾ') || analysisText.includes('ੀ') || analysisText.includes('ਪ');
-        }
-        
-        if (!isCorrectLanguage && language !== 'en') {
-          console.warn(`⚠️ Analysis not in ${language} language, trying again...`);
-          throw new Error(`Analysis language mismatch - ${language} expected`);
-        }
-        
-        // Verify each question has been analyzed
-        const analyzedQuestionIds = new Set(result.analysis.questionAnalysis.map((q: any) => q.questionId));
-        const allQuestionIds = new Set(answers.map((a: any) => a.questionId));
-        
-        // Check if all questions are analyzed
-        let allQuestionsAnalyzed = true;
-        allQuestionIds.forEach(id => {
-          if (!analyzedQuestionIds.has(id)) {
-            allQuestionsAnalyzed = false;
-            console.warn(`⚠️ Question ${id} not analyzed`);
-          }
-        });
-        
-        if (!allQuestionsAnalyzed) {
-          console.warn('⚠️ Not all questions were analyzed, adding missing questions...');
-          
-          // Find missing questions and add placeholder analysis
-          const missingQuestions = answers.filter((a: any) => !analyzedQuestionIds.has(a.questionId));
-          
-          for (const question of missingQuestions) {
-            result.analysis.questionAnalysis.push({
-              questionId: question.questionId,
-              questionText: question.questionText,
-              answerText: question.answerText,
-              score: Math.round(result.analysis.overallScore * 0.9), // Slightly lower than overall
-              strengths: [language === 'hi' ? "अच्छा प्रयास" : language === 'es' ? "Buen intento" : "Good attempt"],
-              weaknesses: [language === 'hi' ? "अधिक विवरण जोड़ें" : language === 'es' ? "Añadir más detalles" : "Add more details"],
-              suggestions: [language === 'hi' ? "अधिक उदाहरण दें" : language === 'es' ? "Proporcionar más ejemplos" : "Provide more examples"],
-              expectedAnswer: language === 'hi' ? "एक अच्छा उत्तर अधिक विस्तृत होगा" : language === 'es' ? "Una buena respuesta sería más detallada" : "A good answer would be more detailed",
-              technicalAccuracy: Math.round(result.analysis.overallScore * 0.9),
-              communicationClarity: Math.round(result.analysis.overallScore * 0.9),
-              completeness: Math.round(result.analysis.overallScore * 0.85)
-            });
+          if (!isCorrectLanguage) {
+            console.warn('⚠️ Analysis not in Spanish, trying again...');
+            throw new Error('Analysis language mismatch - Spanish expected');
           }
         }
         
-        // Use the real-time analysis and enhance it further
-        setAnalysis(result.analysis);
-        setIsRealTimeAnalysis(true);
-        console.log(`✅ Using ${result.source || 'OpenRouter'} REAL-TIME AI analysis in ${language} language`);
-        console.log('🔥 Analysis provider:', result.provider || 'OpenRouter');
-        console.log('📊 Analysis type:', result.isRealTime ? 'Real-time' : 'Static');
-        
-        // Save analysis to database
-        await saveAnalysisToDatabase(interviewData, result.analysis);
+        if (isCorrectLanguage) {
+          // Use real-time OpenRouter AI analysis only
+          setAnalysis(result.analysis);
+          setIsRealTimeAnalysis(true);
+          console.log(`✅ Using ${result.source || 'OpenRouter'} REAL-TIME AI analysis in ${language} language`);
+          console.log('🔥 Analysis provider:', result.provider || 'OpenRouter');
+          console.log('📊 Analysis type:', result.isRealTime ? 'Real-time' : 'Static');
+          
+          // Save analysis to database
+          await saveAnalysisToDatabase(interviewData, result.analysis);
+        } else {
+          throw new Error('Analysis language mismatch');
+        }
       } else if (!result.success) {
         throw new Error(result.error || 'Real-time analysis failed');
       } else {
@@ -450,139 +339,48 @@ export default function SummaryPage() {
       console.error('❌ Real-time analysis error:', err);
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
       
-      // Display error to user with retry option
-      setError(`Real-time AI analysis failed: ${errorMessage}. Please try again or check your internet connection.`);
+      // Display error to user - NO FALLBACKS
+      setError(`Real-time AI analysis failed: ${errorMessage}. Please check your internet connection and try again.`);
       setIsRealTimeAnalysis(false);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Save analysis to database for persistence with enhanced reliability
+  // Save analysis to database for persistence
   const saveAnalysisToDatabase = async (interviewData: any, analysis: any) => {
     try {
       const userId = localStorage.getItem('userId') || `user_${Date.now()}`;
       localStorage.setItem('userId', userId); // Store for future use
       
-      // Add additional metadata to enhance the stored analysis
-      const enhancedAnalysis = {
-        ...analysis,
-        metadata: {
-          version: "2.0",
-          analysisTimestamp: new Date().toISOString(),
-          isRealTimeAnalysis: true,
-          provider: "OpenRouter",
-          processingTime: Date.now() - (interviewData.timestamp || Date.now()),
-          userAgent: navigator.userAgent,
-          analysisTool: "enhanced-interview-analysis-v2",
-          interviewType: "standard",
-          questions: interviewData.answers?.length || 0,
-          language: interviewData.language || 'en',
-          role: interviewData.role || 'Not Specified',
-          experience: interviewData.experience || 'Not Specified'
-        }
-      };
-      
-      console.log('📊 Saving enhanced analysis to database with metadata...');
-      
-      // Attempt to save with retry logic
-      const attemptSave = async (retryCount = 0): Promise<any> => {
-        try {
-          const response = await fetch('/api/interview-database', {
-            method: 'POST',
-            headers: { 
-              'Content-Type': 'application/json',
-              'X-Save-Priority': 'high',  // Indicate this is important data
-              'X-Request-ID': `save-${Date.now()}`  // Unique request ID
-            },
-            body: JSON.stringify({
-              action: 'save',
-              userId,
-              role: interviewData.role,
-              experience: interviewData.experience,
-              language: interviewData.language,
-              answers: interviewData.answers,
-              analysis: enhancedAnalysis,
-              timestamp: interviewData.timestamp || Date.now(),
-              interviewDuration: interviewData.interviewDuration || 600,
-              isRealTimeAnalysis: true, // Mark as real-time analysis
-              saveVersion: 2  // Indicate enhanced save format
-            })
-          });
+      // Save interview with analysis
+      const response = await fetch('/api/interview-database', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'save',
+          userId,
+          role: interviewData.role,
+          experience: interviewData.experience,
+          language: interviewData.language,
+          answers: interviewData.answers,
+          analysis,
+          timestamp: interviewData.timestamp,
+          interviewDuration: interviewData.interviewDuration,
+          isRealTimeAnalysis: true // Mark as real-time analysis
+        })
+      });
 
-          if (!response.ok) {
-            throw new Error(`Database save failed with status: ${response.status}`);
-          }
-
-          const result = await response.json();
-          return result;
-        } catch (error) {
-          console.warn(`⚠️ Database save attempt ${retryCount + 1} failed:`, error);
-          if (retryCount < 2) { // Maximum 3 attempts (0, 1, 2)
-            console.log(`🔄 Retrying database save... (attempt ${retryCount + 2})`);
-            return new Promise(resolve => {
-              // Exponential backoff: 1s, 2s, 4s...
-              const delay = Math.pow(2, retryCount) * 1000;
-              setTimeout(() => resolve(attemptSave(retryCount + 1)), delay);
-            });
-          } else {
-            throw error;
-          }
-        }
-      };
-
-      // Attempt save with retry
-      const result = await attemptSave();
-      
+      const result = await response.json();
       if (result.success) {
-        console.log('✅ Interview saved to database successfully:', result.interviewId);
+        console.log('✅ Interview saved to database:', result.interviewId);
         localStorage.setItem('lastInterviewId', result.interviewId);
-        
-        // Also cache the analysis locally as backup
-        try {
-          localStorage.setItem('lastAnalysis', JSON.stringify({
-            interviewId: result.interviewId,
-            timestamp: Date.now(),
-            analysis: enhancedAnalysis
-          }));
-          console.log('✅ Analysis cached locally as backup');
-        } catch (cacheError) {
-          console.warn('⚠️ Could not cache analysis locally:', cacheError);
-        }
-        
       } else {
         console.warn('⚠️ Failed to save to database:', result.error);
-        // Save analysis locally as backup
-        try {
-          localStorage.setItem('failedSaveAnalysis', JSON.stringify({
-            timestamp: Date.now(),
-            interviewData,
-            analysis: enhancedAnalysis,
-            error: result.error
-          }));
-          console.log('✅ Failed analysis saved locally for future retry');
-        } catch (localError) {
-          console.error('❌ Could not save analysis locally:', localError);
-        }
       }
     } catch (error) {
       console.warn('⚠️ Database save error:', error);
-      // Try to save locally as backup
-      try {
-        localStorage.setItem('emergencyAnalysisBackup', JSON.stringify({
-          timestamp: Date.now(),
-          analysis,
-          interviewMeta: {
-            role: interviewData.role,
-            experience: interviewData.experience,
-            language: interviewData.language,
-            answersCount: interviewData.answers?.length || 0
-          }
-        }));
-        console.log('✅ Emergency analysis backup saved locally');
-      } catch (backupError) {
-        console.error('❌ Complete save failure - could not save backup:', backupError);
-      }
+      // Continue without failing - database is optional
     }
   };
 
@@ -753,15 +551,9 @@ export default function SummaryPage() {
         
         {/* Real-time analysis badge */}
         <div className="flex justify-center mb-2">
-          <Badge className="bg-blue-500 hover:bg-blue-600 text-white">
-            <Brain className="mr-1 h-3 w-3" />
+          <Badge className="bg-blue-500 hover:bg-blue-600">
             {t('realTimeAnalysis')}
           </Badge>
-          {analysis?.metadata?.provider && (
-            <Badge className="ml-2 bg-green-500 hover:bg-green-600 text-white">
-              {analysis.metadata.provider}
-            </Badge>
-          )}
         </div>
         
         {/* Tabs for navigation */}

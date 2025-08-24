@@ -172,10 +172,28 @@ export default function ProfilePage() {
     const file = e.target.files?.[0]
     if (!file || !user) return
 
-    if (file.type !== 'application/pdf' && !file.type.includes('text')) {
+    // Validate file size (10MB limit)
+    if (file.size > 10 * 1024 * 1024) {
       toast({
-        title: "Error",
-        description: "Please upload a PDF or text file",
+        title: "File Too Large",
+        description: "Please upload a file smaller than 10MB.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    // Validate file type
+    const allowedTypes = [
+      'application/pdf',
+      'application/msword', 
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'text/plain'
+    ]
+    
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: "Invalid File Type",
+        description: "Please upload PDF, DOC, DOCX, or TXT files only.",
         variant: "destructive",
       })
       return
@@ -185,83 +203,37 @@ export default function ProfilePage() {
     setUploadProgress(0)
 
     try {
-      // Upload file to Supabase storage - using the bucket that should exist
-      const fileName = `${user.id}/${Date.now()}_${file.name}`
+      console.log('🔄 Starting resume upload for file:', file.name)
       
-      // Check if bucket exists and create storage gracefully
-      console.log('Attempting to upload file to resumes bucket...')
+      // Create FormData
+      const formData = new FormData()
+      formData.append('file', file)
       
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('resumes')
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: false
-        })
-
-      if (uploadError) {
-        console.error('Storage upload error:', uploadError)
-        
-        // If bucket doesn't exist, show helpful message
-        if (uploadError.message.includes('Bucket not found') || uploadError.message.includes('bucket')) {
-          toast({
-            title: "Storage Setup Required",
-            description: "Please create a 'resumes' bucket in your Supabase Storage. Go to Storage > Create new bucket > Name: 'resumes' > Make it public",
-            variant: "destructive",
-          })
-          return
-        }
-        
-        throw uploadError
-      }
-
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('resumes')
-        .getPublicUrl(fileName)
-
-      // Extract text content (simplified)
-      let contentText = ''
-      if (file.type.includes('text')) {
-        contentText = await file.text()
-      }
-
-      // Save resume record to database with better error handling
-      const { error: dbError } = await supabase
-        .from('resumes')
-        .insert({
-          user_id: user.id,
-          filename: fileName,
-          original_name: file.name,
-          file_url: publicUrl,
-          file_size: file.size,
-          content_text: contentText,
-          is_default: resumes.length === 0, // First resume is default
-        })
-
-      if (dbError) {
-        console.error('Database insert error:', dbError)
-        
-        // If table doesn't exist, show helpful message
-        if (dbError.message.includes('relation') && dbError.message.includes('does not exist')) {
-          toast({
-            title: "Database Setup Required",
-            description: "Please create the 'resumes' table in your Supabase database. Check the SQL schema in your project documentation.",
-            variant: "destructive",
-          })
-          return
-        }
-        
-        throw dbError
-      }
-
-      await loadUserData() // Reload resumes
-      
-      toast({
-        title: "Success",
-        description: "Resume uploaded successfully!",
+      // Upload using API (try simple method first)
+      const response = await fetch('/api/upload-resume-simple', {
+        method: 'POST',
+        body: formData
       })
+
+      const result = await response.json()
+      console.log('🔍 Upload API Response:', result)
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || result.details || 'Upload failed')
+      }
+
+      console.log('✅ Resume uploaded successfully via API')
+
+      toast({
+        title: "🎉 Resume Uploaded Successfully!",
+        description: `${file.name} has been uploaded and is now available in your resume collection.`,
+      })
+      
+      // Reload user data to show uploaded resume
+      await loadUserData()
+      
     } catch (error: any) {
-      console.error('Error uploading resume:', error)
+      console.error('❌ Resume upload error:', error)
       toast({
         title: "Upload Error",
         description: error.message || "Failed to upload resume. Please try again.",
@@ -334,7 +306,14 @@ export default function ProfilePage() {
         <Tabs defaultValue="profile" className="space-y-6">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="profile">Profile</TabsTrigger>
-            <TabsTrigger value="resumes">Resumes</TabsTrigger>
+            <TabsTrigger value="resumes" className="relative">
+              Resumes
+              {resumes.length > 0 && (
+                <Badge variant="secondary" className="ml-2 h-5 w-5 rounded-full p-0 text-xs">
+                  {resumes.length}
+                </Badge>
+              )}
+            </TabsTrigger>
             <TabsTrigger value="interviews">Interview History</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </TabsList>
@@ -386,11 +365,16 @@ export default function ProfilePage() {
                   Upload and manage your resumes for tailored interview questions
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+              <CardContent className="space-y-6">
+                {/* Upload Section */}
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
                   <Upload className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                  <p className="text-lg font-medium mb-2">Upload Resume</p>
-                  <p className="text-gray-600 mb-4">PDF or text files only</p>
+                  <p className="text-lg font-medium mb-2">
+                    {resumes.length > 0 ? 'Upload Another Resume' : 'Upload Your First Resume'}
+                  </p>
+                  <p className="text-gray-600 mb-4">
+                    PDF, DOC, DOCX, or TXT files (max 5MB)
+                  </p>
                   <Input
                     type="file"
                     accept=".pdf,.txt,.doc,.docx"
@@ -398,30 +382,166 @@ export default function ProfilePage() {
                     disabled={loading}
                     className="max-w-xs mx-auto"
                   />
+                  {loading && (
+                    <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <div className="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                        <div>
+                          <p className="text-sm font-medium text-blue-900">Uploading your resume...</p>
+                          <p className="text-xs text-blue-700">Please wait while we process your file</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
-                {resumes.length > 0 && (
-                  <div className="space-y-3">
-                    <h3 className="font-medium">Your Resumes</h3>
-                    {resumes.map((resume) => (
-                      <div key={resume.id} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <FileText className="h-5 w-5 text-blue-500" />
-                          <div>
-                            <p className="font-medium">{resume.original_name}</p>
-                            <p className="text-sm text-gray-600">
-                              Uploaded {new Date(resume.created_at).toLocaleDateString()}
-                            </p>
+                {/* Resumes List */}
+                {resumes.length > 0 ? (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold">Your Resumes ({resumes.length})</h3>
+                      <Badge variant="outline" className="text-xs">
+                        {resumes.filter(r => r.is_default).length > 0 ? 'Default Set' : 'No Default'}
+                      </Badge>
+                    </div>
+                    
+                    <div className="grid gap-3">
+                      {resumes.map((resume, index) => (
+                        <div key={resume.id} className="flex items-center justify-between p-4 border rounded-lg bg-white shadow-sm hover:shadow-md transition-shadow">
+                          <div className="flex items-center space-x-4">
+                            <div className="flex-shrink-0">
+                              <FileText className="h-8 w-8 text-blue-500" />
+                            </div>
+                            <div className="flex-grow">
+                              <div className="flex items-center space-x-2">
+                                <p className="font-medium text-gray-900">{resume.original_name}</p>
+                                {resume.is_default && (
+                                  <Badge variant="default" className="text-xs">Default</Badge>
+                                )}
+                              </div>
+                              <div className="flex items-center space-x-4 text-sm text-gray-600 mt-1">
+                                <span>
+                                  📅 {new Date(resume.created_at).toLocaleDateString('en-US', {
+                                    year: 'numeric',
+                                    month: 'short',
+                                    day: 'numeric'
+                                  })}
+                                </span>
+                                <span>
+                                  📁 {(resume.file_size / 1024).toFixed(1)} KB
+                                </span>
+                              </div>
+                            </div>
                           </div>
-                          {resume.is_default && (
-                            <Badge variant="secondary">Default</Badge>
-                          )}
+                          
+                          <div className="flex items-center space-x-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => {
+                                // View resume - handle both base64 and URL formats
+                                if (resume.file_url.startsWith('data:')) {
+                                  // For base64 data, create a download link
+                                  const link = document.createElement('a')
+                                  link.href = resume.file_url
+                                  link.download = resume.original_name
+                                  document.body.appendChild(link)
+                                  link.click()
+                                  document.body.removeChild(link)
+                                  
+                                  toast({
+                                    title: "Resume Downloaded",
+                                    description: `${resume.original_name} has been downloaded to your computer`,
+                                  })
+                                } else {
+                                  // For regular URLs, open in new tab
+                                  window.open(resume.file_url, '_blank')
+                                }
+                              }}
+                            >
+                              📄 View/Download
+                            </Button>
+                            
+                            {!resume.is_default && (
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={async () => {
+                                  try {
+                                    const { error } = await supabase
+                                      .from('resumes')
+                                      .update({ is_default: false })
+                                      .eq('user_id', user.id)
+                                    
+                                    if (!error) {
+                                      const { error: setDefaultError } = await supabase
+                                        .from('resumes')
+                                        .update({ is_default: true })
+                                        .eq('id', resume.id)
+                                      
+                                      if (!setDefaultError) {
+                                        await loadUserData()
+                                        toast({
+                                          title: "Success",
+                                          description: "Default resume updated!",
+                                        })
+                                      }
+                                    }
+                                  } catch (error) {
+                                    toast({
+                                      title: "Error",
+                                      description: "Failed to set as default",
+                                      variant: "destructive",
+                                    })
+                                  }
+                                }}
+                              >
+                                ⭐ Set Default
+                              </Button>
+                            )}
+                            
+                            <Button 
+                              variant="destructive" 
+                              size="sm"
+                              onClick={async () => {
+                                if (confirm('Are you sure you want to delete this resume?')) {
+                                  try {
+                                    const { error } = await supabase
+                                      .from('resumes')
+                                      .delete()
+                                      .eq('id', resume.id)
+                                    
+                                    if (!error) {
+                                      await loadUserData()
+                                      toast({
+                                        title: "Success",
+                                        description: "Resume deleted successfully!",
+                                      })
+                                    } else {
+                                      throw error
+                                    }
+                                  } catch (error) {
+                                    toast({
+                                      title: "Error",
+                                      description: "Failed to delete resume",
+                                      variant: "destructive",
+                                    })
+                                  }
+                                }
+                              }}
+                            >
+                              🗑️ Delete
+                            </Button>
+                          </div>
                         </div>
-                        <Button variant="outline" size="sm">
-                          View
-                        </Button>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <FileText className="h-16 w-16 mx-auto text-gray-300 mb-4" />
+                    <p className="text-gray-600 mb-2">No resumes uploaded yet</p>
+                    <p className="text-sm text-gray-500">Upload your first resume to get started with personalized interviews</p>
                   </div>
                 )}
               </CardContent>

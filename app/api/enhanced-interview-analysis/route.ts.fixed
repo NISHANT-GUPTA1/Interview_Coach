@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyEnvironment } from '@/lib/verify-env';
 
 interface InterviewAnswer {
   questionId: string;
@@ -21,9 +20,6 @@ interface AnalysisRequest {
   isLastAttempt?: boolean;
   forceRealTime?: boolean; // When true, NEVER use fallbacks, return error instead
 }
-
-// Verify environment variables are loaded
-const envCheck = verifyEnvironment();
 
 // Normalize field names from different languages to English standard
 function normalizeAnalysisFields(analysis: any, language: string): any {
@@ -114,8 +110,8 @@ export async function POST(req: NextRequest) {
     // MANDATORY: Check for OpenRouter API key - required for real-time analysis
     const openrouterKey = process.env.OPENROUTER_API_KEY;
     
-    if (!openrouterKey) {
-      console.error('❌ NO OPENROUTER API KEY - Cannot generate real-time analysis');
+    if (!openrouterKey || openrouterKey.includes('dummy')) {
+      console.error('❌ NO VALID OPENROUTER API KEY - Cannot generate real-time analysis');
       return NextResponse.json({
         success: false,
         error: 'OpenRouter API key required for real-time analysis',
@@ -125,9 +121,15 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    // Force real-time mode always - we always want to use the API
-    const isRealTimeRequest = true;
-    const forceRealTime = true;
+    // Check request headers for real-time prioritization and force flags
+    const isRealTimeRequest = req.headers.get('X-Real-Time-Analysis') === 'true' || 
+                              req.headers.get('X-Use-OpenRouter') === 'true' ||
+                              body.isRealTime === true || 
+                              body.useOpenRouter === true;
+    
+    // Check for force real-time flag - this means NEVER use fallback
+    const forceRealTime = req.headers.get('X-Force-Real-Time') === 'true' || 
+                          body.forceRealTime === true;
     
     // Log request info
     console.log('📱 Analysis request details:', { 
@@ -137,11 +139,17 @@ export async function POST(req: NextRequest) {
       answerCount: body.answers?.length || 0 
     });
     
-    // REAL-TIME ONLY MODE - NO FALLBACKS 
+    // REAL-TIME ONLY MODE - NO FALLBACKS
     try {
-      console.log('🚀 Generating REAL-TIME AI analysis using OpenRouter...');
+      console.log('🚀 Generating REAL-TIME AI analysis using OpenRouter ONLY...');
       
-      // ATTEMPT OPENROUTER ANALYSIS FIRST (PRIORITIZED)
+      // STRICT MODE CHECK: Always enforce real-time mode
+      const forceRealTimeMode = true; // Always force real-time mode
+      
+      if (forceRealTimeMode) {
+        console.log('⚠️ STRICT REAL-TIME ONLY MODE ENABLED: No fallbacks will be used');
+      }
+      
       const openrouterResult = await tryOpenRouterAnalysis(body);
       
       if (openrouterResult.success) {
@@ -155,62 +163,26 @@ export async function POST(req: NextRequest) {
           generated: 'real-time',
           timestamp: new Date().toISOString()
         });
-      } 
-      
-      // If OpenRouter fails, try OpenAI as backup
-      try {
-        console.log('🧠 OpenRouter failed, trying OpenAI analysis as backup...');
-        const openaiResult = await tryOpenAIAnalysis(body);
-        
-        if (openaiResult.success) {
-          console.log('✅ OpenAI analysis completed successfully');
-          return NextResponse.json({
-            ...openaiResult,
-            real: true,
-            isRealTime: true,
-            provider: 'OpenAI',
-            generated: 'real-time',
-            timestamp: new Date().toISOString()
-          });
-        } else {
-          console.log('⚠️ OpenAI analysis also failed');
-          // Both APIs failed, move on to fallbacks
-        }
-      } catch (openaiError) {
-        console.log('⚠️ OpenAI analysis error:', openaiError);
+      } else {
+        throw new Error(openrouterResult.reason || 'OpenRouter analysis failed');
       }
-      
-      // Only go to fallbacks if both API methods fail
-      console.log('⚠️ All API analysis attempts failed, creating ENHANCED fallback...');
-      
-      // Create a good-enough fallback for testing
-      const fallbackAnalysis = createEnhancedFallback(body);
-      
-      return NextResponse.json({
-        success: true,
-        analysis: fallbackAnalysis,
-        source: 'enhanced-fallback',
-        real: false,
-        isRealTime: false,
-        provider: 'Fallback',
-        generated: 'synthetic',
-        timestamp: new Date().toISOString()
-      });
     } catch (error) {
-      console.error('❌ All real-time analysis methods failed:', error);
+      console.error('❌ OpenRouter analysis failed:', error);
       
-      // Create emergency fallback
-      const emergencyFallback = createEmergencyFallback(body);
+      // ALWAYS USE REAL-TIME ONLY MODE - NO FALLBACKS EVER
+      console.error('❌ REAL-TIME ONLY MODE ENFORCED: No fallbacks allowed');
       
+      // For real-time only mode, return error without fallback
       return NextResponse.json({
-        success: true,
-        analysis: emergencyFallback,
-        message: 'Using emergency fallback due to API failures',
+        success: false,
+        error: 'Real-time analysis generation failed',
+        message: 'OpenRouter API failed. Real-time analysis is required - no fallback analysis will be provided.',
+        details: error instanceof Error ? error.message : 'Unknown error',
+        analysis: null,
         real: false,
         isRealTime: false,
-        provider: 'Emergency-Fallback',
-        timestamp: new Date().toISOString()
-      });
+        provider: null
+      }, { status: 500 });
     }
   } catch (error) {
     console.error('❌ Enhanced Analysis API error:', error);
@@ -284,22 +256,19 @@ async function tryOpenAIAnalysis(data: AnalysisRequest) {
 
 async function tryOpenRouterAnalysis(data: AnalysisRequest) {
   const apiKey = process.env.OPENROUTER_API_KEY;
-  if (!apiKey) {
-    console.log('⚠️ OpenRouter API key not found');
-    return { success: false, error: 'OpenRouter API key is missing' };
+  if (!apiKey || apiKey.includes('dummy')) {
+    console.log('⚠️ OpenRouter API key not found or is dummy');
+    return { success: false, error: 'OpenRouter API key is missing or invalid' };
   }
   
-  // Log key availability (but not the key itself for security)
-  console.log('✅ OpenRouter API key found, key prefix:', apiKey.substring(0, 10) + '...');
-  
-  // Skip OpenRouter only if explicitly forced to use fallback
+  // Don't use OpenRouter if explicitly asked to use fallback (for debugging/testing)
   if (data.forceFallback === true) {
     console.log('⚠️ Forced fallback requested, skipping OpenRouter');
     return { success: false, error: 'Forced fallback requested' };
   }
 
   try {
-    const analysisPrompt = createDetailedAnalysisPrompt(data);
+    const analysisPrompt = createAnalysisPrompt(data);
     const { language } = data;
     
     console.log('🔑 OpenRouter API Key available, attempting analysis...');
@@ -307,33 +276,18 @@ async function tryOpenRouterAnalysis(data: AnalysisRequest) {
     
     // Enhanced system prompt for better language handling and JSON output
     const systemPrompt = language === 'hi' 
-      ? 'आप एक विशेषज्ञ तकनीकी साक्षात्कारकर्ता हैं। साक्षात्कार का विश्लेषण करें और केवल valid JSON format में हिंदी में उत्तर दें। कोई markdown, comments या extra text न दें - केवल pure JSON। पूरा विश्लेषण प्रदान करें जिसमें प्रत्येक प्रश्न का मूल्यांकन, समग्र स्कोर, मज़बूत पक्ष और सुधार के क्षेत्र शामिल हों।'
+      ? 'आप एक विशेषज्ञ तकनीकी साक्षात्कारकर्ता हैं। साक्षात्कार का विश्लेषण करें और केवल valid JSON format में हिंदी में उत्तर दें। कोई markdown, comments या extra text न दें - केवल pure JSON।'
       : language === 'pa'
-      ? 'ਤੁਸੀਂ ਇੱਕ ਮਾਹਿਰ ਤਕਨੀਕੀ ਇੰਟਰਵਿਊਅਰ ਹੋ। ਇੰਟਰਵਿਊ ਦਾ ਵਿਸ਼ਲੇਸ਼ਣ ਕਰੋ ਅਤੇ ਸਿਰਫ਼ valid JSON format ਵਿੱਚ ਪੰਜਾਬੀ ਵਿੱਚ ਜਵਾਬ ਦਿਓ। ਕੋਈ markdown ਜਾਂ extra text ਨਹੀਂ - ਸਿਰਫ਼ pure JSON। ਪੂਰਾ ਵਿਸ਼ਲੇਸ਼ਣ ਪ੍ਰਦਾਨ ਕਰੋ।'
+      ? 'ਤੁਸੀਂ ਇੱਕ ਮਾਹਿਰ ਤਕਨੀਕੀ ਇੰਟਰਵਿਊਅਰ ਹੋ। ਇੰਟਰਵਿਊ ਦਾ ਵਿਸ਼ਲੇਸ਼ਣ ਕਰੋ ਅਤੇ ਸਿਰਫ਼ valid JSON format ਵਿੱਚ ਪੰਜਾਬੀ ਵਿੱਚ ਜਵਾਬ ਦਿਓ। ਕੋਈ markdown ਜਾਂ extra text ਨਹੀਂ - ਸਿਰਫ਼ pure JSON।'
       : language === 'ta'
-      ? 'நீங்கள் ஒரு நிபுணத்துவம் வாய்ந்த தொழில்நுட்ப நேர்காணல் நடத்துபவர். நேர்காணலை பகுப்பாய்வு செய்து valid JSON format இல் தமிழில் மட்டும் பதில் அளிக்கவும். markdown அல்லது extra text வேண்டாம் - pure JSON மட்டும். முழு பகுப்பாய்வு வழங்கவும்.'
+      ? 'நீங்கள் ஒரு நிபுணத்துவம் வாய்ந்த தொழில்நுட்ப நேர்காணல் நடத்துபவர். நேர்காணலை பகுப்பாய்வு செய்து valid JSON format இல் தமிழில் மட்டும் பதில் அளிக்கவும். markdown அல்லது extra text வேண்டாம் - pure JSON மட்டும்.'
       : language === 'te'
-      ? 'మీరు ఒక నిపుణుడైన సాంకేతిక ఇంటర్వ్యూయర్. ఇంటర్వ్యూ విశ్లేషించి valid JSON format లో తెలుగులో మాత్రమే సమాధానం ఇవ్వండి। markdown లేదా extra text వద్దు - pure JSON మాత్రమే. పూర్తి విశ్లేషణ అందించండి.'
-      : language === 'es'
-      ? 'Usted es un entrevistador técnico experto. Analice la entrevista y responda SOLO en formato JSON válido en español. Sin markdown, comentarios o texto adicional - solo JSON puro. Proporcione un análisis completo que incluya evaluación de cada pregunta, puntuación general, puntos fuertes y áreas de mejora.'
-      : language === 'fr'
-      ? 'Vous êtes un intervieweur technique expert. Analysez l\'entretien et répondez UNIQUEMENT au format JSON valide en français. Pas de markdown, de commentaires ou de texte supplémentaire - juste du JSON pur. Fournissez une analyse complète comprenant l\'évaluation de chaque question, le score global, les points forts et les domaines à améliorer.'
-      : language === 'de'
-      ? 'Sie sind ein erfahrener technischer Interviewer. Analysieren Sie das Interview und antworten Sie NUR im gültigen JSON-Format auf Deutsch. Kein Markdown, keine Kommentare oder zusätzlicher Text - nur reines JSON. Stellen Sie eine vollständige Analyse bereit, die die Bewertung jeder Frage, die Gesamtpunktzahl, Stärken und Verbesserungsbereiche umfasst.'
-      : 'You are an expert technical interviewer. Analyze the interview and respond ONLY in valid JSON format. No markdown, comments, or extra text - just pure JSON. Provide a comprehensive analysis including evaluation of each question, overall score, strengths, and areas for improvement.';
-    
-    // Select the most appropriate model based on task requirements
-    const preferredModel = process.env.OPENROUTER_MODEL || 'anthropic/claude-3-opus:beta';
-    const fallbackModels = [
-      'anthropic/claude-3-sonnet:beta',
-      'google/gemini-1.5-pro',
-      'google/gemini-pro',
-      'meta-llama/llama-3-70b-instruct',
-      'mistralai/mistral-large',
-      'qwen/qwen-2-72b-instruct'
-    ];
-    
-    console.log(`🤖 Using primary model: ${preferredModel}`);
+      ? 'మీరు ఒక నిపుణుడైన సాంకేతిక ఇంటర్వ్యూయర్. ఇంటర్వ్యూ విశ్లేషించి valid JSON format లో తెలుగులో మాత్రమే సమాధానం ఇవ్వండి। markdown లేదా extra text వద్దు - pure JSON మాత్రమే.'
+      : language === 'kn'
+      ? 'ನೀವು ಒಬ್ಬ ನಿಪುಣ ತಾಂತ್ರಿಕ ಸಂದರ್ಶಕ. ಸಂದರ್ಶನವನ್ನು ವಿಶ್ಲೇಷಿಸಿ ಮತ್ತು valid JSON format ನಲ್ಲಿ ಕನ್ನಡದಲ್ಲಿ ಮಾತ್ರ ಉತ್ತರಿಸಿ. markdown ಅಥವಾ extra text ಬೇಡ - pure JSON ಮಾತ್ರ.'
+      : language === 'ml'
+      ? 'നിങ്ങൾ ഒരു വിദഗ്ധ സാങ്കേതിക അഭിമുഖം നടത്തുന്നയാൾ. അഭിമുഖം വിശകലനം ചെയ്ത് valid JSON format ൽ മലയാളത്തിൽ മാത്രം ഉത്തരം നൽകുക. markdown അല്ലെങ്കിൽ extra text വേണ്ട - pure JSON മാത്രം.'
+      : 'You are an expert technical interviewer. Analyze the interview and respond ONLY in valid JSON format. No markdown, comments, or extra text - just pure JSON.';
     
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
@@ -341,13 +295,10 @@ async function tryOpenRouterAnalysis(data: AnalysisRequest) {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
         'HTTP-Referer': process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000',
-        'X-Title': 'AI Interview Coach',
-        'X-Priority': 'high', // Request high priority processing
-        'X-Request-ID': `interview-${Date.now()}` // Unique request ID for tracking
+        'X-Title': 'AI Interview Coach'
       },
       body: JSON.stringify({
-        model: preferredModel,
-        fallbacks: fallbackModels, // Fallback models if primary is unavailable
+        model: process.env.OPENROUTER_MODEL || 'qwen/qwen-2-72b-instruct', // Use your configured model
         messages: [
           {
             role: 'system',
@@ -355,13 +306,12 @@ async function tryOpenRouterAnalysis(data: AnalysisRequest) {
           },
           {
             role: 'user',
-            content: analysisPrompt + '\n\nCRITICAL REQUIREMENTS:\n1. Return ONLY valid JSON - no explanations or text outside JSON\n2. Include ALL required fields: overallScore, strengths, improvements, recommendations, questionAnalysis (array), statistics\n3. For each question in questionAnalysis, include: questionId, questionText, answerText, score, technicalAccuracy, communicationClarity, completeness, strengths, weaknesses, suggestions, expectedAnswer\n4. Respond in ' + language + ' language only\n5. Format example: {"overallScore": 85, "strengths": ["Clear answers", "Good technical knowledge"], "improvements": ["More details needed"], "questionAnalysis": [{"questionId": "q1", "questionText": "Tell me about yourself", "answerText": "...", "score": 80, "technicalAccuracy": 75, "communicationClarity": 85, "completeness": 70, "strengths": ["Point 1"], "weaknesses": ["Point 1"], "suggestions": ["Suggestion"], "expectedAnswer": "A good answer would..."}], "statistics": {"totalQuestions": 4, "averageResponseLength": 150, "totalInterviewTime": "10m 30s", "keywordsUsed": 25, "expectedKeywords": 30, "confidenceLevel": "Good"}}'
+            content: analysisPrompt + '\n\nCRITICAL REQUIREMENTS:\n1. Return ONLY valid JSON - no explanations\n2. Keep it SHORT and SIMPLE\n3. Maximum 3 items in each array\n4. Use short phrases (max 20 words per string)\n5. No nested objects except breakdown\n6. Format: {"overallScore": 85, "breakdown": {"technical": 80, "communication": 85}, "feedback": "Good performance", "strengths": ["Clear answers", "Good knowledge"], "improvements": ["More details", "Better examples"]}'
           }
         ],
-        max_tokens: 4000, // Allow for comprehensive analysis
+        max_tokens: 800, // Increase to avoid truncation
         temperature: 0.1, // Very low for consistent, clean responses
-        top_p: 0.95,
-        response_format: { "type": "json_object" } // Request JSON response format if supported
+        top_p: 0.9
       })
     });
 
@@ -842,96 +792,15 @@ async function tryOpenRouterAnalysis(data: AnalysisRequest) {
 }
 
 function createAnalysisPrompt(data: AnalysisRequest): string {
-  // Choose between detailed and short prompt based on context
-  return data.forceRealTime ? createDetailedAnalysisPrompt(data) : createShortAnalysisPrompt(data);
-}
-
-// Detailed prompt for comprehensive analysis
-function createDetailedAnalysisPrompt(data: AnalysisRequest): string {
-  const { answers, role, experience, language, interviewDuration } = data;
-  
-  const langInfo = language === 'fr' ? 'French' : 
-                  language === 'de' ? 'German' : 
-                  language === 'es' ? 'Spanish' : 
-                  language === 'hi' ? 'Hindi' :
-                  language === 'pa' ? 'Punjabi' :
-                  language === 'ta' ? 'Tamil' :
-                  language === 'te' ? 'Telugu' :
-                  language === 'kn' ? 'Kannada' :
-                  language === 'ml' ? 'Malayalam' : 
-                  'English';
-  
-  // Build a comprehensive prompt with full answer content
-  return `Analyze this ${role} interview (${experience} experience) thoroughly. Respond in ${langInfo} language ONLY as valid JSON.
-
-INTERVIEW DETAILS:
-- Role: ${role}
-- Experience level: ${experience}
-- Interview duration: ${Math.floor((interviewDuration || 0) / 60)} minutes ${(interviewDuration || 0) % 60} seconds
-- Questions and answers: ${answers.length}
-
-QUESTIONS AND ANSWERS:
-${answers.map((a, i) => `Question ${i+1}: "${a.questionText}"
-Answer: "${a.answerText}"
----`).join('\n')}
-
-ANALYSIS INSTRUCTIONS:
-1. Evaluate each answer for technical accuracy, communication clarity, and completeness
-2. Provide an overall score (0-100)
-3. List key strengths (3-5 items)
-4. List areas for improvement (3-5 items)
-5. Provide practical recommendations (3-5 items)
-6. All text MUST be in ${langInfo} language ONLY
-7. Include detailed statistics about the interview
-8. For each question, include specific strengths, weaknesses and suggestions
-9. Include an example of a good expected answer for each question
-
-JSON RESPONSE FORMAT:
-{
-  "overallScore": 85,
-  "strengths": ["Strength 1", "Strength 2", "Strength 3"],
-  "improvements": ["Area for improvement 1", "Area for improvement 2", "Area for improvement 3"],
-  "recommendations": ["Recommendation 1", "Recommendation 2", "Recommendation 3"],
-  "questionAnalysis": [
-    {
-      "questionId": "q1",
-      "questionText": "Question text",
-      "answerText": "Answer text",
-      "score": 80,
-      "technicalAccuracy": 75,
-      "communicationClarity": 85,
-      "completeness": 70,
-      "strengths": ["Strength 1", "Strength 2"],
-      "weaknesses": ["Weakness 1", "Weakness 2"],
-      "suggestions": ["Suggestion 1", "Suggestion 2"],
-      "expectedAnswer": "A good answer would include..."
-    }
-  ],
-  "statistics": {
-    "totalQuestions": ${answers.length},
-    "averageResponseLength": 150,
-    "totalInterviewTime": "${Math.floor((interviewDuration || 0) / 60)}m ${(interviewDuration || 0) % 60}s",
-    "keywordsUsed": 25,
-    "expectedKeywords": 35,
-    "confidenceLevel": "Good"
-  }
-}`;
+  // Use SHORT prompt to avoid token limits
+  return createShortAnalysisPrompt(data);
 }
 
 // ULTRA-SHORT prompt to stay within token limits
 function createShortAnalysisPrompt(data: AnalysisRequest): string {
   const { answers, role, experience, language } = data;
   
-  const langInfo = language === 'fr' ? 'French' : 
-                  language === 'de' ? 'German' : 
-                  language === 'es' ? 'Spanish' : 
-                  language === 'hi' ? 'Hindi' :
-                  language === 'pa' ? 'Punjabi' :
-                  language === 'ta' ? 'Tamil' :
-                  language === 'te' ? 'Telugu' :
-                  language === 'kn' ? 'Kannada' :
-                  language === 'ml' ? 'Malayalam' : 
-                  'English';
+  const langInfo = language === 'fr' ? 'French' : language === 'de' ? 'German' : language === 'es' ? 'Spanish' : 'English';
   
   return `Analyze ${role} interview (${experience}). Respond in ${langInfo} using this JSON:
 
@@ -945,30 +814,7 @@ JSON Response:
   "feedback": "Brief analysis in ${langInfo}",
   "strengths": ["Strength 1 in ${langInfo}", "Strength 2 in ${langInfo}"],
   "improvements": ["Improvement 1 in ${langInfo}"],
-  "recommendations": ["Recommendation 1 in ${langInfo}"],
-  "questionAnalysis": [
-    {
-      "questionId": "q1",
-      "questionText": "First question",
-      "answerText": "First answer",
-      "score": 80,
-      "technicalAccuracy": 75,
-      "communicationClarity": 85,
-      "completeness": 70,
-      "strengths": ["Strength 1"],
-      "weaknesses": ["Weakness 1"],
-      "suggestions": ["Suggestion 1"],
-      "expectedAnswer": "A good answer would include..."
-    }
-  ],
-  "statistics": {
-    "totalQuestions": ${answers.length},
-    "averageResponseLength": 150,
-    "totalInterviewTime": "15m 0s",
-    "keywordsUsed": 25,
-    "expectedKeywords": 35,
-    "confidenceLevel": "Good"
-  }
+  "recommendations": ["Recommendation 1 in ${langInfo}"]
 }`;
 }
 
@@ -1069,144 +915,4 @@ function generateDynamicRecommendations(questionAnalysis: any[], role: string, o
   if (lowScoringQuestions.length > 0) recommendations.push(lang.extra_preparation);
   
   return recommendations;
-}
-
-// Create enhanced fallback with better generation
-function createEnhancedFallback(data: AnalysisRequest) {
-  console.log('🔧 Creating enhanced fallback analysis');
-  const { answers, role, experience, language } = data;
-  
-  // Basic score calculation based on answer length and content
-  const getScoreFromAnswer = (answer: string) => {
-    // Calculate a pseudo-score based on answer length and content
-    const length = answer.length;
-    const hasGoodKeywords = /\b(experience|skill|project|challenge|solution|learn|accomplish|improve|success)\b/i.test(answer);
-    const hasTechnicalTerms = /\b(code|algorithm|system|design|architecture|framework|library|api|database|cloud|infrastructure)\b/i.test(answer);
-    
-    let score = 70; // Base score
-    
-    // Length factor (longer answers typically better, up to a point)
-    if (length > 500) score += 15;
-    else if (length > 300) score += 10;
-    else if (length > 150) score += 5;
-    else if (length < 50) score -= 10;
-    
-    // Content quality factors
-    if (hasGoodKeywords) score += 5;
-    if (hasTechnicalTerms) score += 5;
-    
-    // Add slight randomization
-    score += Math.floor(Math.random() * 6) - 2;
-    
-    // Clamp to 0-100 range
-    return Math.max(0, Math.min(100, score));
-  };
-  
-  // Calculate overall score as average of individual question scores
-  const questionScores = answers.map(answer => getScoreFromAnswer(answer.answerText));
-  const overallScore = Math.round(questionScores.reduce((a, b) => a + b, 0) / questionScores.length);
-  
-  // Generate specific feedback based on role
-  const strengths = [
-    `Demonstrated good understanding of ${role} concepts`,
-    `Provided structured responses to interview questions`,
-    `Showed enthusiasm for the ${role} position`
-  ];
-  
-  const improvements = [
-    `Consider adding more specific examples from your ${experience} experience`,
-    `Provide more detailed technical explanations where appropriate`,
-    `Structure answers with situation, task, action, and result format`
-  ];
-  
-  const recommendations = [
-    `Practice more ${role}-specific interview questions`,
-    `Research current trends in ${role.toLowerCase()} field`,
-    `Prepare 3-5 strong examples of past projects or challenges`
-  ];
-  
-  // Generate question analysis
-  const questionAnalysis = answers.map((answer, index) => {
-    const score = questionScores[index];
-    const techScore = score + Math.floor(Math.random() * 10) - 5;
-    const commScore = score + Math.floor(Math.random() * 10) - 5;
-    const compScore = score + Math.floor(Math.random() * 10) - 5;
-    
-    return {
-      questionId: answer.questionId,
-      questionText: answer.questionText,
-      answerText: answer.answerText,
-      score: score,
-      strengths: [
-        "Good understanding of core concepts",
-        "Clear communication style"
-      ],
-      weaknesses: [
-        "Could provide more specific examples",
-        "Add more detail to technical explanations"
-      ],
-      suggestions: [
-        "Use the STAR method for structured responses",
-        "Mention specific technologies or methods used"
-      ],
-      expectedAnswer: `For this question about ${answer.questionText.substring(0, 30)}..., consider highlighting your experience with relevant projects and specific technical skills. Focus on concrete examples that demonstrate your problem-solving abilities and how you approach challenges in a ${role} role.`,
-      technicalAccuracy: techScore,
-      communicationClarity: commScore,
-      completeness: compScore
-    };
-  });
-  
-  return {
-    overallScore,
-    strengths,
-    improvements,
-    recommendations,
-    questionAnalysis,
-    statistics: {
-      totalQuestions: answers.length,
-      averageResponseLength: Math.round(answers.reduce((sum, a) => sum + a.answerText.length, 0) / answers.length),
-      totalInterviewTime: `${Math.floor((data.interviewDuration || 600) / 60)}m ${(data.interviewDuration || 600) % 60}s`,
-      keywordsUsed: Math.floor(Math.random() * 10) + 20,
-      expectedKeywords: Math.floor(Math.random() * 10) + 30,
-      confidenceLevel: overallScore >= 85 ? "Excellent" : overallScore >= 70 ? "Good" : "Fair"
-    }
-  };
-}
-
-// Create emergency fallback for when all else fails
-function createEmergencyFallback(data: AnalysisRequest) {
-  console.log('🚨 Creating EMERGENCY fallback analysis');
-  
-  const { answers, language } = data;
-  const defaultScore = 75;
-  
-  const questionAnalysis = answers.map((answer) => ({
-    questionId: answer.questionId,
-    questionText: answer.questionText,
-    answerText: answer.answerText,
-    score: defaultScore,
-    strengths: ["Good attempt at answering the question", "Showed understanding of topic"],
-    weaknesses: ["Could be more detailed", "Add specific examples"],
-    suggestions: ["Practice similar questions", "Structure answers more clearly"],
-    expectedAnswer: "A good answer would include specific examples from your experience and clear explanations of your approach to the problem.",
-    technicalAccuracy: defaultScore,
-    communicationClarity: defaultScore,
-    completeness: defaultScore
-  }));
-  
-  return {
-    overallScore: defaultScore,
-    strengths: ["Completed the interview process", "Answered all questions"],
-    improvements: ["Add more specific examples", "Provide more detailed responses"],
-    recommendations: ["Practice more interview questions", "Research the role requirements"],
-    questionAnalysis,
-    statistics: {
-      totalQuestions: answers.length,
-      averageResponseLength: Math.round(answers.reduce((sum, a) => sum + a.answerText.length, 0) / answers.length),
-      totalInterviewTime: "15m 0s",
-      keywordsUsed: 20,
-      expectedKeywords: 30,
-      confidenceLevel: "Good"
-    }
-  };
 }

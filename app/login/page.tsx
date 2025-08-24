@@ -8,17 +8,34 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Checkbox } from '@/components/ui/checkbox'
 import { useAuth } from '@/contexts/SupabaseAuthContext'
 import { useToast } from '@/hooks/use-toast'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [rememberMe, setRememberMe] = useState(false)
   const [error, setError] = useState('')
   const router = useRouter()
   const searchParams = useSearchParams()
   const { toast } = useToast()
   const { signIn, signInWithGoogle, loading, user } = useAuth()
+
+  // Load saved credentials if remember me was checked
+  useEffect(() => {
+    const savedEmail = localStorage.getItem('rememberedEmail')
+    const savedPassword = localStorage.getItem('rememberedPassword')
+    const wasRemembered = localStorage.getItem('rememberMe') === 'true'
+    
+    if (wasRemembered && savedEmail) {
+      setEmail(savedEmail)
+      setRememberMe(true)
+      if (savedPassword) {
+        setPassword(savedPassword)
+      }
+    }
+  }, [])
 
   // Check if Supabase is configured
   const isSupabaseConfigured = !!(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
@@ -46,6 +63,17 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+
+    // Save credentials if remember me is checked
+    if (rememberMe) {
+      localStorage.setItem('rememberedEmail', email)
+      localStorage.setItem('rememberedPassword', password)
+      localStorage.setItem('rememberMe', 'true')
+    } else {
+      localStorage.removeItem('rememberedEmail')
+      localStorage.removeItem('rememberedPassword')
+      localStorage.removeItem('rememberMe')
+    }
 
     const { data, error } = await signIn(email, password)
 
@@ -132,6 +160,20 @@ export default function LoginPage() {
                 required
                 disabled={loading}
               />
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="rememberMe"
+                checked={rememberMe}
+                onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+              />
+              <Label
+                htmlFor="rememberMe"
+                className="text-sm font-normal cursor-pointer"
+              >
+                Remember my login details
+              </Label>
             </div>
 
             <Button type="submit" className="w-full" disabled={loading || !isSupabaseConfigured}>

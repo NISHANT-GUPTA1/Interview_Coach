@@ -29,11 +29,12 @@ export default function WorkingInterviewPage() {
   const [interviewTimer, setInterviewTimer] = useState(0)
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   
-  // Speech recognition states
+  // Speech recognition states with better error handling
   const [isListening, setIsListening] = useState(false)
   const [interimText, setInterimText] = useState("")
   const [speechError, setSpeechError] = useState<string | null>(null)
   const [isRecognitionInitialized, setIsRecognitionInitialized] = useState(false)
+  const [errorCount, setErrorCount] = useState(0) // Track errors for better recovery
   const [isClientSideReady, setIsClientSideReady] = useState(false)
   
   // Translation states
@@ -211,7 +212,7 @@ export default function WorkingInterviewPage() {
     }
   }
 
-  // Initialize speech recognition with enhanced service
+  // Initialize speech recognition with enhanced service and improved error handling
   const initializeSpeechRecognition = async () => {
     // Only initialize on client side
     if (typeof window === 'undefined') {
@@ -223,13 +224,25 @@ export default function WorkingInterviewPage() {
     
     // Check for HTTPS requirement
     if (window.location.protocol === 'http:' && window.location.hostname !== 'localhost') {
-      setSpeechError('Speech recognition requires HTTPS. Please use the HTTPS version of this site.')
+      setSpeechError('🔒 Speech recognition requires HTTPS. Please use the HTTPS version of this site or use the setup-https.bat script to enable local HTTPS.')
+      return
+    }
+    
+    // Check browser compatibility - more detailed browser detection
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
+    const isChrome = /chrome/i.test(navigator.userAgent) && !/edg/i.test(navigator.userAgent)
+    const isEdge = /edg/i.test(navigator.userAgent)
+    const isFirefox = /firefox/i.test(navigator.userAgent)
+    
+    if (!('SpeechRecognition' in window) && !('webkitSpeechRecognition' in window)) {
+      console.log('🎤 Web Speech API not supported in this browser')
+      setSpeechError(`🚫 Speech recognition is not supported in your browser (${isFirefox ? 'Firefox' : 'this browser'}). Please use Chrome, Edge, or Safari for full speech functionality.`)
       return
     }
     
     if (!multiLanguageSpeechService.isReady()) {
       console.log('🎤 Speech service not ready')
-      setSpeechError('Speech recognition not available in this browser. Please use Chrome, Safari, or Edge.')
+      setSpeechError(`🎤 Speech recognition initialization failed. Please try using ${isChrome ? 'the latest version of Chrome' : isEdge ? 'the latest version of Edge' : isSafari ? 'the latest version of Safari' : 'Chrome, Edge, or Safari'}.`)
       return
     }
 
@@ -737,23 +750,40 @@ export default function WorkingInterviewPage() {
     }
   }
 
-  // Start recording function
+  // Start recording function with enhanced error handling
   const startRecording = async () => {
     console.log('🎤 Starting recording...')
     
     if (!isRecognitionInitialized) {
-      setSpeechError('Speech recognition not initialized. Please refresh the page.')
+      setSpeechError('🔄 Speech recognition not initialized. Please refresh the page and allow microphone access when prompted.')
       return
     }
 
     // Double-check microphone permissions before starting
     try {
+      console.log('🎤 Testing microphone access...')
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
       stream.getTracks().forEach(track => track.stop()) // Stop immediately after testing
       console.log('🎤 Microphone available for recording')
     } catch (error) {
       console.error('🎤 Microphone not available:', error)
-      setSpeechError('Microphone not available. Please ensure microphone permissions are granted.')
+      
+      // More specific error messages based on error type
+      if (error instanceof DOMException) {
+        if (error.name === 'NotAllowedError') {
+          setSpeechError('🎤 Microphone access denied. Please click the padlock icon in your browser address bar and allow microphone access, then refresh the page.')
+        } else if (error.name === 'NotFoundError') {
+          setSpeechError('🎤 No microphone found. Please ensure your microphone is properly connected to your device.')
+        } else if (error.name === 'NotReadableError') {
+          setSpeechError('🎤 Microphone is in use by another application. Please close other applications that might be using your microphone.')
+        } else if (error.name === 'AbortError') {
+          setSpeechError('🎤 Microphone access request was aborted. Please try again.')
+        } else {
+          setSpeechError(`🎤 Microphone error: ${error.name}. Please check your device settings and browser permissions.`)
+        }
+      } else {
+        setSpeechError('🎤 Microphone not available. Please ensure microphone permissions are granted in your browser settings.')
+      }
       return
     }
 
@@ -767,13 +797,27 @@ export default function WorkingInterviewPage() {
             return newAnswer
           })
           setInterimText('')
+          setSpeechError(null) // Clear any previous errors on successful transcription
         } else {
           setInterimText(text)
         }
       },
       (error: string) => {
         console.error('🎤 Recognition error:', error)
-        setSpeechError(`Speech recognition error: ${error}`)
+        
+        // Enhanced error messaging for users
+        if (error.includes('network')) {
+          setSpeechError('🌐 Network issue detected. Please check your internet connection.')
+        } else if (error.includes('no-speech')) {
+          setSpeechError('🔇 No speech detected. Please speak clearly into your microphone.')
+        } else if (error.includes('aborted')) {
+          setSpeechError('⚠️ Speech recognition was interrupted. Try speaking again.')
+        } else if (error.includes('not-allowed')) {
+          setSpeechError('🔒 Microphone access denied. Please allow microphone access in your browser settings.')
+        } else {
+          setSpeechError(`🎤 Speech recognition error: ${error}. Try refreshing the page.`)
+        }
+        
         setIsRecording(false)
         setIsListening(false)
       }

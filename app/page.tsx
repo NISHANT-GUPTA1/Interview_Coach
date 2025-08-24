@@ -13,10 +13,12 @@ import Link from "next/link"
 import { SUPPORTED_LANGUAGES, getLanguagesByCategory, searchLanguages, type Language } from "@/lib/language-service"
 import { useTranslationContext, TranslatedText } from "@/contexts/TranslationContext"
 import { useAuth } from "@/contexts/SupabaseAuthContext"
+import { createSupabaseClient } from "@/lib/supabase"
 
 export default function HomePage() {
   const { language, setLanguage, t } = useTranslationContext()
   const { user, loading: authLoading } = useAuth()
+  const [userProfile, setUserProfile] = useState<any>(null)
   const [selectedRole, setSelectedRole] = useState("Software Engineer")
   const [selectedExperience, setSelectedExperience] = useState("2-3 years")
   const [selectedCount, setSelectedCount] = useState(5)
@@ -25,6 +27,62 @@ export default function HomePage() {
   const [progressValue, setProgressValue] = useState(0)
   const [languageSearch, setLanguageSearch] = useState("")
   const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false)
+
+  // Load user profile to get name
+  useEffect(() => {
+    const loadUserProfile = async () => {
+      if (user) {
+        try {
+          const supabase = createSupabaseClient()
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('name')
+            .eq('id', user.id)
+            .single()
+          
+          if (data && data.name) {
+            setUserProfile(data)
+          } else {
+            // If no profile name, try to get from user metadata
+            const fullName = user.user_metadata?.full_name || 
+                           user.user_metadata?.name ||
+                           user.user_metadata?.display_name
+            if (fullName) {
+              setUserProfile({ name: fullName })
+            }
+          }
+        } catch (error) {
+          console.log('No profile found, using user metadata or email')
+          // Try to get name from user metadata
+          const fullName = user.user_metadata?.full_name || 
+                         user.user_metadata?.name ||
+                         user.user_metadata?.display_name
+          if (fullName) {
+            setUserProfile({ name: fullName })
+          }
+        }
+      }
+    }
+    
+    loadUserProfile()
+  }, [user])
+
+  // Get display name (prefer profile name, then user metadata, fallback to email username)
+  const getDisplayName = () => {
+    if (userProfile?.name) {
+      return userProfile.name
+    }
+    if (user?.user_metadata?.full_name) {
+      return user.user_metadata.full_name
+    }
+    if (user?.user_metadata?.name) {
+      return user.user_metadata.name
+    }
+    if (user?.email) {
+      return user.email.split('@')[0]
+    }
+    return 'User'
+  }
 
   // Get filtered languages based on search
   const filteredLanguages = languageSearch 
@@ -135,7 +193,7 @@ export default function HomePage() {
                 <div className="animate-pulse bg-gray-200 h-8 w-16 rounded"></div>
               ) : user ? (
                 <div className="flex items-center space-x-3">
-                  <span className="text-sm text-gray-600">Welcome, {user.email}</span>
+                  <span className="text-sm text-gray-600">Welcome, {getDisplayName()}</span>
                   <Link href="/profile">
                     <Button variant="outline" size="sm">
                       <User className="h-4 w-4 mr-2" />
